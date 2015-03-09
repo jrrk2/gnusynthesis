@@ -1,0 +1,12 @@
+#directory ".."
+#directory "."
+#print_depth 100;;
+#print_length 100;;
+
+open Conversion
+open Rewrite
+open Ctypes
+open Printf
+open Main
+
+let _ = main "../VhdlTypes.ml"  "../VhdlTree.ml" "outfile.ml" "../asctoken.ml";;

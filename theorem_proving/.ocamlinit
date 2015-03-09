@@ -1,0 +1,96 @@
+(* ========================================================================= *)
+(* Initialize theorem proving example code.                                  *)
+(*                                                                           *)
+(* Copyright (c) 2003-2007, John Harrison. (See "LICENSE.txt" for details.)  *)
+(* ========================================================================= *)
+
+open Format                                         (* Open formatting    *)
+open Num                                            (* Open bignums       *)
+open Lib
+open Intro
+open Formulas
+open Prop
+open Propexamples
+open Defcnf
+open Dp
+open Stal
+open Bdd
+open Fol
+open Skolem
+open Herbrand
+open Unif
+open Tableaux
+open Resolution
+open Prolog
+open Meson
+open Skolems
+open Equal
+open Cong
+open Rewrite
+open Order
+open Completion
+open Eqelim
+open Paramodulation
+open Decidable
+open Qelim
+open Cooper
+open Complex
+open Real
+open Grobner
+open Geom
+open Interpolation
+open Combining
+open Lcf
+open Lcfprop
+open Folderived
+open Lcffol
+open Tactics
+open Limitations
+open Initialization
+open Lib
+open Intro
+open Formulas
+open Prop
+open Propexamples
+open Defcnf
+open Dp
+open Stal
+open Bdd
+open Fol
+open Skolem
+open Herbrand
+open Unif
+open Tableaux
+open Resolution
+open Prolog
+open Meson
+open Skolems
+open Equal
+open Cong
+open Rewrite
+open Order
+open Completion
+open Eqelim
+open Paramodulation
+open Decidable
+open Qelim
+open Cooper
+open Complex
+open Real
+open Grobner
+open Geom
+open Interpolation
+open Combining
+open Lcf
+open Lcfprop
+open Folderived
+open Lcffol
+open Tactics
+open Limitations
+
+#install_printer print_fol_formula;;
+
+let fm = <<(p \/ q /\ r) /\ (~p \/ ~r)>>;;
+
+let fm' = cnf fm;;
+tautology(Iff(fm,fm'));;

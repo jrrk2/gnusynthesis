@@ -1,0 +1,7 @@
+#directory "../ver_front"
+open Vparser
+open Eparse
+open Edif2;;
+
+let tree = eparse "/home/jrrk/d320/ocaml-experiment/jrrk/ml605/self-checking/TOPLEVEL_exectest.edf";;
+let test = test_match EMPTY tree;;

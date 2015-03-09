@@ -1,0 +1,25 @@
+classify.cmo: xdl_parser.cmi tuple.cmi ord.cmi latin.cmo
+classify.cmx: xdl_parser.cmx tuple.cmi ord.cmx latin.cmx
+dump.cmo: xdl_parser.cmi ord.cmi dump.cmi
+dump.cmx: xdl_parser.cmx ord.cmx dump.cmi
+gentuple.cmo: latin.cmo
+gentuple.cmx: latin.cmx
+latin.cmo:
+latin.cmx:
+ord.cmo: xdl_parser.cmi ord.cmi
+ord.cmx: xdl_parser.cmx ord.cmi
+setup.cmo: xdl_parser.cmi ord.cmi setup.cmi
+setup.cmx: xdl_parser.cmx ord.cmx setup.cmi
+tester.cmo: xdl_parser.cmi xdl_parse.cmo setup.cmi dump.cmi classify.cmo
+tester.cmx: xdl_parser.cmx xdl_parse.cmx setup.cmx dump.cmx classify.cmx
+xdl_lexer.cmo: xdl_parser.cmi setup.cmi ord.cmi
+xdl_lexer.cmx: xdl_parser.cmx setup.cmx ord.cmx
+xdl_parse.cmo: xdl_parser.cmi xdl_lexer.cmo setup.cmi ord.cmi
+xdl_parse.cmx: xdl_parser.cmx xdl_lexer.cmx setup.cmx ord.cmx
+xdl_parser.cmo: classify.cmo xdl_parser.cmi
+xdl_parser.cmx: classify.cmx xdl_parser.cmi
+dump.cmi: xdl_parser.cmi
+ord.cmi: xdl_parser.cmi
+setup.cmi: xdl_parser.cmi
+tuple.cmi: xdl_parser.cmi
+xdl_parser.cmi:

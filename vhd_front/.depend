@@ -1,0 +1,25 @@
+VhdlMain.cmo: VhdlTypes.cmo VhdlTree.cmo VhdlSettings.cmo VhdlParser.cmi \
+    vabstraction.cmo
+VhdlMain.cmx: VhdlTypes.cmx VhdlTree.cmx VhdlSettings.cmx VhdlParser.cmx \
+    vabstraction.cmx
+VhdlParser.cmo: VhdlTypes.cmo VhdlParser.cmi
+VhdlParser.cmx: VhdlTypes.cmx VhdlParser.cmi
+VhdlSettings.cmo: VhdlTypes.cmo
+VhdlSettings.cmx: VhdlTypes.cmx
+VhdlTree.cmo: VhdlTypes.cmo
+VhdlTree.cmx: VhdlTypes.cmx
+VhdlTypes.cmo:
+VhdlTypes.cmx:
+asctoken.cmo: VhdlTree.cmo
+asctoken.cmx: VhdlTree.cmx
+combined.cmo: VhdlTree.cmo
+combined.cmx: VhdlTree.cmx
+v2abcgen.cmo: VhdlTypes.cmo VhdlTree.cmo VhdlSettings.cmo VhdlParser.cmi \
+    VhdlMain.cmo vabstraction.cmo
+v2abcgen.cmx: VhdlTypes.cmx VhdlTree.cmx VhdlSettings.cmx VhdlParser.cmx \
+    VhdlMain.cmx vabstraction.cmx
+vabstraction.cmo: VhdlTree.cmo asctoken.cmo
+vabstraction.cmx: VhdlTree.cmx asctoken.cmx
+vconvert.cmo: VhdlTree.cmo vabstraction.cmo combined.cmo asctoken.cmo
+vconvert.cmx: VhdlTree.cmx vabstraction.cmx combined.cmx asctoken.cmx
+VhdlParser.cmi: VhdlTypes.cmo

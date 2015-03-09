@@ -1,0 +1,27 @@
+#print_length 10000;;
+#print_depth 1000;;
+
+open Dump;;
+open Setup;;
+open Classify;;
+open Xdl_parser;;
+
+let rslt = Xdl_parse.parse "../atlys_leds/TOPLEVEL.xdl";;
+let chan=open_out "top_level.marshal";;
+Marshal.to_channel chan rslt [];;
+close_out chan;;
+
+let tuplehash = Hashtbl.create 256;;
+let rslt2 = List.map (Classify.find tuplehash) rslt;;
+let uniq = Hashtbl.length tuplehash;;
+let clst = ref [];;
+Hashtbl.iter (fun k x -> clst := (k,x) :: !clst) tuplehash;;
+let olst = Classify.uniquify tuplehash;;
+let _ = Classify.genpatterns olst;;
+
+List.length rslt;;
+let insts = List.filter (function TLIST[INST; _; _; _; _] -> true | _ -> false) rslt;;
+let nets = List.filter (function TLIST[NET; _; _; _] -> true | _ -> false) rslt;;
+let t=List.nth rslt 4;;
+let TLIST m=t;;
+List.length m;;

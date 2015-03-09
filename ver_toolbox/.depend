@@ -1,0 +1,73 @@
+aigerin.cmo: read_library.cmo count.cmo
+aigerin.cmx: read_library.cmx count.cmx
+aigerout.cmo: read_library.cmo minimap.cmo
+aigerout.cmx: read_library.cmx minimap.cmx
+count.cmo: read_library.cmo
+count.cmx: read_library.cmx
+edifout.cmo: read_library.cmo count.cmo
+edifout.cmx: read_library.cmx count.cmx
+elaborate.cmo: verilogout.cmo read_library.cmo minimap.cmo hls.cmi count.cmo
+elaborate.cmx: verilogout.cmx read_library.cmx minimap.cmx hls.cmx count.cmx
+erc.cmo: count.cmo
+erc.cmx: count.cmx
+extractregs.cmo: read_library.cmo minimap.cmo count.cmo
+extractregs.cmx: read_library.cmx minimap.cmx count.cmx
+flatten.cmo: read_library.cmo minimap.cmo count.cmo
+flatten.cmx: read_library.cmx minimap.cmx count.cmx
+gencnf.cmo: read_library.cmo read_blif.cmo minimap.cmo
+gencnf.cmx: read_library.cmx read_blif.cmx minimap.cmx
+hls.cmo: verilogout.cmo read_library.cmo minimap.cmo mapselect.cmi \
+    mapping.cmo flatten.cmo count.cmo hls.cmi
+hls.cmx: verilogout.cmx read_library.cmx minimap.cmx mapselect.cmi \
+    mapping.cmx flatten.cmx count.cmx hls.cmi
+license.cmo:
+license.cmx:
+main.cmo: xmlout.cmo write_blif.cmo verilogout.cmo tolerate.cmo sop.cmo \
+    smvout.cmo rtl2rtl.cmo read_library.cmo read_blif.cmo miter.cmo \
+    minimap.cmo milefout.cmo mapping.cmo license.cmo hls.cmi gencnf.cmo \
+    flatten.cmo extractregs.cmo erc.cmo elaborate.cmo edifout.cmo count.cmo \
+    aigerout.cmo aigerin.cmo main.cmi
+main.cmx: xmlout.cmx write_blif.cmx verilogout.cmx tolerate.cmx sop.cmx \
+    smvout.cmx rtl2rtl.cmx read_library.cmx read_blif.cmx miter.cmx \
+    minimap.cmx milefout.cmx mapping.cmx license.cmx hls.cmx gencnf.cmx \
+    flatten.cmx extractregs.cmx erc.cmx elaborate.cmx edifout.cmx count.cmx \
+    aigerout.cmx aigerin.cmx main.cmi
+mapping.cmo: verilogout.cmo read_library.cmo minimap.cmo mapselect.cmi \
+    count.cmo
+mapping.cmx: verilogout.cmx read_library.cmx minimap.cmx mapselect.cmi \
+    count.cmx
+milefout.cmo: verilogout.cmo read_library.cmo minimap.cmo
+milefout.cmx: verilogout.cmx read_library.cmx minimap.cmx
+minimap.cmo: read_library.cmo count.cmo
+minimap.cmx: read_library.cmx count.cmx
+miter.cmo: read_library.cmo minimap.cmo
+miter.cmx: read_library.cmx minimap.cmx
+mytoploop.cmo: mytoploop.cmi
+mytoploop.cmx: mytoploop.cmi
+read_blif.cmo: read_library.cmo minimap.cmo
+read_blif.cmx: read_library.cmx minimap.cmx
+read_library.cmo:
+read_library.cmx:
+rtl2rtl.cmo: read_library.cmo minimap.cmo count.cmo
+rtl2rtl.cmx: read_library.cmx minimap.cmx count.cmx
+smvout.cmo: read_library.cmo minimap.cmo
+smvout.cmx: read_library.cmx minimap.cmx
+sop.cmo: read_library.cmo minimap.cmo
+sop.cmx: read_library.cmx minimap.cmx
+tolerate.cmo: read_library.cmo minimap.cmo flatten.cmo
+tolerate.cmx: read_library.cmx minimap.cmx flatten.cmx
+verilogout.cmo: read_library.cmo minimap.cmo
+verilogout.cmx: read_library.cmx minimap.cmx
+vflatten.cmo: verilogout.cmo read_library.cmo flatten.cmo count.cmo
+vflatten.cmx: verilogout.cmx read_library.cmx flatten.cmx count.cmx
+vhier.cmo: read_library.cmo count.cmo vhier.cmi
+vhier.cmx: read_library.cmx count.cmx vhier.cmi
+write_blif.cmo: read_library.cmo minimap.cmo count.cmo
+write_blif.cmx: read_library.cmx minimap.cmx count.cmx
+xmlout.cmo: read_library.cmo count.cmo
+xmlout.cmx: read_library.cmx count.cmx
+hls.cmi: mapselect.cmi
+main.cmi:
+mapselect.cmi:
+mytoploop.cmi:
+vhier.cmi:

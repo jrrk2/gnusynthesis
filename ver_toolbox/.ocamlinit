@@ -1,0 +1,118 @@
+#directory "../ver_front";;
+#directory "../theorem_proving";;
+#directory "../Linux/z3/examples/ocaml";;
+#directory "../Linux/z3/ocaml";;
+#directory "../ic3";;
+
+open Read_library
+open Verilogout
+open Optimise
+open Vparser
+open Flatten
+open Globals
+open Const
+open Setup
+open Edifout
+open Dump
+open Main
+(*
+open Prop
+#install_printer print_fol_formula;;
+*)
+
+let fm = Prop.parse_prop_formula "p ==> q <=> r /\ s \/ (t <=> ~ ~u /\ v)";;
+Prop.print_prop_formula fm;;
+
+(*
+let big = true
+let _ = Vparse.parse (if big then "/home/arucad/regression/y86/rtl/F_processor.junk2" else "nor_2r.flat")
+let _ = Hashtbl.iter (fun k x -> Printf.printf "%s\n" k) pending
+let _ = Hashtbl.iter (fun k x -> if not (Hashtbl.mem libhash k) then Printf.printf "%s\n" k) modprims
+let top = if big then "F_processor" else "nor_2r"
+let found = List.hd (find_arch "verilog" top)
+let stats = count_flat_netlist' found
+let _ = show_count stats
+let _ = let fd = open_out (top^".edn") in edifout fd stats found.tree; close_out fd;;
+
+
+let dir = "../tworail/";;
+List.iter Vparse.parse
+  (List.map (fun itm -> dir^itm)
+     (List.filter (fun itm -> String.sub itm 0 2 = "F_")
+        (Array.to_list (Sys.readdir dir))));;
+
+count_arch "verilog" "F_processor";;
+
+let _ = Vparse.parse "/home/arucad/regression/y86/rtl/F_processor.tolerant";;
+gen_flat (List.hd (find_arch "verilog" "F_processor"));;
+
+count_arch "flat" "F_processor";;
+write_arch "flat" "F_processor";;
+
+
+let _ = Vparse.parse "nor_2r_timesim.v";;
+let xyz0 = (List.hd (find_arch "verilog" "nor_2r"));;
+let xyz = xyz0.tree;;
+
+let xyz1 = generate_flat_netlist xyz0;;
+
+let QUINTUPLE(MODULE, ID "nor_2r", EMPTY, TLIST iolst, THASH (decls, insts)) = xyz;;
+
+let decllst = ref [];;
+Hashtbl.iter (fun k _ -> decllst := k :: !decllst) decls;;
+let instlst = ref [];;
+Hashtbl.iter (fun k _ -> instlst := k :: !instlst) insts;;
+
+Semantics.prescan (stderr,Format.err_formatter) ("flat", xyz1);;
+*)
+
+(*
+let write path =
+    let arch = "extract" in
+    Vparse.parse path;
+    let nam = Count.vhier false in
+    archenv := arch;
+    Extractregs.gen_extract_arch "verilog" nam;
+    main_rm (ref false) 2 (ref 1) [|(nam^"."^arch)|];
+    write_arch arch nam;
+    let rslt = (Hashtbl.find modprims nam).tree in
+    let QUINTUPLE(MODULE, ID id, EMPTY, TLIST iolst, THASH (decls, insts)) = rslt in
+    (decls,insts);;
+*)
+
+(*
+let _ = Vparse.parse "../y86/rtl/Verilog_Implementation_of_a_Pipelined_Y86_Processor.v";;
+let _ = Extractregs.gen_extract_arch "verilog" "processor";;
+let _ = Vparse.parse "../verilog_files/multiply.v";;
+let _ = Extractregs.gen_extract_arch "verilog" "multiply";;
+let (decls,insts) = write "../y86/rtl/Verilog_Implementation_of_a_Pipelined_Y86_Processor.v" "preg_32";;
+*)
+
+(*
+Read_library.restore_lib "../v2abc/test/xilinx.marshal";;
+let (decls,insts) = write "../y86/rtl/Verilog_Implementation_of_a_Pipelined_Y86_Processor.v";;
+*)
+
+(*
+
+open Z3mlapi;;
+
+display_version();;
+
+let ctx       = mk_context [||];;
+let bv_sort   = Z3.mk_bv_sort ctx 32 ;;
+let x         = mk_var ctx "x" bv_sort;;
+let ext       = Z3.mk_extract ctx 0 0 x;;
+let ver       = Genz3.to_verilog ctx ext;;
+
+*)
+
+(*
+let cin = open_in "../v2abc/test/preg_1_flat.aig";;
+let theta, rho, pi, simeqs = Aig.parse cin;;
+let rslt = List.map (Ic3prop.string_of) [theta; rho; pi];;
+close_in cin;;
+let cin = open_in "../v2abc/test/preg_1_flat.aig";;
+let theta, rho, pi, simeqs = Aiger1.parse cin;;
+close_in cin;;
+*)

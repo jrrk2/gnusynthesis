@@ -1,0 +1,1 @@
+ocamlc.opt -g -o miniloop -I /home/jrrk100/ocaml-3.12.0/driver -I /home/jrrk100/ocaml-3.12.0/toplevel -I /home/jrrk100/ocaml-3.12.0/bytecomp -I /home/jrrk100/ocaml-3.12.0/parsing -I /home/jrrk100/ocaml-3.12.0/utils -I /home/jrrk100/ocaml-3.12.0/typing toplevellib.cma  miniloop.ml

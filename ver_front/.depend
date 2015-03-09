@@ -1,0 +1,38 @@
+check.cmo: vparser.cmi setup.cmi idhash.cmi globals.cmi dump.cmi const.cmi \
+    check.cmi
+check.cmx: vparser.cmx setup.cmx idhash.cmi globals.cmx dump.cmx const.cmx \
+    check.cmi
+const.cmo: vparser.cmi setup.cmi ord.cmi idhash.cmi globals.cmi dump.cmi \
+    const.cmi
+const.cmx: vparser.cmx setup.cmx ord.cmx idhash.cmi globals.cmx dump.cmx \
+    const.cmi
+dump.cmo: vparser.cmi ord.cmi idhash.cmi globals.cmi dump.cmi
+dump.cmx: vparser.cmx ord.cmx idhash.cmi globals.cmx dump.cmi
+globals.cmo: vparser.cmi setup.cmi idhash.cmi globals.cmi
+globals.cmx: vparser.cmx setup.cmx idhash.cmi globals.cmi
+ord.cmo: vparser.cmi ord.cmi
+ord.cmx: vparser.cmx ord.cmi
+semantics.cmo: vparser.cmi setup.cmi ord.cmi idhash.cmi globals.cmi dump.cmi \
+    const.cmi check.cmi semantics.cmi
+semantics.cmx: vparser.cmx setup.cmx ord.cmx idhash.cmi globals.cmx dump.cmx \
+    const.cmx check.cmx semantics.cmi
+setup.cmo: vparser.cmi ord.cmi idhash.cmi setup.cmi
+setup.cmx: vparser.cmx ord.cmx idhash.cmi setup.cmi
+vlexer.cmo: vparser.cmi setup.cmi globals.cmi
+vlexer.cmx: vparser.cmx setup.cmx globals.cmx
+vparse.cmo: vparser.cmi vlexer.cmo setup.cmi semantics.cmi idhash.cmi \
+    globals.cmi dump.cmi vparse.cmi
+vparse.cmx: vparser.cmx vlexer.cmx setup.cmx semantics.cmx idhash.cmi \
+    globals.cmx dump.cmx vparse.cmi
+vparser.cmo: idhash.cmi vparser.cmi
+vparser.cmx: idhash.cmi vparser.cmi
+check.cmi: vparser.cmi idhash.cmi
+const.cmi: vparser.cmi idhash.cmi
+dump.cmi: vparser.cmi globals.cmi
+globals.cmi: vparser.cmi setup.cmi idhash.cmi
+idhash.cmi:
+ord.cmi: vparser.cmi
+semantics.cmi: vparser.cmi idhash.cmi globals.cmi
+setup.cmi: vparser.cmi
+vparse.cmi: vparser.cmi setup.cmi
+vparser.cmi: idhash.cmi

@@ -1,0 +1,250 @@
+Quotexpander.cmo:
+Quotexpander.cmx:
+initialization.cmo:
+initialization.cmx:
+lib.cmo:
+lib.cmx:
+intro.cmo: lib.cmo
+intro.cmx: lib.cmx
+formulas.cmo: lib.cmo
+formulas.cmx: lib.cmx
+prop.cmo: lib.cmo intro.cmo formulas.cmo
+prop.cmx: lib.cmx intro.cmx formulas.cmx
+propexamples.cmo: prop.cmo lib.cmo formulas.cmo
+propexamples.cmx: prop.cmx lib.cmx formulas.cmx
+defcnf.cmo: prop.cmo lib.cmo intro.cmo formulas.cmo
+defcnf.cmx: prop.cmx lib.cmx intro.cmx formulas.cmx
+dp.cmo: prop.cmo lib.cmo intro.cmo formulas.cmo defcnf.cmo
+dp.cmx: prop.cmx lib.cmx intro.cmx formulas.cmx defcnf.cmx
+stal.cmo: prop.cmo lib.cmo intro.cmo formulas.cmo defcnf.cmo
+stal.cmx: prop.cmx lib.cmx intro.cmx formulas.cmx defcnf.cmx
+bdd.cmo: prop.cmo lib.cmo intro.cmo formulas.cmo defcnf.cmo
+bdd.cmx: prop.cmx lib.cmx intro.cmx formulas.cmx defcnf.cmx
+fol.cmo: prop.cmo lib.cmo intro.cmo formulas.cmo defcnf.cmo
+fol.cmx: prop.cmx lib.cmx intro.cmx formulas.cmx defcnf.cmx
+skolem.cmo: prop.cmo lib.cmo intro.cmo formulas.cmo fol.cmo defcnf.cmo
+skolem.cmx: prop.cmx lib.cmx intro.cmx formulas.cmx fol.cmx defcnf.cmx
+herbrand.cmo: skolem.cmo prop.cmo lib.cmo intro.cmo formulas.cmo fol.cmo \
+    dp.cmo defcnf.cmo
+herbrand.cmx: skolem.cmx prop.cmx lib.cmx intro.cmx formulas.cmx fol.cmx \
+    dp.cmx defcnf.cmx
+unif.cmo: skolem.cmo prop.cmo lib.cmo intro.cmo formulas.cmo fol.cmo dp.cmo \
+    defcnf.cmo
+unif.cmx: skolem.cmx prop.cmx lib.cmx intro.cmx formulas.cmx fol.cmx dp.cmx \
+    defcnf.cmx
+tableaux.cmo: unif.cmo skolem.cmo prop.cmo lib.cmo intro.cmo herbrand.cmo \
+    formulas.cmo fol.cmo dp.cmo defcnf.cmo
+tableaux.cmx: unif.cmx skolem.cmx prop.cmx lib.cmx intro.cmx herbrand.cmx \
+    formulas.cmx fol.cmx dp.cmx defcnf.cmx
+resolution.cmo: unif.cmo tableaux.cmo skolem.cmo prop.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo dp.cmo defcnf.cmo
+resolution.cmx: unif.cmx tableaux.cmx skolem.cmx prop.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx dp.cmx defcnf.cmx
+prolog.cmo: unif.cmo tableaux.cmo skolem.cmo prop.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo dp.cmo defcnf.cmo
+prolog.cmx: unif.cmx tableaux.cmx skolem.cmx prop.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx dp.cmx defcnf.cmx
+meson.cmo: unif.cmo tableaux.cmo skolem.cmo prop.cmo prolog.cmo lib.cmo \
+    intro.cmo herbrand.cmo formulas.cmo fol.cmo dp.cmo defcnf.cmo
+meson.cmx: unif.cmx tableaux.cmx skolem.cmx prop.cmx prolog.cmx lib.cmx \
+    intro.cmx herbrand.cmx formulas.cmx fol.cmx dp.cmx defcnf.cmx
+skolems.cmo: unif.cmo tableaux.cmo skolem.cmo prop.cmo prolog.cmo lib.cmo \
+    intro.cmo herbrand.cmo formulas.cmo fol.cmo dp.cmo defcnf.cmo
+skolems.cmx: unif.cmx tableaux.cmx skolem.cmx prop.cmx prolog.cmx lib.cmx \
+    intro.cmx herbrand.cmx formulas.cmx fol.cmx dp.cmx defcnf.cmx
+equal.cmo: unif.cmo tableaux.cmo skolem.cmo prop.cmo prolog.cmo lib.cmo \
+    intro.cmo herbrand.cmo formulas.cmo fol.cmo dp.cmo defcnf.cmo
+equal.cmx: unif.cmx tableaux.cmx skolem.cmx prop.cmx prolog.cmx lib.cmx \
+    intro.cmx herbrand.cmx formulas.cmx fol.cmx dp.cmx defcnf.cmx
+cong.cmo: unif.cmo tableaux.cmo skolem.cmo prop.cmo prolog.cmo lib.cmo \
+    intro.cmo herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo
+cong.cmx: unif.cmx tableaux.cmx skolem.cmx prop.cmx prolog.cmx lib.cmx \
+    intro.cmx herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx
+rewrite.cmo: unif.cmo tableaux.cmo skolem.cmo resolution.cmo prop.cmo \
+    prolog.cmo lib.cmo intro.cmo herbrand.cmo formulas.cmo fol.cmo equal.cmo \
+    dp.cmo defcnf.cmo
+rewrite.cmx: unif.cmx tableaux.cmx skolem.cmx resolution.cmx prop.cmx \
+    prolog.cmx lib.cmx intro.cmx herbrand.cmx formulas.cmx fol.cmx equal.cmx \
+    dp.cmx defcnf.cmx
+order.cmo: unif.cmo tableaux.cmo skolem.cmo prop.cmo prolog.cmo lib.cmo \
+    intro.cmo herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo
+order.cmx: unif.cmx tableaux.cmx skolem.cmx prop.cmx prolog.cmx lib.cmx \
+    intro.cmx herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx
+completion.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo prop.cmo \
+    prolog.cmo order.cmo lib.cmo intro.cmo herbrand.cmo formulas.cmo fol.cmo \
+    equal.cmo dp.cmo defcnf.cmo
+completion.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx prop.cmx \
+    prolog.cmx order.cmx lib.cmx intro.cmx herbrand.cmx formulas.cmx fol.cmx \
+    equal.cmx dp.cmx defcnf.cmx
+eqelim.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo prop.cmo prolog.cmo \
+    order.cmo meson.cmo lib.cmo intro.cmo herbrand.cmo formulas.cmo fol.cmo \
+    equal.cmo dp.cmo defcnf.cmo
+eqelim.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx prop.cmx prolog.cmx \
+    order.cmx meson.cmx lib.cmx intro.cmx herbrand.cmx formulas.cmx fol.cmx \
+    equal.cmx dp.cmx defcnf.cmx
+paramodulation.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo \
+    resolution.cmo prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo \
+    completion.cmo
+paramodulation.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx \
+    resolution.cmx prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx \
+    completion.cmx
+decidable.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo resolution.cmo \
+    prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo herbrand.cmo \
+    formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo completion.cmo
+decidable.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx resolution.cmx \
+    prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx herbrand.cmx \
+    formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx completion.cmx
+qelim.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo resolution.cmo \
+    prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo herbrand.cmo \
+    formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo decidable.cmo \
+    completion.cmo
+qelim.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx resolution.cmx \
+    prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx herbrand.cmx \
+    formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx decidable.cmx \
+    completion.cmx
+cooper.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo resolution.cmo \
+    qelim.cmo prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo \
+    decidable.cmo completion.cmo
+cooper.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx resolution.cmx \
+    qelim.cmx prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx \
+    decidable.cmx completion.cmx
+complex.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo resolution.cmo \
+    qelim.cmo prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo \
+    decidable.cmo cooper.cmo completion.cmo
+complex.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx resolution.cmx \
+    qelim.cmx prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx \
+    decidable.cmx cooper.cmx completion.cmx
+real.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo resolution.cmo \
+    qelim.cmo prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo \
+    decidable.cmo cooper.cmo complex.cmo completion.cmo
+real.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx resolution.cmx \
+    qelim.cmx prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx \
+    decidable.cmx cooper.cmx complex.cmx completion.cmx
+grobner.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo resolution.cmo \
+    qelim.cmo prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo \
+    decidable.cmo cooper.cmo complex.cmo completion.cmo
+grobner.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx resolution.cmx \
+    qelim.cmx prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx \
+    decidable.cmx cooper.cmx complex.cmx completion.cmx
+geom.cmo: unif.cmo tableaux.cmo skolem.cmo rewrite.cmo resolution.cmo \
+    qelim.cmo prop.cmo prolog.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    herbrand.cmo formulas.cmo fol.cmo equal.cmo dp.cmo defcnf.cmo \
+    decidable.cmo cooper.cmo complex.cmo completion.cmo
+geom.cmx: unif.cmx tableaux.cmx skolem.cmx rewrite.cmx resolution.cmx \
+    qelim.cmx prop.cmx prolog.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    herbrand.cmx formulas.cmx fol.cmx equal.cmx dp.cmx defcnf.cmx \
+    decidable.cmx cooper.cmx complex.cmx completion.cmx
+interpolation.cmo: unif.cmo tableaux.cmo stal.cmo skolems.cmo skolem.cmo \
+    rewrite.cmo resolution.cmo real.cmo qelim.cmo propexamples.cmo prop.cmo \
+    prolog.cmo paramodulation.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    initialization.cmo herbrand.cmo grobner.cmo geom.cmo formulas.cmo fol.cmo \
+    equal.cmo eqelim.cmo dp.cmo defcnf.cmo decidable.cmo cooper.cmo cong.cmo \
+    complex.cmo completion.cmo bdd.cmo
+interpolation.cmx: unif.cmx tableaux.cmx stal.cmx skolems.cmx skolem.cmx \
+    rewrite.cmx resolution.cmx real.cmx qelim.cmx propexamples.cmx prop.cmx \
+    prolog.cmx paramodulation.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    initialization.cmx herbrand.cmx grobner.cmx geom.cmx formulas.cmx fol.cmx \
+    equal.cmx eqelim.cmx dp.cmx defcnf.cmx decidable.cmx cooper.cmx cong.cmx \
+    complex.cmx completion.cmx bdd.cmx
+combining.cmo: unif.cmo tableaux.cmo stal.cmo skolems.cmo skolem.cmo \
+    rewrite.cmo resolution.cmo real.cmo qelim.cmo propexamples.cmo prop.cmo \
+    prolog.cmo paramodulation.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    interpolation.cmo initialization.cmo herbrand.cmo grobner.cmo geom.cmo \
+    formulas.cmo fol.cmo equal.cmo eqelim.cmo dp.cmo defcnf.cmo decidable.cmo \
+    cooper.cmo cong.cmo complex.cmo completion.cmo bdd.cmo
+combining.cmx: unif.cmx tableaux.cmx stal.cmx skolems.cmx skolem.cmx \
+    rewrite.cmx resolution.cmx real.cmx qelim.cmx propexamples.cmx prop.cmx \
+    prolog.cmx paramodulation.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    interpolation.cmx initialization.cmx herbrand.cmx grobner.cmx geom.cmx \
+    formulas.cmx fol.cmx equal.cmx eqelim.cmx dp.cmx defcnf.cmx decidable.cmx \
+    cooper.cmx cong.cmx complex.cmx completion.cmx bdd.cmx
+lcf.cmo: unif.cmo tableaux.cmo stal.cmo skolems.cmo skolem.cmo rewrite.cmo \
+    resolution.cmo real.cmo qelim.cmo propexamples.cmo prop.cmo prolog.cmo \
+    paramodulation.cmo order.cmo meson.cmo lib.cmo intro.cmo \
+    interpolation.cmo herbrand.cmo grobner.cmo geom.cmo formulas.cmo fol.cmo \
+    equal.cmo eqelim.cmo dp.cmo defcnf.cmo decidable.cmo cooper.cmo cong.cmo \
+    complex.cmo completion.cmo bdd.cmo
+lcf.cmx: unif.cmx tableaux.cmx stal.cmx skolems.cmx skolem.cmx rewrite.cmx \
+    resolution.cmx real.cmx qelim.cmx propexamples.cmx prop.cmx prolog.cmx \
+    paramodulation.cmx order.cmx meson.cmx lib.cmx intro.cmx \
+    interpolation.cmx herbrand.cmx grobner.cmx geom.cmx formulas.cmx fol.cmx \
+    equal.cmx eqelim.cmx dp.cmx defcnf.cmx decidable.cmx cooper.cmx cong.cmx \
+    complex.cmx completion.cmx bdd.cmx
+lcfprop.cmo: unif.cmo tableaux.cmo stal.cmo skolems.cmo skolem.cmo \
+    rewrite.cmo resolution.cmo real.cmo qelim.cmo propexamples.cmo prop.cmo \
+    prolog.cmo paramodulation.cmo order.cmo meson.cmo lib.cmo lcf.cmo \
+    intro.cmo interpolation.cmo initialization.cmo herbrand.cmo grobner.cmo \
+    geom.cmo formulas.cmo fol.cmo equal.cmo eqelim.cmo dp.cmo defcnf.cmo \
+    decidable.cmo cooper.cmo cong.cmo complex.cmo completion.cmo bdd.cmo
+lcfprop.cmx: unif.cmx tableaux.cmx stal.cmx skolems.cmx skolem.cmx \
+    rewrite.cmx resolution.cmx real.cmx qelim.cmx propexamples.cmx prop.cmx \
+    prolog.cmx paramodulation.cmx order.cmx meson.cmx lib.cmx lcf.cmx \
+    intro.cmx interpolation.cmx initialization.cmx herbrand.cmx grobner.cmx \
+    geom.cmx formulas.cmx fol.cmx equal.cmx eqelim.cmx dp.cmx defcnf.cmx \
+    decidable.cmx cooper.cmx cong.cmx complex.cmx completion.cmx bdd.cmx
+folderived.cmo: unif.cmo tableaux.cmo stal.cmo skolems.cmo skolem.cmo \
+    rewrite.cmo resolution.cmo real.cmo qelim.cmo propexamples.cmo prop.cmo \
+    prolog.cmo paramodulation.cmo order.cmo meson.cmo lib.cmo lcfprop.cmo \
+    lcf.cmo intro.cmo interpolation.cmo initialization.cmo herbrand.cmo \
+    grobner.cmo geom.cmo formulas.cmo fol.cmo equal.cmo eqelim.cmo dp.cmo \
+    defcnf.cmo decidable.cmo cooper.cmo cong.cmo complex.cmo completion.cmo \
+    combining.cmo bdd.cmo
+folderived.cmx: unif.cmx tableaux.cmx stal.cmx skolems.cmx skolem.cmx \
+    rewrite.cmx resolution.cmx real.cmx qelim.cmx propexamples.cmx prop.cmx \
+    prolog.cmx paramodulation.cmx order.cmx meson.cmx lib.cmx lcfprop.cmx \
+    lcf.cmx intro.cmx interpolation.cmx initialization.cmx herbrand.cmx \
+    grobner.cmx geom.cmx formulas.cmx fol.cmx equal.cmx eqelim.cmx dp.cmx \
+    defcnf.cmx decidable.cmx cooper.cmx cong.cmx complex.cmx completion.cmx \
+    combining.cmx bdd.cmx
+lcffol.cmo: unif.cmo tableaux.cmo stal.cmo skolems.cmo skolem.cmo rewrite.cmo \
+    resolution.cmo real.cmo qelim.cmo propexamples.cmo prop.cmo prolog.cmo \
+    paramodulation.cmo order.cmo meson.cmo lib.cmo lcfprop.cmo lcf.cmo \
+    intro.cmo interpolation.cmo initialization.cmo herbrand.cmo grobner.cmo \
+    geom.cmo formulas.cmo folderived.cmo fol.cmo equal.cmo eqelim.cmo dp.cmo \
+    defcnf.cmo decidable.cmo cooper.cmo cong.cmo complex.cmo completion.cmo \
+    combining.cmo bdd.cmo
+lcffol.cmx: unif.cmx tableaux.cmx stal.cmx skolems.cmx skolem.cmx rewrite.cmx \
+    resolution.cmx real.cmx qelim.cmx propexamples.cmx prop.cmx prolog.cmx \
+    paramodulation.cmx order.cmx meson.cmx lib.cmx lcfprop.cmx lcf.cmx \
+    intro.cmx interpolation.cmx initialization.cmx herbrand.cmx grobner.cmx \
+    geom.cmx formulas.cmx folderived.cmx fol.cmx equal.cmx eqelim.cmx dp.cmx \
+    defcnf.cmx decidable.cmx cooper.cmx cong.cmx complex.cmx completion.cmx \
+    combining.cmx bdd.cmx
+tactics.cmo: unif.cmo tableaux.cmo stal.cmo skolems.cmo skolem.cmo \
+    rewrite.cmo resolution.cmo real.cmo qelim.cmo propexamples.cmo prop.cmo \
+    prolog.cmo paramodulation.cmo order.cmo meson.cmo lib.cmo lcfprop.cmo \
+    lcffol.cmo lcf.cmo intro.cmo interpolation.cmo herbrand.cmo grobner.cmo \
+    geom.cmo formulas.cmo folderived.cmo fol.cmo equal.cmo eqelim.cmo dp.cmo \
+    defcnf.cmo decidable.cmo cooper.cmo cong.cmo complex.cmo completion.cmo \
+    combining.cmo bdd.cmo
+tactics.cmx: unif.cmx tableaux.cmx stal.cmx skolems.cmx skolem.cmx \
+    rewrite.cmx resolution.cmx real.cmx qelim.cmx propexamples.cmx prop.cmx \
+    prolog.cmx paramodulation.cmx order.cmx meson.cmx lib.cmx lcfprop.cmx \
+    lcffol.cmx lcf.cmx intro.cmx interpolation.cmx herbrand.cmx grobner.cmx \
+    geom.cmx formulas.cmx folderived.cmx fol.cmx equal.cmx eqelim.cmx dp.cmx \
+    defcnf.cmx decidable.cmx cooper.cmx cong.cmx complex.cmx completion.cmx \
+    combining.cmx bdd.cmx
+limitations.cmo: unif.cmo tactics.cmo tableaux.cmo stal.cmo skolems.cmo \
+    skolem.cmo rewrite.cmo resolution.cmo real.cmo qelim.cmo propexamples.cmo \
+    prop.cmo prolog.cmo paramodulation.cmo order.cmo meson.cmo lib.cmo \
+    lcfprop.cmo lcffol.cmo lcf.cmo intro.cmo interpolation.cmo herbrand.cmo \
+    grobner.cmo geom.cmo formulas.cmo folderived.cmo fol.cmo equal.cmo \
+    eqelim.cmo dp.cmo defcnf.cmo decidable.cmo cooper.cmo cong.cmo \
+    complex.cmo completion.cmo combining.cmo bdd.cmo
+limitations.cmx: unif.cmx tactics.cmx tableaux.cmx stal.cmx skolems.cmx \
+    skolem.cmx rewrite.cmx resolution.cmx real.cmx qelim.cmx propexamples.cmx \
+    prop.cmx prolog.cmx paramodulation.cmx order.cmx meson.cmx lib.cmx \
+    lcfprop.cmx lcffol.cmx lcf.cmx intro.cmx interpolation.cmx herbrand.cmx \
+    grobner.cmx geom.cmx formulas.cmx folderived.cmx fol.cmx equal.cmx \
+    eqelim.cmx dp.cmx defcnf.cmx decidable.cmx cooper.cmx cong.cmx \
+    complex.cmx completion.cmx combining.cmx bdd.cmx

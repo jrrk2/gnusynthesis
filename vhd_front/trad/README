@@ -1,0 +1,16 @@
+########################################################################
+#                                                                      #
+#                      Objective Caml Extension                        #
+#                                                                      #
+#                  Jonathan Richard Robert Kimmitt                     #
+#                                                                      #
+#   Copyright 1996 Institut National de Recherche en Informatique et   #
+#   en Automatique.  All rights reserved.  This file is distributed    #
+#   under the terms of the Q Public License version 1.0.               #
+#                                                                      #
+########################################################################
+
+This directory exists purely as a maintainer convenience to allow 
+asctoken.ml and VhdlTree.ml to be generated from VhdlTypes.ml
+Since these are source files this directory provided under the Q Public
+license is not required to be linked with any GPL files.

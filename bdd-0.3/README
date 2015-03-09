@@ -1,0 +1,48 @@
+**************************************************************************
+*                                                                        *
+*  Copyright (C) Jean-Christophe Filliatre                               *
+*                                                                        *
+*  This software is free software; you can redistribute it and/or        *
+*  modify it under the terms of the GNU Library General Public           *
+*  License version 2, with the special exception on linking              *
+*  described in file LICENSE.                                            *
+*                                                                        *
+*  This software is distributed in the hope that it will be useful,      *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                  *
+*                                                                        *
+**************************************************************************
+
+This is a quick implementation of a BDD library for Ocaml.
+
+Files are:
+
+- decision.ml: the BDD library; decision.mli should be self-explanatory
+
+- check.ml: a quick check; "make check" compiles and runs it
+
+- prop.mli, lexer.mll and parser.mly: propositional logic, with a parser,
+  used to test the Bdd library; see check.ml for examples
+
+- bench_prop.ml: various ways of generating valid propositional formulae; 
+  compiled as binary bench_prop.opt
+
+- decision_sat.ml: a propositional tautology checker using Bdd
+  compiled as binary decision_sat.opt
+
+  these two binaries can be combined as follows:
+
+	./bench_prop.opt -pigeon-p 7 | ./decision_sat.opt
+	1: valid user time: 0.60
+	table length: 100003 / nb. entries: 2 / sum of bucket length: 20679
+	smallest bucket: 0 / median bucket: 0 / biggest bucket: 3
+
+- queen.ml: computes the number of solutions to the n-queens problem, using
+  a propositional formula (this is not an efficient way to solve this problem,
+  simply another way to test the Bdd library); compile with "make queen.opt"
+  and run as
+
+	./queen.opt 8
+	There are 92 solutions
+
+	

@@ -48,14 +48,6 @@ let exec_cmd quit atok =
               else
                 begin
 		  failwith (cmd^": - invalid command")
-(*
-		let argv = Array.sub atok (!cnt) (len - !cnt) in
-		cnt := len;
-                Array.iter (fun itm -> Printf.printf "%s " itm) argv;
-                print_newline();
-                flush_all();
-		Abclib.hls_CmdCommandDispatch argv
-*)
                 end
             done
 
@@ -128,18 +120,6 @@ let filter_hls fn arch =
           fn ar nam y
     | _ ->  failwith ("create "^ar^" "^top^" matched multiple modules: "^String.concat "," (List.map (fun (k,_) -> k) !find1))
 
-let filter_hls' arch = failwith "filter"
-(*
-  filter_hls hls_fn arch;
-  Abclib.hls_FrameReplaceCurrentNetwork (main_find_ntk arch)
-*)
-
-let convert_hls' dest = failwith "convert"
-(*
-  let (ntk,lathash) = get_crnt() in
-  Optimise.convert_hls ntk dest Abclib.IO_FILE_VERILOG lathash
-*)
-  
 let rec main quit args =
   Array.iteri (fun ix itm -> if ix > 0 && (itm="-" || String.sub itm (String.length itm-4) 4 = ".scr") then
       let ic = if itm = "-" then stdin else Vparse.my_openin itm in
@@ -169,31 +149,6 @@ let rec main quit args =
           *)
           (*If using Ocaml >= 3.11, it is possible to also print a backtrace: *)
           Printexc.print_backtrace stderr) args
-
-(*
-and main_hls_compat quit len cnt atok =
-  filter_hls' atok.(!cnt-2);
-  convert_hls' atok.(!cnt-1);
-
-and main_mapper quit len cnt atok =
-  filter_hls' atok.(!cnt-2);
-  Abclib.hls_CmdCommandDispatch [|"map"|];
-  convert_hls' atok.(!cnt-1);
-
-and main_struct_hash quit len cnt atok =
-  filter_hls' atok.(!cnt-2);
-  Abclib.hls_CmdCommandDispatch [|"strash"|];
-  convert_hls' atok.(!cnt-1);
-
-and main_unmapper quit len cnt atok =
-  filter_hls' atok.(!cnt-2);
-  Abclib.hls_CmdCommandDispatch [|"unmap"|];
-  convert_hls' atok.(!cnt-1);
-
-and main_read_hls_lib quit len cnt atok =
-  Printf.printf "ReadLib %s returned %d\n"
-    atok.(!cnt-1) (Abclib.hls_ReadLibrary atok.(!cnt-1))
-*)
 
 and main_mods quit len cnt atok =
   Read_library.mods()
@@ -294,10 +249,7 @@ and main_gen_cnf_arch quit len cnt atok =
 
 and main_gen_sop_arch quit len cnt atok =
   Sop.gen_sop_arch atok.(!cnt-2) atok.(!cnt-1)
-(*
-and main_gen_stp_arch quit len cnt atok =
-  Genstp.gen_stp_arch atok.(!cnt-2) atok.(!cnt-1)
-*)
+
 and main_gen_unmapped_arch quit len cnt atok =
   Sop.gen_unmapped_arch atok.(!cnt-2) atok.(!cnt-1)
 
@@ -318,36 +270,7 @@ and main_gen_miter_arch quit len cnt atok =
  
 and main_gen_smv_main_arch quit len cnt atok =
   Smvout.gen_smv_main_arch atok.(!cnt-2) atok.(!cnt-1)
-(*
-and main_gen_v2z3_arch quit len cnt atok =
-  V2z3.gen_v2z3_arch atok.(!cnt-2) atok.(!cnt-1)
 
-and main_gen_z3_arch quit len cnt atok =
-  Genz3.gen_z3_arch atok.(!cnt-2) atok.(!cnt-1)
-
-and main_convert_smt quit len cnt atok =
-  Hashtbl.add Genz3.smthash atok.(!cnt-2) (Genz3.cnv_smt atok.(!cnt-1))
-
-and main_solve_sat quit len cnt atok =
-  List.iter print_endline (Genz3.cnv_ocaml (Hashtbl.find Genz3.smthash atok.(!cnt-1)))
-
-and main_compare_sat quit len cnt atok =
-  List.iter print_endline (Genz3.cnv_compare
-   (Hashtbl.find Genz3.smthash atok.(!cnt-1))
-   (Hashtbl.find Genz3.smthash atok.(!cnt-1)))
-
-and main_list_sat quit len cnt atok =
-  Printf.printf "\tName\tformulae\tassumes\tids\n";
-  Hashtbl.iter (fun k x ->
-    Printf.printf "%12s\t%d\t\t%d\t%d\n"
-      k
-      (List.length x.Genz3.declstr)
-      (List.length x.Genz3.assumestr)
-      (List.length x.Genz3.ids)) Genz3.smthash
-
-and main_debug_smt quit len cnt atok =
-  List.iter print_endline (Genz3.cnv_ocaml (Genz3.cnv_smt atok.(!cnt-1)))
-*)
 and main_vhdparse quit len cnt atok =
   let psuccess = ref true in
   while !cnt < len-1 do incr cnt; VhdlMain.main psuccess [atok.(!cnt)]; done; incr cnt;
@@ -454,27 +377,7 @@ and main_modsuffix_env quit len cnt atok =
     begin
       Globals.modsuffix := ""
     end
-(*
-and main_z3path quit len cnt atok =
-  if !backtrace then failwith "Backtrace incompatible with dynamic loading";
-  Dynlink.allow_unsafe_modules(true);
- (try Dynlink.loadfile (Dynlink.adapt_filename(atok.(!cnt-1)));
-  with Dynlink.Error(e) -> match e with
-|       Dynlink.Not_a_bytecode_file str -> Printf.printf "err1 not bytecode %s\n" str
-|       Dynlink.Inconsistent_import str -> Printf.printf "err2 inconsistent %s\n" str
-|       Dynlink.Unavailable_unit str -> Printf.printf "err3 unavailable %s\n" str
-|       Dynlink.Unsafe_file -> Printf.printf "err4 - unsafe file\n"
-|       Dynlink.Linking_error (str,lnkerr) -> Printf.printf "err5 linking %s\n" str;
-  (match lnkerr with
-  |     Dynlink.Undefined_global str -> Printf.printf "undef global %s\n" str
-  |     Dynlink.Unavailable_primitive str -> Printf.printf "unavail prim %s\n" str
-  |     Dynlink.Uninitialized_global str -> Printf.printf "uninit global %s\n" str)
-|       Dynlink.Corrupted_interface str -> Printf.printf "err6 corrupted %s\n" str
-|       Dynlink.File_not_found str -> Printf.printf "err7 not found %s\n" str
-|       Dynlink.Cannot_open_dll str -> Printf.printf "err8 cannot open %s\n" str
-|       Dynlink.Inconsistent_implementation str -> Printf.printf "err9 inconsistent impl%s\n" str);
-  Test_dyn_mlapi.main()
-*)
+
 and main_bye quit len cnt atok =
   incr cnt;
   print_endline "Program terminated by explicit user command";
@@ -493,14 +396,6 @@ let _ = List.iter (fun (str,help,key,args) -> Hashtbl.replace Setup.main_cmds st
                 ( "count_arch","count library references in a design", main_count_arch, 3);
                 ( "erc_arch","run electrical rule checks on a design", main_erc_arch, 3);
                 ( "find_submod","enumerate submod references in a design", main_find_submod, 3);
-(*
-                ( "flag", "select options of commands", main_flag, 1);
-                ( "debug_smt", "convert and solve smt file",main_debug_smt, 2);
-                ( "convert_smt", "convert smt file to internal format",main_convert_smt, 3);
-                ( "list_sat", "list saved sat problems",main_list_sat, 1);
-                ( "solve_sat", "present insert sat format problem to z3 solver",main_solve_sat, 2);
-                ( "compare_sat", "compare sat format problems with z3 solver",main_compare_sat, 3);
-*)
                 ( "default_arch_env", "define the default architecture",main_default_arch_env, 2);
                 ( "mlecho", "echo arguments", main_echo, 1);
                 ( "discard","discard a netlist", main_discard, 2);
@@ -519,30 +414,13 @@ let _ = List.iter (fun (str,help,key,args) -> Hashtbl.replace Setup.main_cmds st
                 ( "gen_rtl2rtl_arch", "convert rtl to a semantic simpler rtl if possible",main_gen_rtl2rtl_arch, 3);
                 ( "gen_elaborate_arch", "elaborate parameterised library cells into unique modules",main_gen_elaborate_arch, 3);
                 ( "gen_sop_arch", "convert design to sum of products form",main_gen_sop_arch, 3);
-(*
-                ( "gen_stp_arch", "convert design to stp form",main_gen_stp_arch, 3);
-                ( "gen_v2z3_arch", "convert design to z3 form",main_gen_v2z3_arch, 3);
-                ( "gen_z3_arch", "convert design to z3 form",main_gen_z3_arch, 3);
-*)
+                ( "help", "show this help", main_info, 1);
                 ( "info", "show this help", main_info, 1);
-(*
-                ( "io_read_aig","invoke the ABC AIG reader", main_io_read_aig, 3); 
-                ( "io_read_edif","invoke the edif reader", main_io_read_edif, 3); 
-                ( "io_write_aig","invoke the ABC AIG writer", main_io_write_aig, 3); 
-                ( "io_write_blif", "invoke the ABC blif writer",main_io_write_blif, 3); 
-                ( "io_write_verilog","invoke the ABC Verilog writer", main_io_write_verilog, 3); 
-*)
                 ( "library_env", "define path to library cells",main_library_env, 2);
-(*
-                ( "mapper","invoke the ABC cell mapper", main_mapper, 3);
-*)
                 ( "modsuffix_env", "define name suffix for generated modules", main_modsuffix_env, 1);
                 ( "mods", "display available modules", main_mods, 1);
                 ( "time", "time the program", main_time, 1);
                 ( "bye", "leave the program", main_bye, 1);
-(*
-                ( "read_hls_lib","invoke the ABC cell library reader", main_read_hls_lib, 2);
-*)
                 ( "read_aiger","invoke the ASCII aiger reader", main_read_aiger, 2); 
                 ( "read_blif","invoke the blif reader", main_read_blif, 2); 
                 ( "read_lib", "read library cells from a directory", main_read_lib, 1);
@@ -554,17 +432,10 @@ let _ = List.iter (fun (str,help,key,args) -> Hashtbl.replace Setup.main_cmds st
                 ( "scan_lib", "scan a directory for suitable library cells", main_scan_lib, 2);
                 ( "scr","read commands from a file", main_scr, 2);
                 ( "show", "show license", main_license, 2);
-(*
-                ( "struct_hash","invoke the ABC structural hashing command", main_struct_hash, 3); 
-                ( "unmapper","invoke the ABC unmap command", main_unmapper, 3); 
-*)
                 ( "unresolved", "specify directory to read for unresolved macrocells", main_unresolved, 3);
                 ( "verbose", "log detailed innards of commands", main_verbose, 1);
                 ( "vhdparse","parse a subset of VHDL", main_vhdparse, 2);
                 ( "vparse", "parse a synthesizable subset of Verilog", main_vparse, 1);
-(*
-                ( "write_arch", "write an architecture to file in Verilog format",main_write_verilog_arch, 3);
-*)
                 ( "write_decision", "write a binary decision diagram as a dot file", main_write_decision, 2);
                 ( "write_aiger_arch", "write an architecture to file in aiger format",main_write_aiger_arch, 3);
 		( "write_blif_arch", "write an architecture to file in Berkely logic interchange format",main_write_blif_arch, 3);
@@ -576,9 +447,6 @@ let _ = List.iter (fun (str,help,key,args) -> Hashtbl.replace Setup.main_cmds st
                 ( "write_verilog_arch_nohier", "write an architecture to file in Verilog format",main_write_verilog_arch_nohier, 3);
                 ( "write_xml_arch", "write a netlist as an XML file",main_write_xml_arch, 3);
                 ( "xtr_count_arch","estimate transistor count in a design", main_xtr_count_arch, 3);
-(*
-                ( "z3path","Specify path to z3 solver library", main_z3path, 2);
-*)
 ]
 
 let i_am_interactive () =
@@ -586,11 +454,6 @@ let i_am_interactive () =
 
 let startup args =
   let quit = ref false in
-(*
-  Unix.putenv "DYLD_LIBRARY_PATH" "/Users/jrrk/regression/Darwin/z3/lib";
-  Printf.printf "environ %s" (Sys.getenv "DYLD_LIBRARY_PATH");
-  print_newline();
-*)
   main quit args;
   if i_am_interactive() then
     begin

@@ -17,13 +17,11 @@
 *)
 
 let copyright () =
-Printf.printf "    <%s>  Copyright (C) <2011-2012>  <Jonathan Kimmitt>\n" Sys.argv.(0);
-Printf.printf "    <ABC System>  Copyright (C) <2010>  <The Regents of the University of Cailfornia>\n";
+Printf.printf "    <%s>  Copyright (C) <2011-2015>  <Jonathan Kimmitt>\n" Sys.argv.(0);
 Printf.printf "    <VHDL Front-End>  Copyright (C) <2008-2010>  <TIMA Laboratory - VDS Team>\n";
 Printf.printf "    <Verilog Grammar>  Copyright (C) <2003-2011>  <Wilson Snyder - <http://www.veripool.org/>>\n";
 Printf.printf "    <Theorem Proving Library>  Copyright (C) <2003-2007>  <John Harrison>\n";
 Printf.printf "    <Bdd Library>  Copyright (C) <2008-2009>  <Jean-Christophe Filliatre>\n";
-Printf.printf "    <Xml Light Library>  Copyright (C) <2003>  <Nicolas Cannasse (ncannasse@motion-twin.com)>\n";
 Printf.printf "    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n";
 Printf.printf "    This is free software, and you are welcome to redistribute it\n";
 Printf.printf "    under certain conditions; type `show c' for details.\n"

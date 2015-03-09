@@ -62,7 +62,8 @@ let rec xtrfunc' = function
   | Pnot arg -> xtrfunc' arg + 2
   | Pvar str -> 0
   | Punknown -> 0
-
+  | Prime arg -> xtrfunc' arg
+	
 let xtrfunc prop = 2 + xtrfunc' prop
 
 let xtr_count inststats =

@@ -51,7 +51,7 @@ let rec erc_item trc netstats inststats ident inuse net lst =
       | None -> drv := Some pinref)
     | INPUT ->
       List.iter (fun (net',typ',pinref',dir',sz') ->
-	if (pinref != pinref') & (dir' = OUTPUT) & (String.length ident < 100) then
+	if (pinref != pinref') && (dir' = OUTPUT) && (String.length ident < 100) then
 	  begin
 	  let ident = ident^" " in
 	  Printf.fprintf trc "%sNet %s:%s:%s\n" ident

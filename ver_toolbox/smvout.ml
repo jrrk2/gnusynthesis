@@ -488,9 +488,9 @@ let rec flt syms (oc:Buffer.t array) exp (lev:bool) = Stack.push (420, exp) stk;
 | DOUBLE(ALWAYS,stmt) -> (match stmt with
   | DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk)]), TLIST lst) -> List.iter (fun itm -> edge syms oc.(0) edg clk itm) lst
   | DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk)]), itm) ->  edge syms oc.(0) edg clk itm
-  | DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk); DOUBLE ((POSEDGE|NEGEDGE) as edg1, clr)]), itm) ->
+  | DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk); DOUBLE ((POSEDGE|NEGEDGE), clr)]), itm) ->
 		 edge syms oc.(0) edg clk itm	   
-  | DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk); DOUBLE ((POSEDGE|NEGEDGE) as edg1, clr); DOUBLE ((POSEDGE|NEGEDGE) as edg2, pre)]), itm)
+  | DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk); DOUBLE ((POSEDGE|NEGEDGE), clr); DOUBLE ((POSEDGE|NEGEDGE), pre)]), itm)
      -> edge syms oc.(0) edg clk itm	   
   | TLIST lst -> List.iter (fun itm -> bprintf oc.(0) "-- "; ignore(defn syms oc.(0) itm 0); bprintf oc.(0) "\n") lst
   | DOUBLE(DOUBLE(HASH, FLOATNUM f), dlystmt) -> (match dlystmt with
@@ -742,7 +742,7 @@ let smv_main arch kind' thash2 =
 
 let generate_smv_main_netlist arch kind =
   let thash2 = (Hashtbl.create 256,Hashtbl.create 256) in
-  smv_main arch kind thash2;
+  let _ = smv_main arch kind thash2 in
   QUINTUPLE(MODULE, ID (enterid ("main")), EMPTY,
             TLIST [],
             THASH thash2)

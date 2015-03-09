@@ -232,8 +232,9 @@ let rec to_aiger2 = function
   | Por(arg1,arg2) -> collapse(Not (Nor (to_aiger2 arg1, to_aiger2 arg2)))
   | Piff (_, _)
   | Pimp (_, _)
-  | Punknown -> failwith "unhandled formula"
-
+  | Punknown -> failwith "unhandled formula Punknown"
+  | Prime _ ->  failwith "unhandled formula Prime"
+	
 and collapse = function
   | Not (Not arg) -> arg
   | oth -> oth

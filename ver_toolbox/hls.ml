@@ -334,7 +334,9 @@ and rewrite syms (tbl:tbl) dest clk pred expr hashtab = match expr with
 	    else if idx = hi then hashit dest (DOUBLE(CONCAT, TLIST [next; QUADRUPLE(PARTSEL, ID dest, INT (hi-1), INT lo)]))
 	    else printf "Bit select of %s[%d:%d] is out of range\n" dest.id hi lo
 	| TRIPLE(BITSEL, ID dest, ID idx) ->
+(*
             let (hi,lo,inc) = Minimap.find_width dest syms in
+*)
 	    printf "Bit select of %s[%s] is not (yet) supported\n" dest.id idx.id
 	| QUADRUPLE(PARTSEL, ID dest, INT thi, INT tlo) ->
             let (hi,lo,inc) = Minimap.find_width dest syms in
@@ -344,7 +346,7 @@ and rewrite syms (tbl:tbl) dest clk pred expr hashtab = match expr with
 	    else if thi = hi then hashit dest (DOUBLE(CONCAT, TLIST [next; QUADRUPLE(PARTSEL, ID dest, INT (tlo-1), INT lo)]))
 	    else printf "Bit select of %s[%d:%d] is out of range\n" dest.id hi lo
 	| DOUBLE(CONCAT, TLIST clst) ->
-	  let wid = Minimap.cwidth syms clst and progress = ref 0 in
+	  let progress = ref 0 in
 	  List.iter (function
 	  | ID dest ->
 	    let progress2 = Minimap.elwidth syms (ID dest) in
@@ -494,7 +496,6 @@ and times' exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
                                                TRIPLE(CELLPIN, ID (enterid "Y"), ID out)])])) (); (ID out,lwid)
 
 and times exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let wid = lwid+rwid in
   let pout = Array.create lwid (TIMES,0) in
   let sum = Array.create lwid (TIMES,0) in
   let rght' = List.rev (Minimap.list_shorten lwid (Minimap.list_pad lwid (Minimap.concat_flatten' syms [lft]))) in
@@ -509,7 +510,6 @@ and times exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
   sum.(lwid-1)
 
 and sleft exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let wid = lwid+rwid in
   let pout = Array.create rwid (P_SLEFT, 0) in
   let rght' = List.rev (Minimap.list_shorten rwid (Minimap.list_pad rwid (Minimap.concat_flatten' syms [rght]))) in
   list_iteri 0 (fun i select ->
@@ -520,7 +520,6 @@ and sleft exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
   pout.(rwid-1)
 
 and sright exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let hi = lwid-1 in
   let pout = Array.create rwid (P_SRIGHT, 0) in
   let rght' = List.rev (Minimap.list_shorten rwid (Minimap.list_pad rwid (Minimap.concat_flatten' syms [rght]))) in
   list_iteri 0 (fun i select ->
@@ -1105,7 +1104,7 @@ let rec synthbody syms (tbl:tbl) = function
                      (Count.tokenstr dest1))
   | TLIST [DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk);
                              DOUBLE ((POSEDGE|NEGEDGE) as edg1, clr)]),
-           (QUADRUPLE ((ASSIGNMENT|DLYASSIGNMENT) as dly, dest, _, _) as itm))] ->
+           (QUADRUPLE ((ASSIGNMENT|DLYASSIGNMENT), dest, _, _) as itm))] ->
     if !verbose then printf "pattern matched %s\n" (Dump.dumpstr stmts);
     edge hashtab syms2 (tbl:tbl) [DOUBLE(edg,clk);TRIPLE(edg1,clr,BINNUM"1'b0")] itm	   
   | TLIST [DOUBLE(DOUBLE(AT, TLIST [DOUBLE ((POSEDGE|NEGEDGE) as edg, clk);

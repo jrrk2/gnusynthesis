@@ -158,7 +158,6 @@ and elaborate used arch thash2 syms iolstref = function
     Hashtbl.add (snd thash2)
       (TRIPLE(ASSIGN, arg1, TLIST (List.map (subst syms) arg2))) ();
 | QUADRUPLE((WIRE|TRI0|TRI1) as tok, arg0, TRIPLE(arg1, srng, arg3), TLIST arg4) ->
-  let intrng = Minimap.flatten_width srng syms in
   Hashtbl.replace (fst thash2) (QUADRUPLE(tok, arg0, TRIPLE(arg1, subst syms srng, arg3),
             TLIST (List.map (function
               | DOUBLE (ID id, EMPTY) -> DOUBLE (ID id, EMPTY)

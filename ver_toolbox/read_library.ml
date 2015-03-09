@@ -95,7 +95,8 @@ let rec ascfunc = function
   | Pnot arg -> "~("^ascfunc arg^")"
   | Pvar str -> Dump.dumpstr str
   | Punknown -> "unknown"
-
+  | Prime arg -> "("^ascfunc arg^")'"
+				    
 let unhand_reduce = ref []
 
 let rec reduce = function
@@ -147,7 +148,8 @@ let rec subst hash = function
   | Pnot arg -> Pnot(subst hash arg)
   | Pvar str -> hash str
   | Punknown -> Punknown
-
+  | Prime arg -> Prime(subst hash arg)
+	
 let is_member itm ipinlst = let rslt = ref false in
 			 List.iter (fun {idpin=pin} -> if itm = pin then rslt := true) ipinlst;
 			 !rslt
@@ -220,7 +222,7 @@ let rec classify_cell arg = function
         | TRIPLE(kind, dly, TLIST [QUADRUPLE (ID nam, SCALAR, ID out2, lst)]) when
             (is_member out2 arg.opinlst) && 
               (function EMPTY -> true | DOUBLE(HASH, FLOATNUM _) -> true | _ ->false) dly &&
-              (function TLIST inlst -> (List.for_all (function ID itm -> is_member itm arg.ipinlst or is_member itm arg.wirlst | _ -> false) inlst) | ID in2 -> true | _ -> false) lst ->
+              (function TLIST inlst -> (List.for_all (function ID itm -> is_member itm arg.ipinlst || is_member itm arg.wirlst | _ -> false) inlst) | ID in2 -> true | _ -> false) lst ->
             arg.bnam <- nam; arg.func <- kind; arg.prop <- genfunc' kind ((function TLIST inlst -> inlst | ID in2 -> [ID in2] | _ -> []) lst)
         | TRIPLE(kind, dly, TLIST [QUADRUPLE (ID nam, SCALAR, ID out2, ID in1)]) when
             (is_member out2 arg.wirlst) && 
@@ -342,7 +344,7 @@ let restore_lib arg =
 
 let dump_module arch nam arg = 
   let (lst:mlst ref) = ref [] in
-  Hashtbl.iter (fun k x -> if (k = nam) & (x.arch = arch) then lst := (k,x) :: !lst) modprims;
+  Hashtbl.iter (fun k x -> if (k = nam) && (x.arch = arch) then lst := (k,x) :: !lst) modprims;
   match !lst with
   | [] -> failwith ("No netlists matched arch "^arch^" name "^nam)
   | _ ->

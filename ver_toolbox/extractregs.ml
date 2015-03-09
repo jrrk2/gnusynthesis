@@ -105,7 +105,7 @@ let extract debug_mode arch thash2 syms iolstref = function
   List.iter (function
     | TRIPLE (ID id', EMPTY, EMPTY) ->
         let id = enterid (id'.id^"$reg") in
-        if not (debug_mode or List.mem (ID id) !iolstref) then
+        if not (debug_mode || List.mem (ID id) !iolstref) then
           begin
             Hashtbl.replace (fst thash2)
               (QUINTUPLE(OUTPUT, EMPTY, EMPTY, intrng, TLIST [(TRIPLE(ID id, EMPTY, EMPTY))])) ();

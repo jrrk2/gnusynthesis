@@ -50,9 +50,9 @@ let vparser args =
     | ".odin"
     | ".timesim"
     | ".synplify"
-    | ".verilog" -> (*Printexc.print*) psuccess := !psuccess & Vparse.parse args.(i)
+    | ".verilog" -> (*Printexc.print*) psuccess := !psuccess && Vparse.parse args.(i)
     | _ -> Printf.fprintf stderr "file %s extension not recognised - Verilog assumed\n" args.(i);
-       psuccess := !psuccess & Vparse.parse args.(i)
+       psuccess := !psuccess && Vparse.parse args.(i)
    done;
   if (!psuccess == false) then
     Printf.printf "Not continuing due to parse errors\n";

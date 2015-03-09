@@ -280,19 +280,12 @@ let topxml oc stats insts =
         Hashtbl.replace hash net ([],true,rng,dir,nul_attr()) in
   let dumpio hash =
   List.iter (function
-    | QUINTUPLE(dir, EMPTY, EMPTY, rng, TLIST idlst) -> let dirstr = String.uppercase(Ord.getstr dir) in List.iter (function
+    | QUINTUPLE(dir, EMPTY, EMPTY, rng, TLIST idlst) -> List.iter (function
         | TRIPLE (ID itm, EMPTY, EMPTY) -> (match rng with
             | RANGE(INT hi, INT lo) ->
               for i = lo to hi do netid hash (TRIPLE (BITSEL, ID itm, INT i)) rng dir None done;
-(*
-              printf "           (port (array (rename %s \"%s[%d:%d]\") %d) (direction %s))\n"
-                itm itm hi lo (hi-lo+1) dirstr
-*)
             | EMPTY ->
               netid hash (ID itm) rng dir None;
-(*
-              printf "           (port %s (direction %s))\n" itm dirstr
-*)
             | other -> unhand 194 other)
         | other -> unhand 195 other) idlst
     | other -> unhand 196 other) (outputs@inputs)
@@ -304,19 +297,11 @@ let topxml oc stats insts =
         | QUINTUPLE(MODULE, ID top, EMPTY, TLIST iolst, THASH insts) ->
           Hashtbl.iter (fun k _ -> match k with
             | QUINTUPLE(dir, EMPTY, EMPTY, rng, TLIST idlst) ->
-              let dirstr = String.uppercase(Ord.getstr dir) in
               List.iter (function
                 | TRIPLE (ID itm, EMPTY, EMPTY) -> (match rng with
                     | RANGE(expr1, expr2) -> let (hi,lo,dir) = Const.iwidth stderr submod.symbols rng in
-(*
-                      printf "           (port (array (rename %s \"%s[%d:%d]\") %d) (direction %s))\n"
-                        itm itm hi lo (hi-lo+1) dirstr;
-*)
                         Hashtbl.replace thishash itm (RANGE(INT hi,INT lo))
                     | EMPTY ->
-(*
-  printf "           (port %s (direction %s))\n" itm dirstr;
-*)
                         Hashtbl.replace thishash itm EMPTY                      
                     | other -> unhand 163 other)
                 | other -> unhand 164 other) idlst
@@ -357,7 +342,7 @@ let topxml oc stats insts =
         found.attr.width <- hist insthist depth;
         found.attr.marked <- true;
       ) reflst
-  and onenet depth (reflst,is_top,rng,dir,attr) = if depth < attr.depth or not attr.marked then
+  and onenet depth (reflst,is_top,rng,dir,attr) = if depth < attr.depth || not attr.marked then
         begin
           attr.depth <- depth;
           if !maxdepth < depth then maxdepth := depth;
@@ -471,7 +456,7 @@ let topxml oc stats insts =
   and liblst = ref [] in
   Hashtbl.iter (fun k _ -> match k with ID id -> liblst := id.id :: !liblst | _ -> failwith (Ord.getstr k)) stats;
   List.iter (fun itm' ->
-    let itm = enterid itm' in if not (List.mem itm' !liblst) then liblst := itm' :: !liblst) ["IBUF";"OBUF";"VCC";"GND"];
+    let _ = enterid itm' in if not (List.mem itm' !liblst) then liblst := itm' :: !liblst) ["IBUF";"OBUF";"VCC";"GND"];
   List.iter dumpskel !liblst;
   dumpio hash;
   Hashtbl.iter (fun k _ -> dumpinst hash id k ) (snd insts);

@@ -23,7 +23,7 @@ let vparser args =
   if rest <> "" then Read_library.restore_lib rest;
   let psuccess = ref true in
   for i = 1 to ( Array.length args - 1 ) do
-    psuccess := !psuccess & Vparse.parse args.(i)
+    psuccess := !psuccess && Vparse.parse args.(i)
    done;
   if (!psuccess == false) then
     Printf.printf "Not continuing due to parse errors\n";

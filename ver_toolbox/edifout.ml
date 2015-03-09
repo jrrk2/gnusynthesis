@@ -269,7 +269,7 @@ let edifout fd stats tree comment = match tree with QUINTUPLE(MODULE, ID top', E
   let liblst = ref [] in
   Hashtbl.iter (fun k _ -> match k with ID id -> liblst := id.id :: !liblst | _ -> failwith (Ord.getstr k)) stats;
   List.iter (fun itm' ->
-    let itm = enterid itm' in if not (List.mem itm' !liblst) then liblst := itm' :: !liblst) ["IBUF";"OBUF";"VCC";"GND"];
+    let _ = enterid itm' in if not (List.mem itm' !liblst) then liblst := itm' :: !liblst) ["IBUF";"OBUF";"VCC";"GND"];
   List.iter dumpskel !liblst;
   fprintf fd "  )\n";
   fprintf fd "  (library work\n";
@@ -322,7 +322,7 @@ let edifout fd stats tree comment = match tree with QUINTUPLE(MODULE, ID top', E
   | _ -> failwith "edifout only handles modules"
 
 let write_edif_arch arch top' =
-  let top = enterid top' in
+  let _ = enterid top' in
   List.iter (fun found ->
     let fd = unique_open (top'^"_"^arch^".edn") in
     edifout fd (Count.count_flat_netlist' found) found.tree found.comment;

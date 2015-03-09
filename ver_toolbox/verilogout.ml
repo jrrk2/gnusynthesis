@@ -186,7 +186,7 @@ let rec dump_flat_netlist (porthash:('a, 'b) Hashtbl.t option) syms comment = fu
       | DOUBLE (ID id, _) | TRIPLE (ID id, _, _) ->
         if Const.shash_chain_mem syms id
         then let myset = (Const.shash_chain_find syms id).Vparser.symattr in
-             not (Vparser.TokSet.mem INPUT myset or (Vparser.TokSet.mem OUTPUT myset && (tok <> REG)))
+             not (Vparser.TokSet.mem INPUT myset || (Vparser.TokSet.mem OUTPUT myset && (tok <> REG)))
         else true
       | oth -> unhandled stderr 445 oth; true) arg4 in
     if noredundant <> [] then
@@ -316,7 +316,7 @@ let rec dump_flat_netlist (porthash:('a, 'b) Hashtbl.t option) syms comment = fu
 	
 and dump_flat_header porthash syms comment arg1 arg2 arg3 arglst =
     let itmlst = ref [] and merge = Hashtbl.create 256 in
-    let delim = ref "(" and wid = ref 0 in
+    let wid = ref 0 in
     List.iter (function
     | QUADRUPLE(WIRE as tok, EMPTY, TRIPLE (EMPTY, rng, EMPTY), TLIST lst)
     | QUINTUPLE((INPUT|OUTPUT|INOUT) as tok, EMPTY, EMPTY, rng, TLIST lst) ->

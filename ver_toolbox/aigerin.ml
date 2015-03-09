@@ -28,7 +28,7 @@ let aigstr = function
     | AigAndOut num -> "AigAndOut "^string_of_int num
 
 let net_type logfile nets arg typ =
-  if nets.(arg/2) = AigUnknown (arg/2) or (match nets.(arg/2) with
+  if nets.(arg/2) = AigUnknown (arg/2) || (match nets.(arg/2) with
   | AigInput _ -> (match typ with AigInput _ -> true | _ -> false)
   | AigLatchOut _ -> (match typ with AigLatchOut _ -> true | _ -> false)
   | _ -> false)
@@ -299,7 +299,7 @@ let cnv_aiger logfile model nets inputs latches outputs ands =
 		| EMPTY -> ID id
 		| RANGE(INT hi, INT lo) -> TRIPLE(BITSEL, ID id, INT lo)
 		| oth -> unhandled stderr 155 oth; EMPTY in
-	      if !aigerclk = UNKNOWN or String.length (Count.tokenstr !aigerclk) > String.length (Count.tokenstr aigclk) then
+	      if !aigerclk = UNKNOWN || String.length (Count.tokenstr !aigerclk) > String.length (Count.tokenstr aigclk) then
 		begin
 		  print_endline ("Assuming "^id.id^" is a clock on grounds that it is an unconnected pin beginning with 'c'!");
 		  aigerclk := aigclk;

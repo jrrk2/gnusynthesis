@@ -287,10 +287,9 @@ let generate_sop_netlist mode k =
       while !card <> Hashtbl.length data.tused do card := Hashtbl.length data.tused;
         Hashtbl.iter (fun conn itm ->
           let exp = to_verilog data itm in
-          if conn <> exp then let con = TRIPLE(ASSIGN, EMPTY, TLIST [TRIPLE (ASSIGNMENT, conn, exp)]) in (match conn with
+          if conn <> exp then (match conn with
             | ID id -> if is_used data conn then
                    begin
-                    let (hi,lo,inc) = Minimap.find_width id k.symbols in
                     Hashtbl.add asgnhash' id (Array.create 1 exp);
                     used data [conn;exp]
                   end

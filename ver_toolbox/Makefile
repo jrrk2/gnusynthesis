@@ -36,15 +36,15 @@ ocamlyacc:
 	PARSEROPT="-v -b VhdlParser" \
 	PARSERINC:=`ocamlc -where` \
 
-.PHONY: -L../camlzip-1.04 libs
+.PHONY: libs
 
 OS:=$(shell uname -s)
 BASE:=$(shell ocamlc -where)
 
 CAMLIDL = $(BASE)/../camlidl
-INCLUDES = -I $(PARSERINC) -I ../ver_front -I ../vhd_front -I ../bdd-0.3 -I ../edif_parser -I ../theorem_proving -I ../camlzip-1.04 -I $(BASE)/caml -I $(BASE)/threads
-CMO = ../ver_front/ver_front.cma ../bdd-0.3/decision.cma ../vhd_front/vhd_front.cma ../xml-light-2.2/xml-light.cma ../camlzip-1.04/zip.cma ../edif_parser/edif2.cma ../theorem_proving/theorem_proving.cma
-CMX = ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa ../xml-light-2.2/xml-light.cmxa ../camlzip-1.04/zip.cmxa ../edif_parser/edif2.cmxa ../theorem_proving/theorem_proving.cmxa
+INCLUDES = -I $(PARSERINC) -I ../ver_front -I ../vhd_front -I ../bdd-0.3 -I ../edif_parser -I ../theorem_proving -I $(BASE)/../zip -I $(BASE)/caml -I $(BASE)/threads -I $(BASE)/../xml-light
+CMO = ../ver_front/ver_front.cma ../bdd-0.3/decision.cma ../vhd_front/vhd_front.cma $(BASE)/../xml-light/xml-light.cma $(BASE)/../zip/zip.cma ../edif_parser/edif2.cma ../theorem_proving/theorem_proving.cma
+CMX = ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xml-light/xml-light.cmxa $(BASE)/../zip/zip.cmxa ../edif_parser/edif2.cmxa ../theorem_proving/theorem_proving.cmxa
 SRC = read_library.ml count.ml erc.ml minimap.ml aigerin.ml aigerout.ml flatten.ml verilogout.ml write_blif.ml milefout.ml extractregs.ml rtl2rtl.ml miter.ml tolerate.ml sop.ml mapping.ml hls.ml elaborate.ml read_blif.ml edifout.ml xmlout.ml license.ml gencnf.ml smvout.ml
 FLATTENO = $(subst .ml,.cmo,$(SRC))
 FLATTENX = $(subst .ml,.cmx,$(SRC))
@@ -53,15 +53,13 @@ SCRIPTO = $(FLATTENO) main.cmo
 SCRIPTX = $(FLATTENX) main.cmx
 CML =  str.cma unix.cma threads.cma nums.cma #toplevellib.cma
 CMLX = str.cmxa unix.cmxa threads.cmxa nums.cmxa # wrapper.cmxa
-LDFLAGO = -cclib -lstdc++ -cclib -lreadline -cclib -L../camlzip-1.04 -cclib -lcamlidl -cclib -lstdc++ -cclib -L$(CAMLIDL)
-LDFLAGX = -lstdc++ -lreadline -L../camlzip-1.04 -lcamlzip -lm -lz -L$(CAMLIDL) -lcamlidl -lstdc++
+LDFLAGO = -cclib -lstdc++ -cclib -lreadline -cclib -L$(BASE)/../zip/ -cclib -lcamlidl -cclib -lstdc++ -cclib -L$(CAMLIDL)
+LDFLAGX = -lstdc++ -lreadline -L$(BASE)/../zip/ -lcamlzip -lm -lz -L$(CAMLIDL) -lcamlidl -lstdc++
 
 all: libs vhier vscr.opt vtop vscr vflatten.cmxa vflatten
 
 libs: ../ver_front/ver_front.cma ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cma ../bdd-0.3/decision.cmxa
 	make -C ../edif_parser
-	make -C ../camlzip-1.04
-	make -C ../xml-light-2.2
 
 vflatten: $(CMX) $(FLATTENX) vflatten.cmx
 	$(OCAMLOPT) -o $@ $(INCLUDES) unix.cmxa nums.cmxa $(PARSERLIBX) $(CMX) $(FLATTENX) vflatten.cmx $(LDFLAGO)
@@ -114,20 +112,8 @@ clean:
 ../bdd-0.3/decision.cma ../bdd-0.3/decision.cmxa: ../ver_front/globals.cmi
 	(cd ../bdd-0.3; autoconf; ./configure; make)
 
-../xml-light-2.2/xml-light.cma ../xml-light-2.2/xml-light.cmxa:
-	make -C ../xml-light-2.2
-
-../camlzip-1.04/zip.cma ../camlzip-1.04/zip.cmxa:
-	make -C ../camlzip-1.04 all allopt
-
 ../edif_parser/edif2.cma ../edif_parser/edif2.cmxa: ../ver_front/globals.cmi
 	make -C ../edif_parser
-
-xmlout.cmo: xmlout.ml
-	$(OCAMLC) -g -c $I -I ../xml-light-2.2 -I ../camlzip-1.04 $<
-
-xmlout.cmx: xmlout.ml
-	$(OCAMLOPT) -g -c $I -I ../xml-light-2.2 -I ../camlzip-1.04 $<
 
 INC := $(BASE)/../../build/ocaml
 I := -I $(BASE)/compiler-libs/utils -I $(BASE)/compiler-libs/parsing -I $(BASE)/compiler-libs/typing -I $(BASE)/compiler-libs/utils -I $(BASE)/compiler-libs/bytecomp -I $(BASE)/compiler-libs/toplevel -I $(BASE)/compiler-libs/driver -I $(BASE)/compiler-libs $(INCLUDES)

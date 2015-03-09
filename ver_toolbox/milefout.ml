@@ -264,6 +264,11 @@ let rec to_milef2 = function
       Xor(to_milef2 arg1, to_milef2 arg4)
   | Pand(arg1,arg2) -> collapse(And [to_milef2 arg1; to_milef2 arg2])
   | Por(arg1,arg2) -> collapse(Or [to_milef2 arg1; to_milef2 arg2])
+  | Pimp (_, _) -> failwith "unhandled milef expression Pimp _"
+  | Piff (_, _) -> failwith "unhandled milef expression Piff _"
+  | Prime _ -> failwith "unhandled milef expression Prime _"
+  | Punknown -> failwith "unhandled milef expression Punknown"
+  | Pvar _ -> failwith "unhandled milef expression Pvar _"
 
 and collapse = function
   | Zero -> Zero
@@ -274,11 +279,11 @@ and collapse = function
   | Or oth -> Or oth
   | Not (Not arg) -> arg
   | Atom arg -> Atom arg
-
+  | oth -> oth
+	
 let milef_Ver_ParseGate' milefHash prop inst (connlst:(token*string*token)list) =
   let kind = prop.nam.id in
   if !verbose then printf "milef_Ver_ParseGate' %s kind %s\n" inst kind;
-  let nFanins = List.length prop.ipinlst in
 
   if (prop.prop = Punknown) then failwith (sprintf "Boolean function property for %s is unknown\n" kind);
 
@@ -306,7 +311,7 @@ let milef_Ver_ParseGate' milefHash prop inst (connlst:(token*string*token)list) 
 
   (* fill in output name *)
   let opnet = ref None in
-  List.map (fun (formal,pWord2,_) ->
+  List.iter (fun (formal,pWord2,_) ->
     begin
       (match formal with
         | ID id -> if Read_library.is_member id prop.opinlst then
@@ -348,7 +353,7 @@ let milef_Ver_ParseFlopStandard milefHash kind inst (connlst:(token*string*token
     let pNetLo = ref (milef_FindOrCreateNet milefHash "1'b0") in
 
     (* parse pairs of formal/actual inputs *)
-    let usedports = List.map (fun (formal,pWord2,_) ->
+    let _ = List.map (fun (formal,pWord2,_) ->
     begin
         (* process one pair of formal/actual parameters *)
 

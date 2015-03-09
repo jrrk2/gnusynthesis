@@ -197,7 +197,6 @@ and logor exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
   (ID out,wid)
 
 and log_pand exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let wid = max lwid rwid in
   let arg1 = Minimap.netid "pand1" tbl.gentab tbl.namtab in
   let arg2 = Minimap.netid "pand2" tbl.gentab tbl.namtab in
   let out = Minimap.netid "pand" tbl.gentab tbl.namtab in
@@ -210,7 +209,6 @@ and log_pand exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
   tilde exp tbl syms (ID out,1)
 
 and log_por exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let wid = max lwid rwid in
   let arg1 = Minimap.netid "por1" tbl.gentab tbl.namtab in
   let arg2 = Minimap.netid "por2" tbl.gentab tbl.namtab in
   let out = Minimap.netid "por" tbl.gentab tbl.namtab in
@@ -243,9 +241,7 @@ let dyadic_bus_wild (tbl:tbl) isyms (dest,dwid) syms conn1 lft2 rght2 str path1 
   let str_index idx = while bin2.[!idx] = '_' do incr idx; done;
     bin2.[!idx] in
   let (lft,rght,inc) = Minimap.find_width dest isyms in
-  let wid1' = (max lft rght) - (min lft rght)
-  and wid2' = (max lft2 rght2) - (min lft2 rght2)
-  and idx = ref lft
+  let idx = ref lft
   and idx2 = ref lft2
   and inc2 = if lft2 < rght2 then 1 else -1
   and idx3 = ref 0 in

@@ -84,7 +84,8 @@ let rec bddtran = function
   | Piff(arg1,arg2) -> Formulas.Iff(bddtran arg1,bddtran arg2)
   | Pimp(arg1,arg2) -> Formulas.Imp(bddtran arg1,bddtran arg2)
   | Punknown -> Formulas.Atom (Prop.P "")
-
+  | Prime _ -> failwith "bddtran Prime() not implemented"
+	
 let rec subst hash = function
   | Formulas.True -> Formulas.True 
   | Formulas.False -> Formulas.False
@@ -111,9 +112,7 @@ let rec unmap data syms = function
         | err -> unhandled stderr 100 err; (enterid "",EMPTY)) itm in
                             Hashtbl.add pinhash cellpin conn;
       ) arg4;
-      let mysubst = subst (function
-        | str' -> let str = enterid str' in reduce (if Hashtbl.mem pinhash str then Hashtbl.find pinhash str else ID str)
-        | other -> failwith "") (bddtran prop.prop) in
+      let mysubst = subst (fun str' -> let str = enterid str' in reduce (if Hashtbl.mem pinhash str then Hashtbl.find pinhash str else ID str)) (bddtran prop.prop) in
       List.iter (fun itm -> if Hashtbl.mem pinhash itm.idpin then
           Hashtbl.add data.wirehash (Hashtbl.find pinhash itm.idpin) mysubst) prop.opinlst
     | err -> unhandled stderr 69 err) arg3)

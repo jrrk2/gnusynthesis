@@ -177,14 +177,9 @@ and buffer_bus_partsel fn hash isyms dest syms (conn,lft2,rght2) path1 path2 =
     dest.id
     conn.id lft rght;
     let inc2 = if lft2 < rght2 then 1 else -1 in
-    let wid1' = (max lft rght) - (min lft rght)
-    and wid2' = (max lft2 rght2) - (min lft2 rght2) in
     let idx = ref rght
     and idx2 = ref rght2 in
     while !idx2 <> lft2 - inc2 do
-(*
-      if !verbose then printf "insert %s %d %s %d\n" dest !idx conn !idx2;
-*)
       let buf = fn
         (TRIPLE(BITSEL, (path1 dest), INT !idx))
         (TRIPLE(BITSEL, (path2 conn), INT !idx2)) in List.iter (fun arg -> Hashtbl.add hash arg ()) buf;
@@ -295,8 +290,6 @@ let flt_subcell syms thash2 lev kind params arg3 =
             | TRIPLE (ID id, SCALAR, TLIST arg4) ->
               TRIPLE (pathid ("flt$"^kind.id^"$"^lev) id, SCALAR, 
                       TLIST (List.map (fun y -> (match y with
-                        | TRIPLE (CELLPIN, ID cellpin, INT num) ->
-			  TRIPLE (CELLPIN, ID cellpin, WIDTHNUM(2, 32, num))
                         | TRIPLE (CELLPIN, ID cellpin, ((WIDTHNUM _ | INT _ | DECNUM _ | HEXNUM _ | BINNUM _) as const)) ->
 			  let (sz,num) = Minimap.basenum const in TRIPLE (CELLPIN, ID cellpin, WIDTHNUM(2, sz, num))
                         | TRIPLE (CELLPIN, ID cellpin, ID conn) ->
@@ -311,7 +304,6 @@ let flt_subcell syms thash2 lev kind params arg3 =
                         | TRIPLE (CELLPIN, ID cellpin, TRIPLE (BITSEL, ID bit, WIDTHNUM(radix, wid, num))) ->
                           TRIPLE (CELLPIN, ID cellpin, TRIPLE (BITSEL, pathid lev bit, INT num))
                         | TRIPLE (CELLPIN, ID cellpin, QUADRUPLE(PARTSEL, ID conn, lft, rght)) ->
-                          let (hi,lo,inc) = Minimap.find_width conn syms in
                           let (selhi,sello,dir) = Const.iwidth stderr syms (RANGE(lft,rght)) in
                           TRIPLE (CELLPIN, ID cellpin, QUADRUPLE(PARTSEL, pathid lev conn, INT selhi, INT sello))
                         | TRIPLE (CELLPIN, ID cellpin, DOUBLE(CONCAT, TLIST clst)) ->

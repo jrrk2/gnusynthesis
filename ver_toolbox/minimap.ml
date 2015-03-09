@@ -105,7 +105,7 @@ let instid siglst syms' rslt =
       done;
       ID !nam
 
-let rec bin n0 wid = (if n0 > 1 or wid > 1 then bin (n0 lsr 1) (wid-1) else "")^(if n0 mod 2 = 1 then "1" else "0")
+let rec bin n0 wid = (if n0 > 1 || wid > 1 then bin (n0 lsr 1) (wid-1) else "")^(if n0 mod 2 = 1 then "1" else "0")
 
 let mask n0 = if n0 = 0 then 1 else let l = ref 0 and n = ref n0 in while (!n > 0) do n := !n lsr 1; l := !l + 1; done; !l
 
@@ -469,7 +469,7 @@ and cnv_asgn syms osymtab ilst = function
 
 let create_modinst'' pathid ilst syms (osymtab:osymtab) oinsts id = function
   | UNKNOWN -> (enterid "$","",UNKNOWN)
-  | (TRIPLE (CELLPIN, ID cellpin, ID conn)) as cellconn ->
+  | (TRIPLE (CELLPIN, ID cellpin, ID conn)) ->
      let (hi,lo,inc) = find_width conn syms in
       let bus = if hi=lo then sprintf "%s[%d]" conn.id hi else
 	   sprintf "%s[%d:%d]" conn.id hi lo in
@@ -531,7 +531,7 @@ let create_modinst'' pathid ilst syms (osymtab:osymtab) oinsts id = function
               | IDSTR id' -> let id = enterid id' in (id, ID id)
               | oth -> unhandled stderr 1493 oth; (enterid "$",EMPTY))
         | oth -> unhandled stderr 1444 oth; (enterid "$",oth) in
-      let lst = ref [] in (cellpin,conn.id,subst)
+      (cellpin,conn.id,subst)
   | DOUBLE (CELLPIN, ID cellpin) ->
     if !verbose then printf "create_modinst7'' %s\n" cellpin.id;
     (cellpin, "1'b0", EMPTY)
@@ -643,7 +643,7 @@ let decl_to_hls dlst syms =
                         Hashtbl.replace osymtab nam (kind,false) done
                   | err -> unhandled stderr 494 err)
               | err -> unhandled stderr 495 err) arg4
-          | SEXTUPLE(PARAMETER, signage, range, id, attr, expr) as param -> () (* value should already be known *)
+          | SEXTUPLE(PARAMETER, signage, range, id, attr, expr) -> () (* value should already be known *)
           | oth -> unhandled  stderr 496 oth) dlst;
         osymtab
 

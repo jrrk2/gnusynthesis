@@ -100,7 +100,7 @@ let filter_hls fn arch =
     else
       (arch,"") in
   Hashtbl.iter (fun k x ->
-    if x.Globals.is_netlist && x.Globals.arch = ar && (k=top or not got_top)
+    if x.Globals.is_netlist && x.Globals.arch = ar && (k=top || not got_top)
     then find1 := (k,x) :: !find1) Globals.modprims;
   match !find1 with
     | [] -> failwith ("create "^ar^" "^top^" returned no modules")
@@ -141,7 +141,7 @@ let convert_hls' dest = failwith "convert"
 *)
   
 let rec main quit args =
-  Array.iteri (fun ix itm -> if ix > 0 & (itm="-" or String.sub itm (String.length itm-4) 4 = ".scr") then
+  Array.iteri (fun ix itm -> if ix > 0 && (itm="-" || String.sub itm (String.length itm-4) 4 = ".scr") then
       let ic = if itm = "-" then stdin else Vparse.my_openin itm in
       try
         while not !quit do
@@ -353,7 +353,7 @@ and main_vhdparse quit len cnt atok =
   while !cnt < len-1 do incr cnt; VhdlMain.main psuccess [atok.(!cnt)]; done; incr cnt;
   Hashtbl.iter (fun (c,nam) itm -> if (c=VhdlTree.VhdPackageDeclaration) then Vconvert.convertpkg itm) Vabstraction.vhdlhash;
   Hashtbl.iter (fun (c,nam) itm ->
-    if (c=VhdlTree.VhdEntityDeclaration) & (Hashtbl.mem Vabstraction.vhdlhash (VhdlTree.VhdArchitectureBody,nam)) then
+    if (c=VhdlTree.VhdEntityDeclaration) && (Hashtbl.mem Vabstraction.vhdlhash (VhdlTree.VhdArchitectureBody,nam)) then
       Semantics.prescan (Vconvert.logf !Globals.logfile) "v2hls" (snd (Vconvert.convert' nam))
         ("Generated from "^atok.(!cnt-1))) Vabstraction.vhdlhash;
   if (!psuccess == false) then

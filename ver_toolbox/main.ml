@@ -168,10 +168,10 @@ and main_license quit len cnt atok =
 
 and main_library_env quit len cnt atok =
   Read_library.env := atok.(!cnt-1)
-
+(*
 and main_write_xml_arch quit len cnt atok =
   Xmlout.write_xml_arch atok.(!cnt-2) atok.(!cnt-1)
-
+*)
 and main_write_smv_arch quit len cnt atok =
   Smvout.write_smv_arch atok.(!cnt-2) atok.(!cnt-1)
 
@@ -445,7 +445,9 @@ let _ = List.iter (fun (str,help,key,args) -> Hashtbl.replace Setup.main_cmds st
                 ( "write_verilog_all", "write all modules to individual files in Verilog format",main_write_verilog_all, 2);
                 ( "write_verilog_arch", "write an architecture to file in Verilog format",main_write_verilog_arch, 3);
                 ( "write_verilog_arch_nohier", "write an architecture to file in Verilog format",main_write_verilog_arch_nohier, 3);
+(*
                 ( "write_xml_arch", "write a netlist as an XML file",main_write_xml_arch, 3);
+*)
                 ( "xtr_count_arch","estimate transistor count in a design", main_xtr_count_arch, 3);
 ]
 

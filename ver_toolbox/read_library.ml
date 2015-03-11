@@ -21,7 +21,8 @@ open Printf
 open Vparser
 open Dump
 open List
-
+open Xmlm
+  
 let verbose = ref false
 let instcnt = ref 0
 
@@ -320,23 +321,33 @@ let read_lib () =
     let rslt = nulbuf nam pattern.tree in classify_cell rslt pattern.tree; Hashtbl.replace libhash nam rslt
   ) modprims;
   restore_lib'()
-
+    
+let lib_write arg lst =
+  let xml = Xmlio.Element ("gnusynthesis_library", [], List.map Xmlio.lib_trans lst) in
+  Xmlio.out_tree arg (None,xml)
+    
+let lib_read arg =
+  let _,xml = Xmlio.in_tree arg in
+  let liblst = match xml with Xmlio.Element ("gnusynthesis_library", [], lst) -> lst | _ -> [] in
+  List.map Xmlio.lib_untrans liblst
+    
+let mod_write arg lst =
+  let xml = Xmlio.Element ("gnusynthesis_module", [], List.map Xmlio.mod_trans lst) in
+  Xmlio.out_tree arg (None,xml)
+    
+let mod_read arg =
+  let _,xml = Xmlio.in_tree arg in
+  []
+    
 let dump_lib arg = 
   let (rlst:rlst ref) = ref [] in
   Hashtbl.iter (fun k x -> rlst := (k,x) :: !rlst) libhash;
   let revrlst = List.rev (!rlst) in
   if !verbose then printf "%d library cells saved\n" (List.length revrlst);
-  let chan = open_out arg in
-  Marshal.to_channel chan (Hashtbl.hash revrlst) [Marshal.Closures];
-  Marshal.to_channel chan revrlst [Marshal.Closures];
-  close_out chan
+  lib_write arg revrlst
 
 let restore_lib arg =
-  let chan = Vparse.my_openin arg in
-  let (hash:int) = Marshal.from_channel chan in
-  let (rlst:rlst) = Marshal.from_channel chan in
-  close_in chan;
-  if hash <> Hashtbl.hash rlst then failwith "Library inconsistent - hash function has changed";
+  let (rlst:rlst) = lib_read arg in
   Hashtbl.clear libhash;
   List.iter (fun (k,x) -> Hashtbl.replace libhash k x) rlst;
   fprintf stderr "%d library cells restored\n" (List.length rlst);
@@ -349,17 +360,10 @@ let dump_module arch nam arg =
   | [] -> failwith ("No netlists matched arch "^arch^" name "^nam)
   | _ ->
     if !verbose then printf "%d modules saved\n" (List.length !lst);
-    let chan = open_out arg in
-    Marshal.to_channel chan (Hashtbl.hash !lst) [Marshal.Closures];
-    Marshal.to_channel chan !lst [Marshal.Closures];
-    close_out chan
+    mod_write arg !lst
 
 let restore_module arg =
-  let chan = Vparse.my_openin arg in
-  let (hash:int) = Marshal.from_channel chan in
-  let (lst:mlst) = Marshal.from_channel chan in
-  close_in chan;
-  if hash <> Hashtbl.hash lst then failwith "Image inconsistent - hash function has changed";
+  let (lst:mlst) = mod_read arg in
   List.iter (fun (k,x) -> Hashtbl.replace modprims k x) lst;
   fprintf stderr "%d modules restored\n" (List.length lst)
 

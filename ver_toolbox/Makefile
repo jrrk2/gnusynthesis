@@ -42,10 +42,10 @@ OS:=$(shell uname -s)
 BASE:=$(shell ocamlc -where)
 
 CAMLIDL = $(BASE)/../camlidl
-INCLUDES = -I $(PARSERINC) -I ../ver_front -I ../vhd_front -I ../bdd-0.3 -I ../edif_parser -I ../theorem_proving -I $(BASE)/../zip -I $(BASE)/caml -I $(BASE)/threads -I $(BASE)/../xml-light
-CMO = ../ver_front/ver_front.cma ../bdd-0.3/decision.cma ../vhd_front/vhd_front.cma $(BASE)/../xml-light/xml-light.cma $(BASE)/../zip/zip.cma ../edif_parser/edif2.cma ../theorem_proving/theorem_proving.cma
-CMX = ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xml-light/xml-light.cmxa $(BASE)/../zip/zip.cmxa ../edif_parser/edif2.cmxa ../theorem_proving/theorem_proving.cmxa
-SRC = read_library.ml count.ml erc.ml minimap.ml aigerin.ml aigerout.ml flatten.ml verilogout.ml write_blif.ml milefout.ml extractregs.ml rtl2rtl.ml miter.ml tolerate.ml sop.ml mapping.ml hls.ml elaborate.ml read_blif.ml edifout.ml xmlout.ml license.ml gencnf.ml smvout.ml
+INCLUDES = -I $(PARSERINC) -I ../ver_front -I ../vhd_front -I ../bdd-0.3 -I ../edif_parser -I ../theorem_proving -I $(BASE)/../zip -I $(BASE)/caml -I $(BASE)/threads -I $(BASE)/../xmlm
+CMO = ../ver_front/ver_front.cma ../bdd-0.3/decision.cma ../vhd_front/vhd_front.cma $(BASE)/../xmlm/xmlm.cma $(BASE)/../zip/zip.cma ../edif_parser/edif2.cma ../theorem_proving/theorem_proving.cma
+CMX = ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xmlm/xmlm.cmxa $(BASE)/../zip/zip.cmxa ../edif_parser/edif2.cmxa ../theorem_proving/theorem_proving.cmxa
+SRC = shortlist.ml xmlio.ml read_library.ml count.ml erc.ml minimap.ml aigerin.ml aigerout.ml flatten.ml verilogout.ml write_blif.ml milefout.ml extractregs.ml rtl2rtl.ml miter.ml tolerate.ml sop.ml mapping.ml hls.ml elaborate.ml read_blif.ml edifout.ml license.ml gencnf.ml smvout.ml # xmlout.ml
 FLATTENO = $(subst .ml,.cmo,$(SRC))
 FLATTENX = $(subst .ml,.cmx,$(SRC))
 FLATTENA = $(subst .ml,.o,$(SRC))
@@ -64,8 +64,8 @@ libs: ../ver_front/ver_front.cma ../ver_front/ver_front.cmxa ../bdd-0.3/decision
 vflatten: $(CMX) $(FLATTENX) vflatten.cmx
 	$(OCAMLOPT) -o $@ $(INCLUDES) unix.cmxa nums.cmxa $(PARSERLIBX) $(CMX) $(FLATTENX) vflatten.cmx $(LDFLAGO)
 
-vhier: ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa read_library.cmx count.cmx vhier.cmx
-	$(OCAMLOPT) -o $@ $(INCLUDES) unix.cmxa nums.cmxa $(PARSERLIBX) ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa read_library.cmx count.cmx vhier.cmx
+vhier: ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa shortlist.cmx xmlio.cmx read_library.cmx count.cmx vhier.cmx
+	$(OCAMLOPT) -o $@ $(INCLUDES) unix.cmxa nums.cmxa $(PARSERLIBX) ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xmlm/xmlm.cmxa shortlist.cmx xmlio.cmx read_library.cmx count.cmx vhier.cmx
 
 vtop: $(CMO) $(SCRIPTO) $(TOPLOOP).cmi $(TOPLOOP).cmo
 	ocamlmktop -g -custom -o $@ $(INCLUDES) $(PARSERLIB) $(CML) $(CMO) $(TOPLOOP).cmo $(SCRIPTO) $(LDFLAGO)

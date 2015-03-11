@@ -32,7 +32,9 @@ val main_read_hls_lib : 'a -> 'b -> int ref -> string array -> unit
 val main_mods : 'a -> 'b -> 'c -> 'd -> unit
 val main_info : 'a -> 'b -> 'c -> 'd -> unit
 val main_library_env : 'a -> 'b -> int ref -> string array -> unit
+(*
 val main_write_xml_arch : 'a -> 'b -> int ref -> string array -> unit
+*)
 val main_write_edif_arch : 'a -> 'b -> int ref -> string array -> unit
 val main_gen_hls_arch : 'a -> 'b -> int ref -> string array -> unit
 val main_write_verilog_arch : 'a -> 'b -> int ref -> string array -> unit

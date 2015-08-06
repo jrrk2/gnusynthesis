@@ -6,11 +6,11 @@ Anglia Ruskin University.
 
 Supervisors:
 
-George Wilson <George.Wilson@anglia.ac.uk>
-David Greaves <david.greaves.10@gmail.com>
-Marcian Cirstea <marcian.cirstea@anglia.ac.uk>
+*George Wilson <George.Wilson@anglia.ac.uk>
+*David Greaves <david.greaves.10@gmail.com>
+*Marcian Cirstea <marcian.cirstea@anglia.ac.uk>
 
 Examiners:
 
-Anil Madhavapeddy <avsm2@cl.cam.ac.uk>
-John O'Donnell <John.ODonnell@glasgow.ac.uk>
+*Anil Madhavapeddy <avsm2@cl.cam.ac.uk>
+*John O'Donnell <John.ODonnell@glasgow.ac.uk>

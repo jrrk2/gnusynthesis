@@ -76,7 +76,6 @@
                 "constant", Lconstant;
                 "context", Lcontext;
                 "cover", Lcover;
-                "default", Ldefault;
                 "disconnect", Ldisconnect;
                 "downto", Ldownto;
                 "else", Lelse;

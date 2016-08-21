@@ -437,7 +437,6 @@ let rec position_of_name (name: vhdl_name) =
 %token Lconstant
 %token Lcontext
 %token Lcover
-%token Ldefault
 %token Ldisconnect
 %token Ldownto
 %token Lelse
@@ -710,6 +709,8 @@ selected_name_list:
 name:
   | simple_name
       { SimpleName $1 };
+  | selected_name
+      { SelectedName $1 };
   | Lstring
       { OperatorString $1 };
   | attribute_name
@@ -954,6 +955,8 @@ factor:
       { NandFactor $2; };
   | Lnor dotted
       { NorFactor $2; };
+  | Lnew dotted
+      { NewFactor $2; };
   | dotted
       { AtomFactor $1; };
 
@@ -978,6 +981,8 @@ string literals are reported as names (OperatorString)
 */
 
 primary:
+  | Lnull
+      { VhdSequentialNull };
   | name parameters
       { NameParametersPrimary ($1,$2) };
   | integer_literal
@@ -2268,6 +2273,8 @@ delay_mechanism:
 target:
   | name
       { TargetName $1};
+  | dotted
+      { TargetDotted $1};
   | name parameters
       { TargetNameParameters ($1,$2) };
   | name Ldot suffix
@@ -4901,7 +4908,6 @@ unused_tokens:
   |  Lassume  { [] }
   |  Lbreak  { [] }
   |  Lcover  { [] }
-  |  Ldefault  { [] }
   |  Ldisconnect  { [] }
   |  Lfairness  { [] }
   |  Lforce  { [] }

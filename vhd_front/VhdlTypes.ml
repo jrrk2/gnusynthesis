@@ -300,6 +300,7 @@ and vhdl_factor =
   | XnorFactor of vhdl_dotted
   | NandFactor of vhdl_dotted
   | NorFactor of vhdl_dotted
+  | NewFactor of vhdl_dotted
 and vhdl_factor_list = vhdl_factor list
 
 and vhdl_dotted =
@@ -311,6 +312,7 @@ and vhdl_dotted =
 (*   an indexed name, a qualified expression or             *)
 (* an attribute with parameters.                            *)
 and vhdl_primary =
+  | VhdSequentialNull
   | NamePrimary of vhdl_name
   | NameParametersPrimary of (vhdl_name * vhdl_parameters)
   | IntPrimary of vhdl_int
@@ -825,6 +827,7 @@ and vhdl_waveform =
 
 and vhdl_target =
   | TargetName of vhdl_name
+  | TargetDotted of vhdl_dotted
   | TargetNameParameters of (vhdl_name * vhdl_parameters)
   | TargetAggregate of vhdl_aggregate
   | TargetInvalid of int (* error position *)

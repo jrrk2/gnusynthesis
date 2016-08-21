@@ -225,6 +225,7 @@ type vhdintf =
   | VhdNandFactor
   | VhdNandLogicalExpression
   | VhdNegSimpleExpression
+  | VhdNewFactor
   | VhdNoConstraint
   | VhdNorFactor
   | VhdNorLogicalExpression
@@ -346,6 +347,7 @@ type vhdintf =
   | VhdTargetAggregate
   | VhdTargetInvalid
   | VhdTargetName
+  | VhdTargetDotted
   | VhdTargetNameParameters
   | VhdUnaffected
   | VhdUnboundedArray
@@ -647,6 +649,8 @@ let rec dump_vhd_int x = Str (string_of_int x)
 	dump_dotted dotted)
   | NorFactor dotted -> Double(VhdNorFactor,
 	dump_dotted dotted)
+  | NewFactor dotted -> Double(VhdNewFactor,
+	dump_dotted dotted)
 (*36*)   and dump_factor_list x = List (List.map dump_factor x)
 (*37*)   and dump_dotted = function
   | AtomDotted primary -> dump_primary primary
@@ -654,6 +658,7 @@ let rec dump_vhd_int x = Str (string_of_int x)
 	, dump_primary primary1
 	)
 (*38*)   and dump_primary = function
+  | VhdSequentialNull -> VhdSequentialNull
   | NamePrimary name -> Double(VhdNamePrimary,
 	dump_name name)
   | NameParametersPrimary (name0,parameters1) -> Triple(VhdNameParametersPrimary, dump_name name0
@@ -1078,6 +1083,8 @@ let rec dump_vhd_int x = Str (string_of_int x)
 (*114*)   and dump_target = function
   | TargetName name -> Double(VhdTargetName,
 	dump_name name)
+  | TargetDotted name -> Double(VhdTargetDotted,
+	dump_dotted name)
   | TargetNameParameters (name0,parameters1) -> Triple(VhdTargetNameParameters, dump_name name0
 	, dump_parameters parameters1
 	)

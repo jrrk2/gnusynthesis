@@ -196,7 +196,7 @@
             strRemoveDupInt (acc^String.make 1 currch) (i+1)
     in strRemoveDupInt "" 0;;
 }
-
+     
 rule lexer = parse
    (* skip spaces *)
    [' ' '\t']
@@ -217,6 +217,9 @@ rule lexer = parse
    (* skip end-of-line *)
  | '\n'
     { lexer lexbuf }
+
+ | '`'"protect begin_protected"
+    { Lprotected }
 
    (* match identifiers and find a reserved keyword *)
    (* identifiers can start with a letter (ISO 8859 - also known as Latin-1): *)
@@ -337,3 +340,12 @@ rule lexer = parse
     { Lmatchinggreater }
  | "?>="
     { Lmatchinggreaterequal }
+
+and protected = parse
+   eof
+    { Leof }
+ | '`'"protect end_protected"
+    { Lprotected }
+
+ | [^ '\n']* '\n'
+    { protected lexbuf }

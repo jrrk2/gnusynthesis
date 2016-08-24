@@ -17,7 +17,7 @@
 
 # default: ocamlyacc
 
-export PARSER=`ocamlc -where`/../../bin/menhir --table --base VhdlParser # --trace
+export PARSER=`ocamlc -where`/../../bin/menhir --table --base VhdlParser --trace
 export PARSERINC=`ocamlc -where`/../menhirLib
 export PARSERLIB=`ocamlc -where`/../menhirLib/menhirLib.cmo
 export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmx

@@ -4890,6 +4890,8 @@ secondary_unit:
 top_level_file:
   | Leof
       { [] };
+  | Lprotected
+      { [] };
   | design_file Leof
       { $1 };
   | Lbomutf8 Leof

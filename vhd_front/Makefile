@@ -15,21 +15,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-default: ocamlyacc
+# default: ocamlyacc
 
-menhir:
-	make all \
-	PARSER=/usr/bin/menhir \
-	PARSEROPT="--table --base VhdlParser" \
-	PARSERINC=/usr/lib/ocaml/menhirLib \
-	PARSERLIB=/usr/lib/ocaml/menhirLib/menhirLib.cmo \
-	PARSERLIBX=/usr/lib/ocaml/menhirLib/menhirLib.cmx \
-
-ocamlyacc:
-	make all \
-	PARSER=ocamlyacc \
-	PARSEROPT="-v -b VhdlParser" \
-	PARSERINC:=`ocamlc -where` \
+export PARSER=`ocamlc -where`/../../bin/menhir --table --base VhdlParser # --trace
+export PARSERINC=`ocamlc -where`/../menhirLib
+export PARSERLIB=`ocamlc -where`/../menhirLib/menhirLib.cmo
+export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmx
 
 INCLUDE = -I $(PARSERINC) -I ../ver_front
 
@@ -38,9 +29,6 @@ CMX = ../ver_front/ver_front.cmxa
 VHDX = VhdlTypes.cmx asctoken.cmx VhdlTree.cmx vabstraction.cmx combined.cmx vconvert.cmx VhdlParser.cmx VhdlLexer.cmx VhdlSettings.cmx VhdlMain.cmx
 CML = str.cma unix.cma nums.cma ../ver_front/ver_front.cma
 CMLX = str.cmxa unix.cmxa nums.cmxa
-PSL2BA = ../psl2ba
-PSLINC = -I $(PSL2BA)/obj
-CUDD = $(PSL2BA)/cudd-2.4.2
 MAING = v2abcgen.cmo
 
 all: vgen vhd_front.cma vhd_front.cmxa
@@ -79,7 +67,7 @@ clean:
 	ocamlopt.opt $(INCLUDE) -g -c $<
 
 VhdlParser.mli VhdlParser.ml: VhdlParser.mly
-	$(PARSER) $(PARSEROPTS) VhdlParser.mly
+	$(PARSER) VhdlParser.mly
 
 VhdlParser.cmo: VhdlParser.cmi
 VhdlTypes.cmo: ../ver_front/ver_front.cma

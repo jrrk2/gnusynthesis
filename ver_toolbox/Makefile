@@ -27,8 +27,6 @@ menhir:
 	PARSER=/usr/bin/menhir \
 	PARSEROPT="--table --base VhdlParser" \
 	PARSERINC=/usr/lib/ocaml/menhirLib \
-	PARSERLIB=/usr/lib/ocaml/menhirLib/menhirLib.cmo \
-	PARSERLIBX=/usr/lib/ocaml/menhirLib/menhirLib.cmx \
 
 ocamlyacc:
 	make all \
@@ -42,6 +40,8 @@ OS:=$(shell uname -s)
 BASE:=$(shell ocamlc -where)
 
 CAMLIDL = $(BASE)/../camlidl
+PARSERLIB= $(BASE)/../menhirLib/menhirLib.cmo
+PARSERLIBX= $(BASE)/../menhirLib/menhirLib.cmx
 INCLUDES = -I $(PARSERINC) -I ../ver_front -I ../vhd_front -I ../bdd-0.3 -I ../edif_parser -I ../theorem_proving -I $(BASE)/../zip -I $(BASE)/caml -I $(BASE)/threads -I $(BASE)/../xmlm
 CMO = ../ver_front/ver_front.cma ../bdd-0.3/decision.cma ../vhd_front/vhd_front.cma $(BASE)/../xmlm/xmlm.cma $(BASE)/../zip/zip.cma ../edif_parser/edif2.cma ../theorem_proving/theorem_proving.cma
 CMX = ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xmlm/xmlm.cmxa $(BASE)/../zip/zip.cmxa ../edif_parser/edif2.cmxa ../theorem_proving/theorem_proving.cmxa

@@ -2277,10 +2277,12 @@ target:
       { TargetDotted $1};
   | name parameters
       { TargetNameParameters ($1,$2) };
+/*
   | name Ldot suffix
       { SelectTargetName ($1,$3) };
   | name parameters Ldot suffix
       { SelectTargetNameParameters ($1,$2,$4) };
+*/
   | aggregate
       { TargetAggregate $1};
 

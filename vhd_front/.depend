@@ -20,6 +20,6 @@ v2abcgen.cmx: VhdlTypes.cmx VhdlTree.cmx VhdlSettings.cmx VhdlParser.cmx \
     VhdlMain.cmx vabstraction.cmx
 vabstraction.cmo: VhdlTree.cmo asctoken.cmo
 vabstraction.cmx: VhdlTree.cmx asctoken.cmx
-vconvert.cmo: VhdlTree.cmo vabstraction.cmo combined.cmo asctoken.cmo
-vconvert.cmx: VhdlTree.cmx vabstraction.cmx combined.cmx asctoken.cmx
+vconvert.cmo: VhdlTree.cmo vabstraction.cmo asctoken.cmo
+vconvert.cmx: VhdlTree.cmx vabstraction.cmx asctoken.cmx
 VhdlParser.cmi: VhdlTypes.cmo

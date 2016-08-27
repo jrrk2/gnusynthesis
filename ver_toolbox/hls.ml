@@ -21,7 +21,9 @@ open Printf
 open Globals
 open Idhash
 open Vparser
+(*
 open Vconvert
+*)
 open VhdlTree
 open Read_library
 open Mapselect

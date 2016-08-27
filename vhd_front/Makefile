@@ -17,16 +17,17 @@
 
 # default: ocamlyacc
 
-export PARSER=`ocamlc -where`/../../bin/menhir --table --base VhdlParser --trace
+export PARSER=`ocamlc -where`/../../bin/menhir --table --base VhdlParser # --trace
 export PARSERINC=`ocamlc -where`/../menhirLib
 export PARSERLIB=`ocamlc -where`/../menhirLib/menhirLib.cmo
 export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmx
 
 INCLUDE = -I $(PARSERINC) -I ../ver_front
-
-VHDO = VhdlTypes.cmo asctoken.cmo VhdlTree.cmo vabstraction.cmo combined.cmo vconvert.cmo VhdlParser.cmo VhdlLexer.cmo VhdlSettings.cmo VhdlMain.cmo
+COMBINED = # combined.cmo vconvert.cmo 
+COMBINEDX = # combined.cmx vconvert.cmx
+VHDO = VhdlTypes.cmo asctoken.cmo VhdlTree.cmo vabstraction.cmo $(COMBINED) VhdlParser.cmo VhdlLexer.cmo VhdlSettings.cmo VhdlMain.cmo
 CMX = ../ver_front/ver_front.cmxa
-VHDX = VhdlTypes.cmx asctoken.cmx VhdlTree.cmx vabstraction.cmx combined.cmx vconvert.cmx VhdlParser.cmx VhdlLexer.cmx VhdlSettings.cmx VhdlMain.cmx
+VHDX = VhdlTypes.cmx asctoken.cmx VhdlTree.cmx vabstraction.cmx $(COMBINEDX) VhdlParser.cmx VhdlLexer.cmx VhdlSettings.cmx VhdlMain.cmx
 CML = str.cma unix.cma nums.cma ../ver_front/ver_front.cma
 CMLX = str.cmxa unix.cmxa nums.cmxa
 MAING = v2abcgen.cmo

@@ -4891,7 +4891,7 @@ top_level_file:
   | Leof
       { [] };
   | Lprotected
-      { [] };
+      { [ {designunitcontextclause = []; designunitlibraryunit = ProtectedUnit} ] };
   | design_file Leof
       { $1 };
   | Lbomutf8 Leof

@@ -1919,12 +1919,15 @@ and vhdl_primary_unit =
 and vhdl_library_unit =
   | PrimaryUnit of vhdl_primary_unit
   | SecondaryUnit of vhdl_secondary_unit
+  | ProtectedUnit
 
 and vhdl_design_unit = {
   designunitcontextclause: vhdl_context_clause;
   designunitlibraryunit: vhdl_library_unit
   }
+
 and vhdl_design_file = vhdl_design_unit list
+
 and vhdl_parsed_file = {
   parsedfilename: string;
   parsedfilelibrary: string;

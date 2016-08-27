@@ -250,6 +250,7 @@ let asctoken = function
   | VhdProcessTypeDeclaration -> "VhdProcessTypeDeclaration"
   | VhdProcessUseClause -> "VhdProcessUseClause"
   | VhdProcessVariableDeclaration -> "VhdProcessVariableDeclaration"
+  | VhdProtectedUnit -> "VhdProtectedUnit"
   | VhdPure -> "VhdPure"
   | VhdQualifiedAggregate -> "VhdQualifiedAggregate"
   | VhdQualifiedExpression -> "VhdQualifiedExpression"

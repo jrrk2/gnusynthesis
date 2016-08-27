@@ -214,6 +214,10 @@ rule lexer = parse
  | "--" [^ '\n']*
     { lexer lexbuf }
 
+   (* skip DOS-style end-of-line *)
+ | '\r' '\n'
+    { lexer lexbuf }
+
    (* skip end-of-line *)
  | '\n'
     { lexer lexbuf }

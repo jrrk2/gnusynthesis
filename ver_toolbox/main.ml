@@ -21,6 +21,7 @@ let verbose = ref false
 let backtrace = ref false
 let filt_verbose = ref false
 let debug_edif = ref Vparser.EMPTY
+let vhditm = ref []
 
 type mainhash_t = (string * string, string * string * Globals.modtree) Hashtbl.t
 
@@ -272,16 +273,12 @@ and main_gen_smv_main_arch quit len cnt atok =
   Smvout.gen_smv_main_arch atok.(!cnt-2) atok.(!cnt-1)
 
 and main_vhdparse quit len cnt atok =
-  let psuccess = ref true in
-  while !cnt < len-1 do incr cnt; VhdlMain.main psuccess [atok.(!cnt)]; done; incr cnt;
-  Hashtbl.iter (fun (c,nam) itm -> if (c=VhdlTree.VhdPackageDeclaration) then Vconvert.convertpkg itm) Vabstraction.vhdlhash;
-  Hashtbl.iter (fun (c,nam) itm ->
-    if (c=VhdlTree.VhdEntityDeclaration) && (Hashtbl.mem Vabstraction.vhdlhash (VhdlTree.VhdArchitectureBody,nam)) then
-      Semantics.prescan (Vconvert.logf !Globals.logfile) "v2hls" (snd (Vconvert.convert' nam))
-        ("Generated from "^atok.(!cnt-1))) Vabstraction.vhdlhash;
-  if (!psuccess == false) then
-    (Printf.printf "Not continuing due to parse errors\n"; cnt := len);
-Printf.printf "Module report %s\n" (Semantics.endscan())
+  while !cnt < len-1
+  do incr cnt;
+    let ch = open_in atok.(!cnt) in
+    vhditm := VhdlMain.parse_vhdl_channel ch true :: !vhditm;
+    close_in ch;
+    done; incr cnt
 
 and main_vparse quit len cnt atok =
   let psuccess = ref true in

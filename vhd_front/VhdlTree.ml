@@ -281,6 +281,7 @@ type vhdintf =
   | VhdProcessTypeDeclaration
   | VhdProcessUseClause
   | VhdProcessVariableDeclaration
+  | VhdProtectedUnit
   | VhdPure
   | VhdQualifiedAggregate
   | VhdQualifiedExpression
@@ -1927,6 +1928,7 @@ let rec dump_vhd_int x = Str (string_of_int x)
 	dump_primary_unit primary_unit)
   | SecondaryUnit secondary_unit -> Double(VhdSecondaryUnit,
 	dump_secondary_unit secondary_unit)
+  | ProtectedUnit -> VhdProtectedUnit
 (*230*)   and dump_design_unit {
   designunitcontextclause=context_clause0;
   designunitlibraryunit=library_unit1;

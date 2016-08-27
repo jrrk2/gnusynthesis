@@ -15,7 +15,6 @@ open Main
 open VhdlTree
 open VhdlMain
 open VhdlTypes
-open Combined
 open Big_int
 
 let parse_file file =
@@ -142,37 +141,6 @@ let vhdlst = [
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/pulpino/pulpino.srcs/sources_1/ip/xilinx_clock_manager/axi_lite_ipif_v1_01_a/hdl/src/vhdl/xilinx_clock_manager_address_decoder.vhd";
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/pulpino/pulpino.srcs/sources_1/ip/xilinx_clock_manager/xilinx_clock_manager_clk_wiz_drp.vhd";
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/pulpino/pulpino.srcs/sources_1/ip/xilinx_clock_manager/xilinx_clock_manager_axi_clk_config.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/SD_W_MUX.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/STACK_FSM.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PRGRM_DECODE.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/SDRAM_FIFO.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/RESET_BLOCK.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/CONTROL.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/STACK_MEM.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PRGRM_CNT.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PRGRM_FSM.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/ALU.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/INSTRN_LAT.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/DATA_PATH.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/RISC_CHIP.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/SDRAM_IF.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/CONTEXT_MEM.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PCI_W_MUX.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/RISCTYPES.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/BLENDER.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/STACK_TOP.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/REG_FILE.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/RISC_CORE.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PCI_CORE.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PRGRM_CNT_TOP.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PCI_FIFO.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PCI_TOP.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/ORCA_TYPES.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/ORCA_TOP.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/PARSER.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/SDRAM_TOP.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/CLOCK_GEN.vhd";
-"/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/orca/dc/rtl/ORCA.vhd";
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/ips/apb/apb_uart/uart_transmitter.vhd";
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/ips/apb/apb_uart/slib_edge_detect.vhd";
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/ips/apb/apb_uart/uart_receiver.vhd";
@@ -432,7 +400,48 @@ let vhdlst = [
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/fpga/board/nexys4_ddr/lowrisc-chip-imp/lowrisc-chip-imp.ip_user_files/ip/xilinx_clock_manager/xilinx_clock_manager_clk_wiz_drp.vhd";
 "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/fpga/board/nexys4_ddr/lowrisc-chip-imp/lowrisc-chip-imp.ip_user_files/ip/xilinx_clock_manager/xilinx_clock_manager_axi_clk_config.vhd"]
 
-(*
-let itmlst = List.map (parse_file) vhdlst;;
-*)
 let prot = parse_file "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/pulpino/jrrk/pulpino/pulpino.srcs/sources_1/ip/xilinx_mem_32768x32_dp/blk_mem_gen_v8_3_1/hdl/blk_mem_gen_v8_3_vhsyn_rfs.vhd";;
+let unprot = parse_file "/home/jrrk2/proj/lowrisc-chip-eth-debug-pulpino/fpga/board/nexys4_ddr/lowrisc-chip-imp/lowrisc-chip-imp.srcs/sources_1/ip/axi_quad_spi_1/axi_quad_spi_v3_2_6/hdl/src/vhdl/reset_sync_module.vhd";;
+
+let matchvhdl = function
+  | SimpleName vhdl_simple_name -> ""
+  | OperatorString (vhdl_string,n) ->  vhdl_string
+  | SelectedName vhdl_selected_name -> ""
+  | AttributeName vhdl_attribute_name -> ""
+  | SubscriptName (vhdl_simple_name, vhdl_selector) -> ""
+
+let matchname = function
+  | [] -> ""
+  | SuffixSimpleName vhdl_name :: tl -> matchvhdl vhdl_name
+  | SuffixCharLiteral (ch, n) :: tl -> string_of_int n
+  | SuffixOpSymbol (vhdl_string,n) :: tl -> vhdl_string
+  | SuffixAll :: tl -> ""
+
+let matchuse = function
+  | [] -> ""
+  | SuffixAll :: 
+          SuffixSimpleName (SimpleName (std, n1)) ::
+          SuffixSimpleName (SimpleName (ieee, n2)) :: tl -> std
+  | SuffixAll :: tl -> ""
+  | SuffixSimpleName _ :: tl -> ""
+  | SuffixCharLiteral _ :: tl -> ""
+  | SuffixOpSymbol _ :: tl -> ""
+
+let matchlib = function
+  | ContextLibraryClause [] -> ""
+  | ContextLibraryClause ((lib, n) :: tl) -> lib
+  | ContextUseClause [] -> ""
+  | ContextUseClause (hd :: tl) -> matchuse hd
+  | ContextContextReference ref -> String.concat ";" (List.map matchname ref)
+
+let matchuse = function
+  | [] -> []
+  | {designunitcontextclause = clause1;
+     designunitlibraryunit = libunit} :: tl -> List.map matchlib clause1
+
+let used = matchuse unprot;;
+
+let all () =
+    let itmlst = List.map (parse_file) vhdlst in
+    List.map matchuse itmlst
+

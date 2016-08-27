@@ -3,7 +3,9 @@ open Printf
 open Globals
 open Idhash
 open Vparser
+(*
 open Vconvert
+*)
 open VhdlTree
 open Read_library
 open Mapselect
@@ -91,6 +93,11 @@ let unaryplus exp (tbl:tbl) syms (src,wid) =
   monadic_signal (tbl:tbl) syms (Minimap.validid tbl.namtab) (Minimap.insert_buf syms) wid (ID out,src);
   (ID out,wid)
       
+let rec log2 = function
+  | 0 -> 0
+  | 1 -> 0
+  | n -> 1 + log2(n/2)
+
 let pling exp (tbl:tbl) syms (src,wid) =
   let ewid = 1 lsl (log2 wid) in
   if ewid = wid then

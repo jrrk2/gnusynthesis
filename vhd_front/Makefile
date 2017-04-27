@@ -25,7 +25,7 @@ export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmx
 INCLUDE = -I $(PARSERINC) -I ../ver_front
 COMBINED = # combined.cmo vconvert.cmo 
 COMBINEDX = # combined.cmx vconvert.cmx
-VHDO = VhdlTypes.cmo asctoken.cmo VhdlTree.cmo vabstraction.cmo $(COMBINED) VhdlParser.cmo VhdlLexer.cmo VhdlSettings.cmo VhdlMain.cmo
+VHDO = VhdlTypes.cmo asctoken.cmo VhdlTree.cmo vabstraction.cmo $(COMBINED) VhdlParser.cmo VhdlLexer.cmo VhdlSettings.cmo VhdlMain.cmo rewrite.cmo
 CMX = ../ver_front/ver_front.cmxa
 VHDX = VhdlTypes.cmx asctoken.cmx VhdlTree.cmx vabstraction.cmx $(COMBINEDX) VhdlParser.cmx VhdlLexer.cmx VhdlSettings.cmx VhdlMain.cmx
 CML = str.cma unix.cma nums.cma ../ver_front/ver_front.cma
@@ -38,7 +38,7 @@ vgen: $(VHDO) $(MAING)
 	ocamlc.opt -g -o $@ $(PARSERLIB) $(CML) $(VHDO) $(MAING)
 
 vhdltop: $(VHDO)
-	ocamlmktop -g -o $@ `ocamlc -where`/{nums,str,unix}.cma $(CUDD)/cudd/libcudd.a $(CUDD)/mtr/libmtr.a $(CUDD)/st/libst.a $(CUDD)/epd/libepd.a $(CUDD)/util/libutil.a $(PSL2BA)/obj/cudd1.o $(PSL2BA)/obj/cudd.cma $(PSL2BA)/obj/psl2ba.cma $(PARSERLIB) ../ver_front/ver_front.cma $(VHDO)
+	ocamlmktop -g -o $@ `ocamlc -where`/{nums,str,unix}.cma $(PARSERLIB) ../ver_front/ver_front.cma $(VHDO)
 
 vhd_front.cma: $(VHDO)
 	ocamlc.opt -g -a -o $@ $(VHDO)
@@ -59,7 +59,7 @@ clean:
 	ocamlc.opt $(INCLUDE) -g -c $<
 
 .mli.cmi:
-	ocamlc.opt -g -c $<
+	ocamlc.opt $(INCLUDE) -g -c $<
 
 .mll.ml:
 	ocamllex.opt $(LEXOPTS) $<

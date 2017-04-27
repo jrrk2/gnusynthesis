@@ -23,7 +23,7 @@ type vhdintf =
   | Str of string
   | Char of char
   | Real of float
-  | Num of Big_int.big_int
+  | Num of string
   | List of vhdintf list
   | Double of vhdintf * vhdintf
   | Triple of vhdintf * vhdintf * vhdintf
@@ -452,7 +452,7 @@ let rec dump_vhd_int x = Str (string_of_int x)
         and dump_vhd_string x = Str x
 (*0*)   and dump_identifier (str,_) = Str str
 (*1*)   and dump_string (str,_) = Str str
-(*2*)   and dump_int (n,_) = Num n
+(*2*)   and dump_int (n,_) = Num (Big_int.string_of_big_int n)
 (*3*)   and dump_float (f,_) = Real f
 (*4*)   and dump_char (ch,_) = Char ch
 (*5*)   and dump_identifier_list x = List (List.map dump_identifier x)

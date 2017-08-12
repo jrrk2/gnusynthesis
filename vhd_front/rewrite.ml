@@ -180,7 +180,11 @@ let rec abstraction = function
   | others -> others
 
 let unmatched = ref []
-  
+
+let digit = function
+  | '0'..'9' -> true
+  | _ -> false
+;;  
 let rec match2 = function
   | Str str -> print_string str
   | Triple (VhdEqualRelation, lft, rght) ->
@@ -201,42 +205,41 @@ let rec match2 = function
   | Triple (Vhdassociation_element,
                                      VhdFormalIndexed,
                                      Double (VhdActualExpression,
-					     Str tx_frame_check_sequence)) ->
-   print_endline ("assoc1:")
+					     Str str)) ->
+   print_endline ("assoc1:"^str)
 | Triple (Vhdassociation_element,
           VhdFormalIndexed,
           Double (VhdActualExpression,
 		  Double (VhdIntPrimary, Num n))) -> print_endline ("assoc2:"^n)
+|
+                                  Double (VhdSequentialVariableAssignment,
+                                   Double (VhdSimpleVariableAssignment,
+                                    Quadruple (Vhdsimple_variable_assignment,
+					       Str "", Str dst, expr))) ->
+   print_string (dst^" <= "); match2 expr; print_string ";"
 
 | Double (VhdSequentialSignalAssignment,
                                    Double (VhdSimpleSignalAssignment,
                                     Quintuple
                                      (Vhdsimple_signal_assignment_statement,
-                                     Str "", Str tx_state, VhdDelayNone,
+                                     Str "", Str dst, VhdDelayNone,
                                      Double (Vhdwaveform_element,
-					     Str _TX_FRAME_CHECK_SEQUENCE2)))) -> print_endline ("assign1:")
+					     Str src)))) -> print_endline (dst^" := "^src^";")
 |
-                                  Double (VhdSequentialVariableAssignment,
-                                   Double (VhdSimpleVariableAssignment,
-                                    Quadruple (Vhdsimple_variable_assignment,
-                                     Str "", Str data_out,
                                      Triple (VhdNameParametersPrimary,
-                                      Str fcs_output_byte,
+                                      Str fn,
                                       List
-					lst23)))) -> print_endline ("assign:");
-				    List.iter match2 lst23
-|
-                                  Double (VhdSequentialVariableAssignment,
-                                   Double (VhdSimpleVariableAssignment,
-                                    Quadruple (Vhdsimple_variable_assignment,
-                                     Str "", Str update_fcs, Str _FALSE))) -> print_endline ("assign3:")
+					lst23) ->
+  print_string (fn^"(");
+  List.iter match2 lst23;
+  print_string (fn^"(")
 
 | Double (VhdSequentialSignalAssignment,
                       Double (VhdSimpleSignalAssignment,
                        Quintuple (Vhdsimple_signal_assignment_statement,
-                        Str "", Str rx_frame_o, VhdDelayNone,
+                        Str "", Str dst, VhdDelayNone,
                         Double (Vhdwaveform_element,
-				Double (VhdCharPrimary, Char ch))))) -> print_endline ("seqasgn:")
+				Double (VhdCharPrimary, Char ch))))) -> print_endline (dst^" <= 1'b"^String.make 1 ch^";")
 |
                      Double (VhdSequentialIf,
                       Quintuple (Vhdif_statement, Str "",
@@ -252,43 +255,43 @@ let rec match2 = function
 		       List.iter match2 lst17;
 | Double (VhdSequentialCase,
           Quintuple (Vhdcase_statement, Str "",
-                     Double (VhdSelector, Str rx_state), VhdOrdinarySelection,
+                     Double (VhdSelector, sel), VhdOrdinarySelection,
                      List
-                       lst19)) -> print_endline ("seqcase:");
+                       lst19)) -> print_string ("switch(");
+  match2 sel;
+  print_string ")\nbegin\n";
   List.iter match2 lst19;
+  print_string ")\nend\n";
 
-| Triple (Vhdcase_statement_alternative,
-                   Double (VhdChoiceSimpleExpression,
-                    Str _RX_WAIT_START_FRAME_DELIMITER),
-                   List
-                     lst12) -> print_endline ("alt1:");
-		       List.iter match2 lst12;
-|
-                  Triple (Vhdcase_statement_alternative,
-                   Double (VhdChoiceSimpleExpression, Str _RX_SKIP_FRAME),
-                   Double (VhdSequentialIf,
-                    Quintuple (Vhdif_statement, Str "",
-                     Double (VhdCondition,
-                      Triple (VhdEqualRelation, Str mii_rx_frame_i,
-                       Double (VhdCharPrimary, Char ch))),
-                     Double (VhdSequentialSignalAssignment,
-                      Double (VhdSimpleSignalAssignment,
-                       Quintuple (Vhdsimple_signal_assignment_statement,
-                        Str "", Str rx_state, VhdDelayNone,
-                        Double (Vhdwaveform_element,
-                         Str _RX_WAIT_START_FRAME_DELIMITER)))),
-                     VhdElseNone))) -> print_endline ("alt2:");
+| Double (VhdChoiceSimpleExpression,
+                               case') ->
+   match2 case';
+  print_string (": ");
 
-| Double (VhdSequentialIf,
-                           Quintuple (Vhdif_statement, Str "",
-                            Double (VhdCondition,
-                             Triple (VhdEqualRelation,
-                              Str mii_rx_byte_received_i,
-                              Double (VhdCharPrimary, Char ch))),
-                            List
-                             lst17,
-				      VhdElseNone)) -> print_endline ("seqif:");
-		       List.iter match2 lst17;
+
+| Triple (Vhdcase_statement_alternative, cse, stmts) ->
+   (match cse with
+   | VhdChoiceOthers -> print_string "default: "
+   | List cselst -> List.iter match2 cselst
+   | oth -> match2 cse);
+  (match stmts with
+  | List lst12 ->
+    print_string "\nbegin ";
+    List.iter match2 lst12;
+    print_string "end\n";
+  | oth -> match2 oth)
+|                 Double (VhdSequentialIf,
+                 Quintuple (Vhdif_statement, Str "",
+                  cond,
+                  List
+                   thenlst,
+			    VhdElseNone)) ->
+ print_endline ("if (");
+    match2 cond;
+    print_string ") begin ";
+    List.iter match2 thenlst;
+    print_string "end;\n";
+
 |
                           Double (VhdSequentialIf,
                            Quintuple (Vhdif_statement, Str "",
@@ -335,17 +338,6 @@ let rec match2 = function
                                      Str rx_frame_size'',
                                      Double (VhdIntPrimary, Num n)))))),
 					  VhdElseNone)) -> print_endline ("seqif2:");
-|
-                              Double (VhdSequentialIf,
-                               Quintuple (Vhdif_statement, Str "",
-                                Double (VhdCondition,
-                                 Triple (VhdLessRelation,
-                                  Str rx_mac_address_byte,
-                                  Str _MAC_ADDRESS_BYTES)),
-                                List
-                                 lst16,
-                                VhdElseNone)) -> print_endline ("seqif3:");
-		       List.iter match2 lst16;
 
 | Double (VhdSequentialIf,
                                    Quintuple (Vhdif_statement, Str "",
@@ -464,26 +456,27 @@ let rec match2 = function
 | Double (VhdSequentialSignalAssignment,
                       Double (VhdSimpleSignalAssignment,
                        Quintuple (Vhdsimple_signal_assignment_statement,
-                        Str "", Str rx_mac_address_byte, VhdDelayNone,
+                        Str "", Str dst, VhdDelayNone,
                         Double (Vhdwaveform_element,
-                         Double (VhdOperatorString, Str "000"))))) -> print_endline ("seqasgn7:");
+				Double (VhdOperatorString, Str v))))) when digit v.[0] ->
+   print_endline (dst^" <= 'b"^v^";");
 
 |
                      Double (VhdSequentialSignalAssignment,
                       Double (VhdSimpleSignalAssignment,
                        Quintuple (Vhdsimple_signal_assignment_statement,
-                        Str "", Str rx_frame_size, VhdDelayNone,
+                        Str "", Str dst, VhdDelayNone,
                         Double (Vhdwaveform_element,
-				Double (VhdIntPrimary, Num n))))) -> print_endline ("seqasgn8:");
+				Double (VhdIntPrimary, Num n))))) -> print_endline (dst^" <= "^n^";");
 |
                      Double (VhdSequentialSignalAssignment,
                       Double (VhdSimpleSignalAssignment,
                        Quintuple (Vhdsimple_signal_assignment_statement,
-                        Str "", Str rx_frame_check_sequence, VhdDelayNone,
+                        Str "", Str dst, VhdDelayNone,
                         Double (Vhdwaveform_element,
                          Double (VhdAggregatePrimary,
                           Triple (Vhdelement_association, VhdChoiceOthers,
-                           Double (VhdCharPrimary, Char ch))))))) -> print_endline ("seqasgn9:");
+                           Double (VhdCharPrimary, Char ch))))))) -> print_endline (dst^" <= "^String.make 1 ch^";");
 
 | Double (VhdSequentialIf,
                           Quintuple (Vhdif_statement, Str "",
@@ -499,40 +492,11 @@ let rec match2 = function
                               lst9)),
 				     VhdElseNone)) -> print_endline ("seqif8:");
 		       List.iter match2 lst9;
-
-| Triple (Vhdcase_statement_alternative,
-                                Double (VhdChoiceSimpleExpression,
-                                 Str _START_FRAME_DELIMITER_DATA),
-                                Double (VhdSequentialSignalAssignment,
-                                 Double (VhdSimpleSignalAssignment,
-                                  Quintuple
-                                   (Vhdsimple_signal_assignment_statement,
-                                   Str "", Str rx_state, VhdDelayNone,
-                                   Double (Vhdwaveform_element,
-					   Str _RX_DATA))))) -> print_endline ("alt4:");
-|
-                               Triple (Vhdcase_statement_alternative,
-                                Double (VhdChoiceSimpleExpression,
-                                 Str _PREAMBLE_DATA),
-                                Double (VhdSequentialNull,
-					Double (Vhdnull_statement, Str ""))) -> print_endline ("alt5:");
-|
-                               Triple (Vhdcase_statement_alternative,
-                                VhdChoiceOthers,
-                                Double (VhdSequentialSignalAssignment,
-                                 Double (VhdSimpleSignalAssignment,
-                                  Quintuple
-                                   (Vhdsimple_signal_assignment_statement,
-                                   Str "", Str rx_state, VhdDelayNone,
-                                   Double (Vhdwaveform_element,
-					   Str _RX_SKIP_FRAME))))) -> print_endline ("alt6:");
-			 
-
 | Double (VhdSequentialSignalAssignment,
                                Double (VhdSimpleSignalAssignment,
                                 Quintuple
                                  (Vhdsimple_signal_assignment_statement,
-                                 Str "", Str tx_state, VhdDelayNone,
+                                 Str "", Str dst, VhdDelayNone,
                                  Double (Vhdwaveform_element,
                                   Triple (VhdNameParametersPrimary,
                                    Double (VhdAttributeName,
@@ -543,7 +507,7 @@ let rec match2 = function
                                    Triple (Vhdassociation_element,
                                     VhdFormalIndexed,
                                     Double (VhdActualExpression,
-                                     Str tx_state'))))))) -> print_endline ("simplasgn1:");
+                                     Str src))))))) -> print_endline (dst^" <=  "^src^";");
 
 
 |                              Double (VhdSequentialIf,
@@ -569,22 +533,13 @@ let rec match2 = function
                                       Double (VhdIntPrimary, Num n'))))))))) -> print_endline ("seqif':");
 		       List.iter match2 lst33;
 
-| Double (VhdChoiceSimpleExpression,
-                               Str _TX_PREAMBLE2) -> print_endline ("choicesimpl:");
-
-
-|                                     Double (VhdSequentialVariableAssignment,
-                                      Double (VhdSimpleVariableAssignment,
-                                       Quadruple
-                                        (Vhdsimple_variable_assignment,
-                                        Str "", Str data_out,
-                                        Triple (VhdNameParametersPrimary,
+|                                         Triple (VhdNameParametersPrimary,
                                          Str mac_address_i,
                                          Triple (Vhdassociation_element,
                                           VhdFormalIndexed,
                                           Double (VhdActualDiscreteRange,
                                            Triple (VhdRange, Num n,
-                                            Num n'))))))) -> print_endline ("varasgn:");
+                                            Num n')))) -> print_endline ("varasgn:"^n^","^n');
 
 |                                     Double (VhdSequentialSignalAssignment,
                                       Double (VhdSimpleSignalAssignment,
@@ -595,185 +550,25 @@ let rec match2 = function
                                         Double (Vhdwaveform_element,
                                          Double (VhdOperatorString,
                                           Str "001"))))) -> print_endline ("seqsigasgn1:");
-
-|                              Double (VhdSequentialIf,
-                               Quintuple (Vhdif_statement, Str "",
-                                Double (VhdCondition,
-                                 Triple (VhdLessRelation,
-                                  Str tx_mac_address_byte,
-                                  Str _MAC_ADDRESS_BYTES)),
-                                Double (VhdSequentialSignalAssignment,
-                                 Double (VhdSimpleSignalAssignment,
-                                  Quintuple
-                                   (Vhdsimple_signal_assignment_statement,
-                                   Str "", Str tx_mac_address_byte',
-                                   VhdDelayNone,
-                                   Double (Vhdwaveform_element,
-                                    Triple (VhdAddSimpleExpression,
-                                     Str tx_mac_address_byte'',
-                                     Double (VhdOperatorString, Str "001")))))),
-                                Double (VhdElse,
-                                 Double (VhdSequentialIf,
-                                  Quintuple (Vhdif_statement, Str "",
-                                   Double (VhdCondition,
-                                    Triple (VhdEqualRelation,
-                                     Str tx_data_i,
-                                     Double (VhdOperatorString,
-                                      Str "11111111"))),
-                                   List
-                                    lst39,
-                                   Double (VhdElse,
-                                    Double (VhdSequentialSignalAssignment,
-                                     Double (VhdSimpleSignalAssignment,
-                                      Quintuple
-                                       (Vhdsimple_signal_assignment_statement,
-                                       Str "", Str tx_state, VhdDelayNone,
-                                       Double (Vhdwaveform_element,
-                                        Str _TX_CLIENT_DATA)))))))))) -> print_endline ("seqif9:");
-		       List.iter match2 lst39;
-|                              Double (VhdSequentialIf,
-                               Quintuple (Vhdif_statement, Str "",
-                                Double (VhdCondition,
-                                 Triple (VhdEqualRelation,
-                                  Str tx_padding_required,
-                                  Double (VhdIntPrimary, Num n))),
-                                List
-                                 lst25,
-                                VhdElseNone)) -> print_endline ("seqif10:");
-		       List.iter match2 lst25;
-|                              Double (VhdSequentialIf,
-                               Quintuple (Vhdif_statement, Str "",
-                                Double (VhdCondition,
-                                 Triple (VhdLessRelation,
-                                  Str tx_mac_address_byte,
-                                  Double (VhdParenthesedPrimary,
-                                   Triple (VhdSubSimpleExpression,
-                                    Str _MAC_ADDRESS_BYTES,
-                                    Double (VhdOperatorString, Str "001"))))),
-                                Double (VhdSequentialSignalAssignment,
-                                 Double (VhdSimpleSignalAssignment,
-                                  Quintuple
-                                   (Vhdsimple_signal_assignment_statement,
-                                   Str "", Str tx_mac_address_byte',
-                                   VhdDelayNone,
-                                   Double (Vhdwaveform_element,
-                                    Triple (VhdAddSimpleExpression,
-                                     Str tx_mac_address_byte'',
-                                     Double (VhdOperatorString, Str "001")))))),
-                                Double (VhdElse,
-                                 Double (VhdSequentialSignalAssignment,
-                                  Double (VhdSimpleSignalAssignment,
-                                   Quintuple
-                                    (Vhdsimple_signal_assignment_statement,
-                                    Str "", Str tx_state, VhdDelayNone,
-                                    Double (Vhdwaveform_element,
-                                     Str _TX_CLIENT_DATA))))))) -> print_endline ("seqif11:");
-
-
-|                              Double (VhdSequentialIf,
-                               Quintuple (Vhdif_statement, Str "",
-                                Double (VhdCondition,
-                                 Triple (VhdEqualRelation, Str tx_enable_i,
-                                  Double (VhdCharPrimary, Char ch))),
-                                Double (VhdSequentialIf,
-                                 Quintuple (Vhdif_statement, Str "",
-                                  Double (VhdCondition,
-                                   Triple (VhdEqualRelation,
-                                    Str tx_padding_required,
-                                    Double (VhdIntPrimary, Num n))),
-                                  List
-                                   lst43,
-                                  Double (VhdElse,
-                                   List
-                                    lst44))),
-                                VhdElseNone)) -> print_endline ("seqif12:");
-		       List.iter match2 lst43;
-		       List.iter match2 lst44;
-
-|                           Triple (Vhdcase_statement_alternative,
-                            List
-                             lst35,
-                            List
-                             lst36) -> print_endline ("alt6:");
-		       List.iter match2 lst35;
-		       List.iter match2 lst36;
-
-|                       Double (VhdSequentialVariableAssignment,
-                        Double (VhdSimpleVariableAssignment,
-                         Quadruple (Vhdsimple_variable_assignment, Str "",
-                          Str data_out,
-                          Double (VhdAggregatePrimary,
-                           Triple (Vhdelement_association, VhdChoiceOthers,
-                            Double (VhdCharPrimary, Char ch)))))) -> print_endline ("varasgn10:");
-
-|                       Double (VhdSequentialIf,
-                        Quintuple (Vhdif_statement, Str "",
-                         Double (VhdCondition, Str update_fcs),
-                         Double (VhdSequentialSignalAssignment,
-                          Double (VhdSimpleSignalAssignment,
-                           Quintuple (Vhdsimple_signal_assignment_statement,
-                            Str "", Str tx_frame_check_sequence,
-                            VhdDelayNone,
-                            Double (Vhdwaveform_element,
-                             Triple (VhdNameParametersPrimary,
-                              Str update_crc32,
-                              List
-                               lst22))))),
-                         VhdElseNone)) -> print_endline ("seqif15:");
-		       List.iter match2 lst22;
-
-|                       Double (VhdSequentialIf,
-                        Quintuple (Vhdif_statement, Str "",
-                         Double (VhdCondition,
-                          Triple (VhdOrLogicalExpression,
-                           Double (VhdParenthesedPrimary,
-                            Triple (VhdOrLogicalExpression,
-                             Double (VhdParenthesedPrimary,
-                              Triple (VhdOrLogicalExpression,
-                               Triple (VhdEqualRelation, Str tx_state,
-                                Str _TX_CLIENT_DATA_WAIT_SOURCE_ADDRESS),
-                               Triple (VhdEqualRelation, Str tx_state',
-                                Str _TX_SOURCE_ADDRESS))),
-                             Triple (VhdEqualRelation, Str tx_state'',
-                              Str _TX_CLIENT_DATA))),
-                           Triple (VhdEqualRelation, Str tx_state''',
-                            Str _TX_PAD))),
-                         Double (VhdSequentialIf,
-                          Quintuple (Vhdif_statement, Str "",
-                           Double (VhdCondition,
-                            Triple (VhdGreaterRelation,
-                             Str tx_padding_required,
-                             Double (VhdIntPrimary, Num n))),
-                           Double (VhdSequentialSignalAssignment,
-                            Double (VhdSimpleSignalAssignment,
-                             Quintuple
-                              (Vhdsimple_signal_assignment_statement, 
-                              Str "", Str tx_padding_required',
-                              VhdDelayNone,
-                              Double (Vhdwaveform_element,
-                               Triple (VhdSubSimpleExpression,
-                                Str tx_padding_required'',
-                                Double (VhdIntPrimary, Num n')))))),
-                           VhdElseNone)),
-                         VhdElseNone)) -> print_endline ("seqif20:");
-
-
-|              Double (VhdSequentialIf,
+     
+  |              Double (VhdSequentialIf,
                Quintuple (Vhdif_statement, Str "",
-                Double (VhdCondition,
-                 Triple (VhdEqualRelation, Str tx_state, Str _TX_IDLE)),
-                Double (VhdSequentialIf,
-                 Quintuple (Vhdif_statement, Str "",
-                  Double (VhdCondition,
-                   Triple (VhdEqualRelation, Str tx_enable_i,
-                    Double (VhdCharPrimary, Char ch))),
-                  List
-                   lst4,
-                  VhdElseNone)),
-                Double (VhdElse,
+			  cond,
+			  then',else')) -> print_endline ("if (");
+    match2 cond;
+    print_string ") ";
+    match2 then';
+    print_string " else ";
+    match2 else';
+
+|                          Double (VhdAggregatePrimary,
+                           Triple (Vhdelement_association, VhdChoiceOthers,
+                            Double (VhdCharPrimary, Char ch))) -> print_endline ("1'b"^String.make 1 ch^";");
+
+
+  | Double (VhdElse,
                  List
-                  lst51))) -> print_endline ("seqif21:");
-		       List.iter match2 lst4;
+                   lst51) ->
 		       List.iter match2 lst51;
 
 | Double (VhdProcessVariableDeclaration,

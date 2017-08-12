@@ -50,6 +50,7 @@ let srclst = [
 ];;
 
 let srclst = [ "../../hdlConvertor/tests/mux.vhd" ];;
+let srclst = [ "framing_golden.vhd" ];;
 
 let succ = ref true;;
 let _ = main succ srclst;;
@@ -58,3 +59,44 @@ Hashtbl.iter (fun k x -> lst := (k,x) :: !lst) vhdlhash;;
 
 let (a,b),c = List.nth !lst 1;;
 let d = abstraction(abstraction c);;
+
+let (a',b'),c' = List.nth !lst 0;;
+let d' = abstraction(abstraction c');;
+
+let alamode = function
+| VhdInterfaceModeIn -> "input wire"
+| VhdInterfaceModeOut -> "output wire"
+| _ -> "unknown wire"
+
+let portwrt = function
+     | Triple (Str port, Str kind, mode) ->
+       print_string ("\t"^alamode mode^"\t\t"^port)
+     | Quintuple (Str port, Str kind, mode, Num hi, Num lo) ->
+       print_string ("\t"^alamode mode^"\t["^hi^":"^lo^"]\t"^port)
+     | _ -> print_endline "???"
+     
+let verwrt = function
+| Double (VhdPrimaryUnit,
+   Double (VhdEntityDeclaration,
+   Quintuple (Vhdentity_declaration, Str modnam,
+      Triple (Vhdentity_header, List [],
+       List lst),
+   List [], List []))) ->
+   	let delim = ref "(\n" in
+	print_string ("module "^modnam);
+	List.iter (fun itm -> print_string !delim; portwrt itm; delim := ",\n") lst;
+	print_string ");\n"
+| _ -> print_endline "???"
+
+let _ = verwrt d;;
+
+let junk1 = function
+| Double (VhdSecondaryUnit,
+ Double (VhdArchitectureBody,
+  Quintuple (Vhdarchitecture_body, Str "rtl", Str "framing",
+   List lst1, List lst2)))
+   -> lst1,lst2
+| _ -> [],[];;
+
+let (x,y) = junk1 d';;
+let _ = List.iter match2 y;;

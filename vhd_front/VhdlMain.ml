@@ -315,8 +315,6 @@ let write_assertion_details settings message instance severity =
   | AssertionOther
       -> print_status_assertion settings.statuschan message instance assertion_severity_other;;
 
-let errlst = ref [];;
-
 let parse_lib_lst = function
 | Double (VhdContextLibraryClause, List [Str first]) -> first
 | Double (VhdContextUseClause,
@@ -330,19 +328,6 @@ let parse_lib_lst = function
 
 let design_of_parsed_file_list settings =
   let readlib r = parse_library_package settings r.parsedfilelibrary r.parsedfilename in
-  let convert_design_unit r = function
-
-| Triple (Vhddesign_unit,
-    List liblst,
-      (Double ((VhdPrimaryUnit|VhdSecondaryUnit),
-         Double ((VhdEntityDeclaration|VhdPackageDeclaration|VhdArchitectureBody|VhdPackageBody|VhdConfigurationDeclaration) as decl,
-            (Quintuple ((Vhdentity_declaration|Vhdpackage_declaration|Vhdconfiguration_declaration), Str nam, _, _, _) |
-                Quintuple (Vhdarchitecture_body, _, Str nam, _, _) |
-                   Triple (Vhdpackage_body, Str nam, _)))) as u)) ->
-                       List.map parse_lib_lst liblst; Hashtbl.replace Vabstraction.vhdlhash (decl,nam) u 
-
-| err -> errlst := err :: !errlst
-  in
      ignore(!settings.simulationinitialvalues,
       !settings.elaborationoperatoroverloading,
       !settings.elaborationoperatorprettyprinting,
@@ -353,7 +338,7 @@ let design_of_parsed_file_list settings =
       !settings.resultdescriptionalldeclarations,
       !settings.elaborationarchitecturestatements,
       !settings.elaborationpreevaluation);
-     List.iter (fun r -> List.iter (fun itm -> convert_design_unit r (dump_design_unit itm)) r.parsedfileunits) !settings.fileparsedlist
+     List.iter (fun r -> List.iter (fun itm -> Hashtbl.add Vabstraction.vhdlhash (dump_design_unit itm,"") VhdNone) r.parsedfileunits) !settings.fileparsedlist
 
 (* create a design *)
 let create_design settings =

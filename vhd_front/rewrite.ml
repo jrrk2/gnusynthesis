@@ -434,6 +434,85 @@ let rec match2 (args:match2_args) = function
    match2 {args with indent=args.indent^"  "} (mkblk rststmts);
    output_string args.chan (args.indent^"  else\n");
    match2 args stmts;
+| Triple (Vhddesign_unit, List liblst,
+			  Double (VhdSecondaryUnit,
+				  Double (VhdArchitectureBody,
+					  Quintuple (Vhdarchitecture_body, Str arch, Str design, List lst1, List lst2)))) ->
+   output_string args.chan ("/* design "^design^" */\n");
+   output_string args.chan ("/* architecture "^arch^" */\n");
+List.iter (match2 args) lst1;
+List.iter (match2 args) lst2;
+| Double (VhdBlockSubProgramBody,
+ Quadruple (Vhdsubprogram_body,
+  Double (VhdFunctionSpecification,
+   Septuple (Vhdfunction_specification,
+    Double (VhdDesignatorIdentifier, Str fn),
+    arglst, List [], List [], Str typ, VhdUnknown)),
+  decls, stmts)) -> ()
+| Triple (VhdBlockSignalDeclaration, Str signal, typ) -> ()
+| Double (VhdBlockSignalDeclaration,
+ Quintuple (Vhdsignal_declaration, Str signal,
+  Quadruple (Vhdsubtype_indication, Str "", Str "natural",
+   Double (VhdRangeConstraint,
+    Triple (VhdIncreasingRange, Double (VhdIntPrimary, num),
+     Triple (VhdAddSimpleExpression,
+      Double (VhdParenthesedPrimary,
+       Triple (VhdAddSimpleExpression, Str nam',
+        Double (VhdIntPrimary, hi))),
+      Double (VhdIntPrimary, lo))))),
+  VhdSignalKindDefault, VhdNone)) -> ()
+| Double (VhdBlockSignalDeclaration,
+ Quintuple (Vhdsignal_declaration, Str signal,
+  Quadruple (Vhdsubtype_indication, Str "", Str typ,
+   Double (VhdArrayConstraint,
+    Triple (Vhdassociation_element, VhdFormalIndexed,
+     Double (VhdActualDiscreteRange, Triple (VhdRange, hi, lo))))),
+  VhdSignalKindDefault, VhdNone)) -> ()
+| Double (VhdBlockSubTypeDeclaration,
+ Triple (Vhdsubtype_declaration, Str typ,
+  Quadruple (Vhdsubtype_indication, Str "", kind,
+   Double (VhdRangeConstraint,
+    Triple (VhdIncreasingRange, Double (VhdIntPrimary, num),
+     Triple (VhdAddSimpleExpression,
+      Double (VhdParenthesedPrimary,
+       Triple (VhdAddSimpleExpression, Str nam,
+        Str nam')),
+      Double (VhdIntPrimary, num'))))))) -> ()
+| Triple (VhdEnumerationTypeDefinition, Str typ, List enumlst) ->
+    let maxidx = int_of_float(ceil(log(float_of_int(List.length enumlst))/.log(2.))) - 1 in
+    output_string args.chan ("wire ["^string_of_int maxidx^":0]");
+    let delim = ref " " in List.iteri (fun ix itm -> output_string args.chan !delim;
+				      match2 args itm;
+				      output_string args.chan ("="^string_of_int ix);
+				      delim := ",\n"^args.indent) enumlst;
+    output_string args.chan ";\n"
+| Double (VhdIdentifierEnumeration, Str enum) -> output_string args.chan enum
+| Sextuple (VhdBlockConstantDeclaration, Str nam, Str kind, hi, lo, Double (VhdAggregatePrimary, List lst)) ->
+    output_string args.chan (nam^":"^kind^":");
+    let delim = ref "" in List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ",\n"^args.indent) lst
+| Triple (Vhdelement_association, VhdChoiceOthers,
+				    Double (VhdCharPrimary, Char ch)) -> ()
+| Triple (Vhdelement_association,
+     List lst,
+     Double (VhdCharPrimary, Char ch)) -> ()
+| Triple (Str nam, Str kind, mode) -> ()
+| Quintuple (Str signal, Str kind, mode, hi, lo) -> ()
+| Quadruple (VhdFunctionSpecification, Str fn, arg', Str kind) -> output_string args.chan (fn^":"^kind); match2 args arg'
+| Quadruple (VhdBlockSubTypeDeclaration, Str typ, Str kind, expr) -> ()
+| Sextuple (VhdBlockConstantDeclaration, Str nam,
+ Str kind, hi, lo, Double (VhdOperatorString, op)) -> ()
+| Double (VhdRange,
+  Triple (VhdDecreasingRange,
+   Double (VhdParenthesedPrimary,
+    Triple (VhdSubSimpleExpression, Str nam,
+     Double (VhdIntPrimary, hi))),
+   Double (VhdIntPrimary, lo))) -> ()
+| Quadruple (VhdBlockConstantDeclaration, Str nam, Str kind, expr) -> ()
+| Triple (VhdSubSimpleExpression,
+  Double (VhdParenthesedPrimary,
+   Triple (VhdExpFactor, Double (VhdIntPrimary, num),
+    Str bits)),
+  Double (VhdIntPrimary, num')) -> ()
 | oth -> unmatched := oth :: !unmatched
 
 let alamode = function
@@ -449,29 +528,22 @@ let portwrt logfile = function
      | _ -> print_endline "???"
      
 let verwrt logfile = function
-| Double (VhdPrimaryUnit,
+| Triple (Vhddesign_unit,
+    List liblst,
+ Double (VhdPrimaryUnit,
    Double (VhdEntityDeclaration,
    Quintuple (Vhdentity_declaration, Str modnam,
       Triple (Vhdentity_header, List [],
        List lst),
-   List [], List []))) ->
+   List [], List [])))) ->
    	let delim = ref "(\n" in
 	output_string logfile ("module "^modnam);
 	List.iter (fun itm -> output_string logfile !delim; portwrt logfile itm; delim := ",\n") lst;
 	output_string logfile ");\n"
 | _ -> print_endline "???"
 
-let junk1 = function
-| Double (VhdSecondaryUnit,
- Double (VhdArchitectureBody,
-  Quintuple (Vhdarchitecture_body, Str "rtl", Str "framing",
-   List lst1, List lst2)))
-   -> lst1,lst2
-| _ -> [],[]
-
 let dumpv logfile d' =
-    let (x,y) = junk1 d' in
-    List.iter (match2 {chan=logfile;indent=""}) y;
+    match2 {chan=logfile;indent=""} d';
     output_string logfile ("\nendmodule\n")
 		      
 let dump nam d d' =    

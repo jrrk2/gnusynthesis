@@ -180,6 +180,7 @@ let rec abstraction = function
   | others -> others
 
 let unmatched = ref []
+let cselst = ref []
 
 let mkblk = function
   | List lst -> List lst
@@ -235,10 +236,16 @@ let rec match2 (args:match2_args) = function
   | Double (VhdOperatorString, Str v) when digit v.[0] -> output_string args.chan ("'b"^v);
   | Double (VhdCharPrimary, Char ch) -> output_string args.chan (" 1'b"^String.make 1 ch)
   | Triple (VhdSubSimpleExpression, Str src, n) -> output_string args.chan (src^"["); (match2 args) n; output_string args.chan "]";
-  | Triple (VhdNameParametersPrimary, fn, params) ->
+  | Triple (VhdNameParametersPrimary,
+	    Double (VhdAttributeName,
+		    Triple (Vhdattribute_name,
+			    Double (VhdSuffixSimpleName, Str typ), Str "succ")),
+	    Triple (Vhdassociation_element, VhdFormalIndexed,
+					    Double (VhdActualExpression, Str state))) ->
+					    output_string args.chan (state^"+1");
+  | Triple (VhdNameParametersPrimary, fn, List params) ->
      (match2 args) fn;
-     output_string args.chan "(";
-     (match2 args) params;
+     let delim = ref "(" in List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ", ") params;
      output_string args.chan ")";
   
   | Double (VhdAttributeName,
@@ -259,7 +266,7 @@ let rec match2 (args:match2_args) = function
   | Triple (Vhdassociation_element,
           VhdFormalIndexed,
           Double (VhdActualExpression,
-		  Double (VhdIntPrimary, Num n))) -> output_string args.chan ("/*assoc: "^n^"*/")
+		  Double (VhdIntPrimary, Num n))) -> output_string args.chan n
   | Double (VhdSequentialVariableAssignment,
                                    Double (VhdSimpleVariableAssignment,
                                     Quadruple (Vhdsimple_variable_assignment,
@@ -320,22 +327,26 @@ let rec match2 (args:match2_args) = function
 | Double (VhdSequentialCase,
           Quintuple (Vhdcase_statement, Str "",
                      Double (VhdSelector, sel), VhdOrdinarySelection,
-                     cases)) -> output_string args.chan ("case (");
+                     List cases)) -> output_string args.chan ("case (");
   (match2 args) sel;
-  output_string args.chan ")\n";
-  match2  {args with indent=args.indent^"  "} cases;
+  output_string args.chan ")";
+  List.iter (match2 {args with indent=args.indent^"  "}) cases;
+  output_string args.chan ("\n"^args.indent^"endcase\n");
+  if !cselst = [] then cselst := cases;
 
 | Double (VhdChoiceSimpleExpression,
                                case') ->
    (match2 args) case';
-  output_string args.chan (": ");
 
 
 | Triple (Vhdcase_statement_alternative, cse, stmts) ->
+  output_string args.chan ("\n"^args.indent);
    (match cse with
-   | VhdChoiceOthers -> output_string args.chan "default: "
+   | VhdChoiceOthers -> output_string args.chan "default"
+   | List lst -> let delim = ref "" in List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ", ") lst
    | oth -> (match2 args) cse);
-  (match2 args) stmts
+  output_string args.chan (": ");
+  if true then (match2 args) stmts else output_string args.chan "begin /* something */ end"
      
   |              Double (VhdSequentialIf,
                Quintuple (Vhdif_statement, Str "",
@@ -372,26 +383,35 @@ let rec match2 (args:match2_args) = function
    (match kind with
    | "std_ulogic_vector" -> output_string args.chan ("reg ["^hi^":"^lo^"] "^nam^";\n")
 		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+	   
+| Triple (Vhdconditional_waveform,
+            Double (Vhdwaveform_element, ch), Double (VhdCondition, VhdNone)) -> (match2 args) ch;
 
 | Triple (Vhdconditional_waveform,
-            Double (Vhdwaveform_element, ch), x) -> output_string args.chan ("/* wave */ "); (match2 args) ch; (match2 args) x
+          Double (Vhdwaveform_element, level),
+          Double (VhdCondition, cond)) -> 
+                match2 args cond;
+                output_string args.chan (" ? ");
+                match2 args level; 
+                output_string args.chan (" : ");
 
 |     Double (VhdConcurrentSignalAssignmentStatement,
       Quadruple (Vhdconcurrent_signal_assignment_statement, Str "",
        Str _false,
        Double (VhdConcurrentConditionalSignalAssignment,
         Quintuple (Vhdconcurrent_conditional_signal_assignment,
-         Str dest, Str src, VhdDelayNone,
-         List lst2)))) -> output_string args.chan (dest^" := "^src);
+         Str dest, Str _false', VhdDelayNone,
+         List lst2)))) -> output_string args.chan ("assign "^dest^" = ");
 		       List.iter (match2 args) lst2;
+    output_string args.chan (";\n"^args.indent);
 
 | Double (VhdConcurrentSignalAssignmentStatement,
       Quadruple (Vhdconcurrent_signal_assignment_statement, Str "",
        Str _false,
        Double (VhdConcurrentSimpleSignalAssignment,
         Quintuple (Vhdconcurrent_simple_signal_assignment,
-         Str rx_frame_size_o, Str _false', VhdDelayNone,
-         Double (Vhdwaveform_element, expr))))) -> output_string args.chan ("assign "^rx_frame_size_o^" = ");
+         Str dst, Str _false', VhdDelayNone,
+         Double (Vhdwaveform_element, expr))))) -> output_string args.chan ("assign "^dst^" = ");
   (match2 args) expr;
     output_string args.chan (";\n"^args.indent);
   
@@ -451,8 +471,9 @@ let junk1 = function
 
 let dumpv logfile d' =
     let (x,y) = junk1 d' in
-    List.iter (match2 {chan=logfile;indent=""}) y
-
+    List.iter (match2 {chan=logfile;indent=""}) y;
+    output_string logfile ("\nendmodule\n")
+		      
 let dump nam d d' =    
   let logfile = open_out nam in
   verwrt logfile d;

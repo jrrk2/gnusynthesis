@@ -181,6 +181,10 @@ let rec abstraction = function
 
 let unmatched = ref []
 
+let mkblk = function
+  | List lst -> List lst
+  | oth -> List [oth]
+
 let digit = function
   | '0'..'9' -> true
   | _ -> false
@@ -194,7 +198,7 @@ let rec match2 (args:match2_args) = function
   | List lst12 ->
     output_string args.chan (args.indent^"begin\n");
     List.iter (output_string args.chan args.indent; match2 {args with indent=args.indent^"  "}) lst12;
-    output_string args.chan (args.indent^"end\n");
+    output_string args.chan (args.indent^"end\n"^args.indent);
   | Str str -> output_string args.chan str
   | Triple (VhdEqualRelation, lft, rght) ->
      (match2 args) lft; output_string args.chan " == "; (match2 args) rght
@@ -229,7 +233,7 @@ let rec match2 (args:match2_args) = function
      Double (VhdActualExpression, n))) -> output_string args.chan (src^"["); (match2 args) n; output_string args.chan "]";
   | Double (VhdCondition, x) -> output_string args.chan "("; (match2 args) x; output_string args.chan ")"
   | Double (VhdOperatorString, Str v) when digit v.[0] -> output_string args.chan ("'b"^v);
-  | Double (VhdCharPrimary, Char ch) -> output_string args.chan (" 1'b"^String.make 1 ch^";")
+  | Double (VhdCharPrimary, Char ch) -> output_string args.chan (" 1'b"^String.make 1 ch)
   | Triple (VhdSubSimpleExpression, Str src, n) -> output_string args.chan (src^"["); (match2 args) n; output_string args.chan "]";
   | Triple (VhdNameParametersPrimary, fn, params) ->
      (match2 args) fn;
@@ -276,10 +280,10 @@ let rec match2 (args:match2_args) = function
                   cond,
                    thenstmts,
 			    VhdElseNone)) ->
-     output_string args.chan ("if (");
+     output_string args.chan ("if ");
     (match2 args) cond;
-    output_string args.chan ") ";
-    (match2  {args with indent=args.indent^"  "}) thenstmts;
+    output_string args.chan ("\n"^args.indent);
+    (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts);
     output_string args.chan "\n";
   | Double (VhdSequentialNull, Double (Vhdnull_statement, Str "")) -> output_string args.chan "begin end"
   | Double (VhdSequentialIf,
@@ -288,12 +292,12 @@ let rec match2 (args:match2_args) = function
                      thenstmts,
                      Double (VhdElse,
                              elsestmts))) ->
-  output_string args.chan ("if (");
+  output_string args.chan ("if ");
   (match2 args) cond;
-  output_string args.chan ") ";
-  (match2  {args with indent=args.indent^"  "}) thenstmts;
+    output_string args.chan ("\n"^args.indent);
+  (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts);
   output_string args.chan " else\n";
-  (match2  {args with indent=args.indent^"  "}) elsestmts;
+  (match2  {args with indent=args.indent^"  "}) (mkblk elsestmts);
 
 | Double (VhdSequentialIf,
           Quintuple (Vhdif_statement, Str "",
@@ -304,24 +308,22 @@ let rec match2 (args:match2_args) = function
 					cond',
 					thenstmts',
 					VhdElseNone)))) ->		
-  output_string args.chan ("if (");
+  output_string args.chan ("if ");
   (match2 args) cond;
-  output_string args.chan ") ";
-  (match2  {args with indent=args.indent^"  "}) thenstmts;
-  output_string args.chan " else if (";
+    output_string args.chan ("\n"^args.indent);
+  (match2 {args with indent=args.indent^"  "}) (mkblk thenstmts);
+  output_string args.chan (args.indent^"else if "^args.indent);
   (match2 args) cond';
-  output_string args.chan ") ";
-  (match2  {args with indent=args.indent^"  "}) thenstmts';
+  output_string args.chan ("\n"^args.indent);
+  (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts');
    
 | Double (VhdSequentialCase,
           Quintuple (Vhdcase_statement, Str "",
                      Double (VhdSelector, sel), VhdOrdinarySelection,
-                     List
-                       lst19)) -> output_string args.chan ("switch(");
+                     cases)) -> output_string args.chan ("case (");
   (match2 args) sel;
-  output_string args.chan ")\nbegin\n";
-  List.iter (match2 args) lst19;
-  output_string args.chan ")\nend\n";
+  output_string args.chan ")\n";
+  match2  {args with indent=args.indent^"  "} cases;
 
 | Double (VhdChoiceSimpleExpression,
                                case') ->
@@ -338,12 +340,13 @@ let rec match2 (args:match2_args) = function
   |              Double (VhdSequentialIf,
                Quintuple (Vhdif_statement, Str "",
 			  cond,
-			  then',else')) -> output_string args.chan ("if (");
+			  then',else')) ->
+     output_string args.chan ("if ");
     (match2 args) cond;
-    output_string args.chan ") ";
-    (match2  {args with indent=args.indent^"  "}) then';
-    output_string args.chan " else ";
-    (match2  {args with indent=args.indent^"  "}) else';
+    output_string args.chan ("\n  "^args.indent);
+    (match2  {args with indent=args.indent^"  "}) (mkblk then');
+    output_string args.chan (args.indent^"else\n"^args.indent);
+    (match2  {args with indent=args.indent^"  "}) (mkblk else');
 
   | Double (VhdElse,
                  List
@@ -392,23 +395,25 @@ let rec match2 (args:match2_args) = function
   (match2 args) expr;
     output_string args.chan (";\n"^args.indent);
   
-|     Double (VhdConcurrentProcessStatement,
-      Sextuple (Vhdprocess_statement, Str nam, Str _false,
-       Double (VhdSensitivityExpressionList, Str clk),
-       List lst2,
-       Double (VhdSequentialIf,
-        Quintuple (Vhdif_statement, Str "", cond,
-         Double (VhdSequentialIf,
-          Quintuple (Vhdif_statement, Str "", cond',
-           List lst3,
-           Double (VhdElse,
-            List
-             lst52))),
-         VhdElseNone)))) -> output_string args.chan ("begin:"^nam^"/* "^clk^" */\n");
-		       List.iter (match2 args) lst2;
-		       List.iter (match2 args) lst3;
-		       List.iter (match2 args) lst52;
-		       output_string args.chan ("end: /* "^nam^" */");
+| Double (VhdConcurrentProcessStatement,
+	   Sextuple (Vhdprocess_statement, Str nam, Str _false,
+		     Double (VhdSensitivityExpressionList, Str clk),
+		     List decls,
+		     Double (VhdSequentialIf,
+			     Quintuple (Vhdif_statement, Str "", cond,
+					Double (VhdSequentialIf,
+						Quintuple (Vhdif_statement, Str "", cond',
+							   rststmts,
+							   Double (VhdElse,
+								   stmts))),
+					VhdElseNone)))) ->
+   output_string args.chan ("\n"^args.indent^"always @ ( posedge "^clk^")\n");
+   output_string args.chan (args.indent^"  if ");
+   match2 {args with indent=args.indent^"  "} cond';
+   output_string args.chan ("\n");
+   match2 {args with indent=args.indent^"  "} (mkblk rststmts);
+   output_string args.chan (args.indent^"  else\n");
+   match2 args stmts;
 | oth -> unmatched := oth :: !unmatched
 
 let alamode = function

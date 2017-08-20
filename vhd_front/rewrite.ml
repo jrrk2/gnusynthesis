@@ -193,8 +193,9 @@ let digit = function
 type match2_args = {
   chan: out_channel;
   indent: string;
+  liblst: (((vhdintf*string)*vhdintf) list) ref;
 }
-  
+
 let rec match2 (args:match2_args) = function
   | List lst12 ->
     output_string args.chan (args.indent^"begin\n");
@@ -434,6 +435,27 @@ let rec match2 (args:match2_args) = function
    match2 {args with indent=args.indent^"  "} (mkblk rststmts);
    output_string args.chan (args.indent^"  else\n");
    match2 args stmts;
+| Triple (Vhddesign_unit,
+    List liblst,
+ Double (VhdPrimaryUnit,
+   Double (VhdEntityDeclaration,
+   Quintuple (Vhdentity_declaration, Str modnam,
+      Triple (Vhdentity_header, List [],
+       List lst),
+   List [], List [])))) ->
+        let alamode = function
+	  | VhdInterfaceModeIn -> "input wire"
+	  | VhdInterfaceModeOut -> "output wire"
+	  | _ -> "unknown wire" in
+   	let delim = ref "(\n" in
+	output_string args.chan ("module "^modnam);
+	List.iter (function
+	| Triple (Str port, Str kind, mode) ->
+	   output_string args.chan (!delim^"\t"^alamode mode^"\t\t"^port); delim := ",\n"
+	| Quintuple (Str port, Str kind, mode, Num hi, Num lo) ->
+	   output_string args.chan (!delim^"\t"^alamode mode^"\t["^hi^":"^lo^"]\t"^port); delim := ",\n"
+	| _ -> print_endline "???") lst;
+	output_string args.chan ");\n"
 | Triple (Vhddesign_unit, List liblst,
 			  Double (VhdSecondaryUnit,
 				  Double (VhdArchitectureBody,
@@ -442,6 +464,23 @@ let rec match2 (args:match2_args) = function
    output_string args.chan ("/* architecture "^arch^" */\n");
 List.iter (match2 args) lst1;
 List.iter (match2 args) lst2;
+| Triple (Vhddesign_unit,
+    List liblst,
+      (Double ((VhdPrimaryUnit|VhdSecondaryUnit),
+         Double ((VhdEntityDeclaration|VhdPackageDeclaration|VhdArchitectureBody|VhdPackageBody|VhdConfigurationDeclaration) as decl,
+            (Quintuple ((Vhdentity_declaration|Vhdpackage_declaration|Vhdconfiguration_declaration), Str nam, _, _, _) |
+                Quintuple (Vhdarchitecture_body, _, Str nam, _, _) |
+                   Triple (Vhdpackage_body, Str nam, _)))) as u)) ->
+   let _ = List.map (function
+     | Double (VhdContextLibraryClause, List [Str first]) -> first
+     | Double (VhdContextUseClause,
+	       List
+		 [List
+		     [VhdSuffixAll;
+		      Double (VhdSuffixSimpleName,
+			      Double (VhdSimpleName, Str second));
+		      Double (VhdSuffixSimpleName, Double (VhdSimpleName, Str third))]]) -> String.concat "." [second;third]
+     | _ -> "unknown") liblst in args.liblst := ((decl,nam), u) :: !(args.liblst)
 | Double (VhdBlockSubProgramBody,
  Quadruple (Vhdsubprogram_body,
   Double (VhdFunctionSpecification,
@@ -488,19 +527,20 @@ List.iter (match2 args) lst2;
     output_string args.chan ";\n"
 | Double (VhdIdentifierEnumeration, Str enum) -> output_string args.chan enum
 | Sextuple (VhdBlockConstantDeclaration, Str nam, Str kind, hi, lo, Double (VhdAggregatePrimary, List lst)) ->
-    output_string args.chan (nam^":"^kind^":");
+    output_string args.chan ("BlockConstantDeclaration "^nam^":"^kind^":");
     let delim = ref "" in List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ",\n"^args.indent) lst
 | Triple (Vhdelement_association, VhdChoiceOthers,
 				    Double (VhdCharPrimary, Char ch)) -> ()
 | Triple (Vhdelement_association,
      List lst,
-     Double (VhdCharPrimary, Char ch)) -> ()
-| Triple (Str nam, Str kind, mode) -> ()
-| Quintuple (Str signal, Str kind, mode, hi, lo) -> ()
-| Quadruple (VhdFunctionSpecification, Str fn, arg', Str kind) -> output_string args.chan (fn^":"^kind); match2 args arg'
-| Quadruple (VhdBlockSubTypeDeclaration, Str typ, Str kind, expr) -> ()
-| Sextuple (VhdBlockConstantDeclaration, Str nam,
- Str kind, hi, lo, Double (VhdOperatorString, op)) -> ()
+     Double (VhdCharPrimary, Char ch)) ->  output_string args.chan ("element_association "^String.make 1 ch); List.iter (match2 args) lst
+| Triple (Str nam, Str kind, mode) ->  output_string args.chan ("Nam "^kind^":"); match2 args mode
+| Quintuple (Str signal, Str kind, mode, hi, lo) -> output_string args.chan ("Signal "^kind^":"); match2 args mode
+| Quadruple (VhdFunctionSpecification, Str fn, arg', Str kind) -> output_string args.chan ("FunctionSpecification "^fn^":"^kind); match2 args arg'; output_string args.chan ";\n"
+| Quadruple (VhdBlockSubTypeDeclaration, Str typ, Str kind, expr) ->
+   output_string args.chan ("BlockSubTypeDeclaration "^typ^":"^kind); match2 args expr; output_string args.chan ";\n"
+| Sextuple (VhdBlockConstantDeclaration, Str nam, Str kind, hi, lo, Double (VhdOperatorString, op)) ->
+   output_string args.chan ("BlockConstantDeclaration "^nam^":"^kind); match2 args hi; match2 args lo; output_string args.chan ";\n"
 | Double (VhdRange,
   Triple (VhdDecreasingRange,
    Double (VhdParenthesedPrimary,
@@ -515,39 +555,8 @@ List.iter (match2 args) lst2;
   Double (VhdIntPrimary, num')) -> ()
 | oth -> unmatched := oth :: !unmatched
 
-let alamode = function
-| VhdInterfaceModeIn -> "input wire"
-| VhdInterfaceModeOut -> "output wire"
-| _ -> "unknown wire"
-
-let portwrt logfile = function
-     | Triple (Str port, Str kind, mode) ->
-       output_string logfile ("\t"^alamode mode^"\t\t"^port)
-     | Quintuple (Str port, Str kind, mode, Num hi, Num lo) ->
-       output_string logfile ("\t"^alamode mode^"\t["^hi^":"^lo^"]\t"^port)
-     | _ -> print_endline "???"
-     
-let verwrt logfile = function
-| Triple (Vhddesign_unit,
-    List liblst,
- Double (VhdPrimaryUnit,
-   Double (VhdEntityDeclaration,
-   Quintuple (Vhdentity_declaration, Str modnam,
-      Triple (Vhdentity_header, List [],
-       List lst),
-   List [], List [])))) ->
-   	let delim = ref "(\n" in
-	output_string logfile ("module "^modnam);
-	List.iter (fun itm -> output_string logfile !delim; portwrt logfile itm; delim := ",\n") lst;
-	output_string logfile ");\n"
-| _ -> print_endline "???"
-
-let dumpv logfile d' =
-    match2 {chan=logfile;indent=""} d';
-    output_string logfile ("\nendmodule\n")
-		      
-let dump nam d d' =    
+let dump nam lst =    
   let logfile = open_out nam in
-  verwrt logfile d;
-  dumpv logfile d';
+  List.iter (match2 {chan=logfile;indent="";liblst=ref []}) lst;
+  output_string logfile ("\nendmodule\n");
   close_out logfile

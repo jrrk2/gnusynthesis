@@ -57,20 +57,6 @@ let _ = main succ srclst;;
 let lst = ref [];;
 let errlst = ref [];;
 
-let convert_design_unit lst = function
-| Triple (Vhddesign_unit,
-    List liblst,
-      (Double ((VhdPrimaryUnit|VhdSecondaryUnit),
-         Double ((VhdEntityDeclaration|VhdPackageDeclaration|VhdArchitectureBody|VhdPackageBody|VhdConfigurationDeclaration) as decl,
-            (Quintuple ((Vhdentity_declaration|Vhdpackage_declaration|Vhdconfiguration_declaration), Str nam, _, _, _) |
-                Quintuple (Vhdarchitecture_body, _, Str nam, _, _) |
-                   Triple (Vhdpackage_body, Str nam, _)))) as u)) ->
-                       let _ = List.map parse_lib_lst liblst in lst := ((decl,nam), u) :: !lst
-| err -> errlst := err :: !errlst
-
 let _ = Hashtbl.iter (fun (k,_) _ -> lst := abstraction(abstraction k) :: !lst) vhdlhash;;
 
-let d = List.nth !lst 0;;
-let d' = List.nth !lst 1;;
-
-dump "logfile.v" d d';;
+dump "logfile.v" !lst;;

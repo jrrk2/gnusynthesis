@@ -315,17 +315,6 @@ let write_assertion_details settings message instance severity =
   | AssertionOther
       -> print_status_assertion settings.statuschan message instance assertion_severity_other;;
 
-let parse_lib_lst = function
-| Double (VhdContextLibraryClause, List [Str first]) -> first
-| Double (VhdContextUseClause,
-     List
-      [List
-        [VhdSuffixAll;
-         Double (VhdSuffixSimpleName,
-          Double (VhdSimpleName, Str second));
-         Double (VhdSuffixSimpleName, Double (VhdSimpleName, Str third))]]) -> String.concat "." [second;third]
-| _ -> "unknown"
-
 let design_of_parsed_file_list settings =
   let readlib r = parse_library_package settings r.parsedfilelibrary r.parsedfilename in
      ignore(!settings.simulationinitialvalues,

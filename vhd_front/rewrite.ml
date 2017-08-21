@@ -58,20 +58,6 @@ let rec abstraction = function
 	     abstraction typ,
 	     List (List.map abstraction enumlst))
      
-  | Double (VhdBlockConstantDeclaration,
-      Quadruple (Vhdconstant_declaration, nam,
-       Quadruple (Vhdsubtype_indication, Str "", kind,
-        Double (VhdArrayConstraint,
-         Triple (Vhdassociation_element, VhdFormalIndexed,
-          Double (VhdActualDiscreteRange,
-           Triple (VhdRange, hi, lo))))), expr)) ->
-     Sextuple(
-       VhdBlockConstantDeclaration,
-       abstraction nam,
-       abstraction kind,
-       abstraction hi,
-       abstraction lo,
-       abstraction expr)
   | Double (VhdBlockSignalDeclaration,
 	    Quintuple (Vhdsignal_declaration, nam,
 		       Quadruple (Vhdsubtype_indication, Str "", typ,
@@ -102,15 +88,6 @@ let rec abstraction = function
 	     List (List.map abstraction arglst),
 		abstraction typ,
 		abstraction stmt)
-  | Double (VhdBlockConstantDeclaration,
-      Quadruple (Vhdconstant_declaration, nam,
-       Quadruple (Vhdsubtype_indication, Str "", typ,
-        VhdNoConstraint), expr)) ->
-     Quadruple(
-       VhdBlockConstantDeclaration,
-       abstraction nam,
-       abstraction typ,
-       abstraction expr)     
   | Double (VhdBlockSubTypeDeclaration,
       Triple (Vhdsubtype_declaration, typnam,
        Quadruple (Vhdsubtype_indication, Str "", kind,
@@ -122,25 +99,6 @@ let rec abstraction = function
      abstraction typnam,
      abstraction kind,
      abstraction rng)     
-  | Double (VhdInterfaceObjectDeclaration,
-       Double (VhdInterfaceDefaultDeclaration,
-        Sextuple (Vhdinterface_default_declaration, vector,
-         dir,
-         Quadruple (Vhdsubtype_indication, Str "", kind,
-          Double (VhdArrayConstraint,
-           Triple (Vhdassociation_element, VhdFormalIndexed,
-            Double (VhdActualDiscreteRange,
-             Triple (VhdRange, hi, lo))))),
-		  VhdSignalKindDefault, VhdNone))) ->
-     Quintuple(
-     abstraction vector,
-     abstraction kind,
-     abstraction dir,
-     abstraction hi,
-     abstraction lo)
-  | Double (VhdRange, Triple (VhdDecreasingRange, Double (VhdIntPrimary, hi),
-	    Double (VhdIntPrimary, lo))) ->
-     Triple(VhdRange, abstraction hi, abstraction lo)
   | Triple (Vhdcase_statement_alternative,
             Double (VhdChoiceSimpleExpression,
              Double (VhdOperatorString, str)),
@@ -227,12 +185,7 @@ let rec match2 (args:match2_args) = function
             Str src,
             Triple (Vhdassociation_element,
                     VhdFormalIndexed,
-                    Double (VhdActualDiscreteRange,
-                            Triple (VhdRange, Num n,
-                                    Num n')))) -> output_string args.chan (src^"["^n^":"^n'^"]");
-  | Triple (VhdNameParametersPrimary, Str src,
-    Triple (Vhdassociation_element, VhdFormalIndexed,
-     Double (VhdActualExpression, n))) -> output_string args.chan (src^"["); (match2 args) n; output_string args.chan "]";
+                    range)) -> output_string args.chan (src); match2 args range
   | Double (VhdCondition, x) -> output_string args.chan "("; (match2 args) x; output_string args.chan ")"
   | Double (VhdOperatorString, Str v) when digit v.[0] -> output_string args.chan ("'b"^v);
   | Double (VhdCharPrimary, Char ch) -> output_string args.chan (" 1'b"^String.make 1 ch)
@@ -378,11 +331,10 @@ let rec match2 (args:match2_args) = function
            Quadruple (Vhdsubtype_indication, Str "", Str kind,
             Double (VhdArrayConstraint,
              Triple (Vhdassociation_element, VhdFormalIndexed,
-              Double (VhdActualDiscreteRange,
-               Triple (VhdRange, Num hi, Num lo))))),
+              range))),
 		     VhdNone)) ->
    (match kind with
-   | "std_ulogic_vector" -> output_string args.chan ("reg ["^hi^":"^lo^"] "^nam^";\n")
+   | "std_ulogic_vector" -> output_string args.chan ("reg "); match2 args range;  output_string args.chan (nam^";\n")
 		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
 	   
 | Triple (Vhdconditional_waveform,
@@ -435,6 +387,9 @@ let rec match2 (args:match2_args) = function
    match2 {args with indent=args.indent^"  "} (mkblk rststmts);
    output_string args.chan (args.indent^"  else\n");
    match2 args stmts;
+| VhdInterfaceModeIn -> output_string args.chan "input wire"
+| VhdInterfaceModeOut -> output_string args.chan "output wire"
+| Num n -> output_string args.chan ("'d"^n)
 | Triple (Vhddesign_unit,
     List liblst,
  Double (VhdPrimaryUnit,
@@ -443,18 +398,18 @@ let rec match2 (args:match2_args) = function
       Triple (Vhdentity_header, List [],
        List lst),
    List [], List [])))) ->
-        let alamode = function
-	  | VhdInterfaceModeIn -> "input wire"
-	  | VhdInterfaceModeOut -> "output wire"
-	  | _ -> "unknown wire" in
    	let delim = ref "(\n" in
 	output_string args.chan ("module "^modnam);
 	List.iter (function
 	| Triple (Str port, Str kind, mode) ->
-	   output_string args.chan (!delim^"\t"^alamode mode^"\t\t"^port); delim := ",\n"
+	   output_string args.chan (!delim^"\t");
+	  match2 args mode;
+	  output_string args.chan ("\t\t"^port); delim := ",\n"
 	| Quintuple (Str port, Str kind, mode, Num hi, Num lo) ->
-	   output_string args.chan (!delim^"\t"^alamode mode^"\t["^hi^":"^lo^"]\t"^port); delim := ",\n"
-	| _ -> print_endline "???") lst;
+	   output_string args.chan (!delim^"\t");
+	   match2 args mode;
+	  output_string args.chan ("\t["^hi^":"^lo^"]\t"^port); delim := ",\n"
+	| oth -> unmatched := oth :: !unmatched; print_endline "???") lst;
 	output_string args.chan ");\n"
 | Triple (Vhddesign_unit, List liblst,
 			  Double (VhdSecondaryUnit,
@@ -504,8 +459,7 @@ List.iter (match2 args) lst2;
  Quintuple (Vhdsignal_declaration, Str signal,
   Quadruple (Vhdsubtype_indication, Str "", Str typ,
    Double (VhdArrayConstraint,
-    Triple (Vhdassociation_element, VhdFormalIndexed,
-     Double (VhdActualDiscreteRange, Triple (VhdRange, hi, lo))))),
+    Triple (Vhdassociation_element, VhdFormalIndexed, range))),
   VhdSignalKindDefault, VhdNone)) -> ()
 | Double (VhdBlockSubTypeDeclaration,
  Triple (Vhdsubtype_declaration, Str typ,
@@ -526,21 +480,63 @@ List.iter (match2 args) lst2;
 				      delim := ",\n"^args.indent) enumlst;
     output_string args.chan ";\n"
 | Double (VhdIdentifierEnumeration, Str enum) -> output_string args.chan enum
-| Sextuple (VhdBlockConstantDeclaration, Str nam, Str kind, hi, lo, Double (VhdAggregatePrimary, List lst)) ->
-    output_string args.chan ("BlockConstantDeclaration "^nam^":"^kind^":");
-    let delim = ref "" in List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ",\n"^args.indent) lst
-| Triple (Vhdelement_association, VhdChoiceOthers,
-				    Double (VhdCharPrimary, Char ch)) -> ()
-| Triple (Vhdelement_association,
-     List lst,
-     Double (VhdCharPrimary, Char ch)) ->  output_string args.chan ("element_association "^String.make 1 ch); List.iter (match2 args) lst
+| Double (VhdRange, Triple (VhdDecreasingRange, Double (VhdIntPrimary, hi), Double (VhdIntPrimary, lo))) ->
+   output_string args.chan ("[");
+   match2 args hi;
+   output_string args.chan (":");
+   match2 args lo;
+   output_string args.chan ("] ");
+| Double (VhdBlockConstantDeclaration,
+	  Quadruple (Vhdconstant_declaration, Str nam,
+		     Quadruple (Vhdsubtype_indication, Str "", kind,
+				Double (VhdArrayConstraint,
+					Triple (Vhdassociation_element, VhdFormalIndexed,
+						range))), Double (VhdAggregatePrimary, List lst))) ->
+   output_string args.chan ("wire ");
+  match2 args range;
+  output_string args.chan (nam^" = ");
+  let delim = ref "" in List.iter (function
+    | Triple (Vhdelement_association, VhdChoiceOthers, Double (VhdCharPrimary, Char ch)) ->
+       output_string args.chan (!delim^"ChoiceOthers "^String.make 1 ch^";\n");
+      delim := ",\n"^args.indent
+    | Triple (Vhdelement_association,
+	      List lst',
+	      Double (VhdCharPrimary, Char ch)) ->
+       output_string args.chan (!delim^"element_association "^String.make 1 ch); List.iter (match2 args) lst';
+      delim := ",\n"^args.indent
+    | oth -> output_string args.chan (!delim^"element_other "); match2 args oth) lst
+		     
 | Triple (Str nam, Str kind, mode) ->  output_string args.chan ("Nam "^kind^":"); match2 args mode
-| Quintuple (Str signal, Str kind, mode, hi, lo) -> output_string args.chan ("Signal "^kind^":"); match2 args mode
+| Double (VhdInterfaceObjectDeclaration,
+	  Double (VhdInterfaceDefaultDeclaration,
+		  Sextuple (Vhdinterface_default_declaration, Str signal,
+			    mode,
+			    Quadruple (Vhdsubtype_indication, Str "", Str kind,
+				       Double (VhdArrayConstraint,
+					       Triple (Vhdassociation_element, VhdFormalIndexed,
+						       Double (VhdActualDiscreteRange,
+							       Double (VhdRange, range))))),
+			    VhdSignalKindDefault, VhdNone))) ->
+   output_string args.chan ("Signal "^kind^":"); match2 args mode
+| Double (VhdActualExpression, Double (VhdIntPrimary, Num n)) -> output_string args.chan ("'d"^n)
+| Double (VhdActualExpression,
+    (Triple (VhdNameParametersPrimary, Str "to_unsigned",
+     List params) as func)) -> match2 args func
+| Double (VhdActualDiscreteRange,
+    Double (VhdRange,
+     Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
+	     Double (VhdIntPrimary, Num lo)))) ->
+   output_string args.chan ("["^hi^":"^lo^"]")
 | Quadruple (VhdFunctionSpecification, Str fn, arg', Str kind) -> output_string args.chan ("FunctionSpecification "^fn^":"^kind); match2 args arg'; output_string args.chan ";\n"
 | Quadruple (VhdBlockSubTypeDeclaration, Str typ, Str kind, expr) ->
    output_string args.chan ("BlockSubTypeDeclaration "^typ^":"^kind); match2 args expr; output_string args.chan ";\n"
-| Sextuple (VhdBlockConstantDeclaration, Str nam, Str kind, hi, lo, Double (VhdOperatorString, op)) ->
-   output_string args.chan ("BlockConstantDeclaration "^nam^":"^kind); match2 args hi; match2 args lo; output_string args.chan ";\n"
+| Double (VhdBlockConstantDeclaration,
+      Quadruple (Vhdconstant_declaration, Str nam,
+       Quadruple (Vhdsubtype_indication, Str "", kind,
+        Double (VhdArrayConstraint,
+         Triple (Vhdassociation_element, VhdFormalIndexed,
+          range))), Double (VhdOperatorString, op))) ->
+   output_string args.chan ("BlockConstantDeclaration operator "^nam^": "); match2 args range; output_string args.chan ";\n"
 | Double (VhdRange,
   Triple (VhdDecreasingRange,
    Double (VhdParenthesedPrimary,
@@ -548,6 +544,10 @@ List.iter (match2 args) lst2;
      Double (VhdIntPrimary, hi))),
    Double (VhdIntPrimary, lo))) -> ()
 | Quadruple (VhdBlockConstantDeclaration, Str nam, Str kind, expr) -> ()
+  | Double (VhdBlockConstantDeclaration,
+      Quadruple (Vhdconstant_declaration, Str nam,
+       Quadruple (Vhdsubtype_indication, Str "", typ,
+        VhdNoConstraint), expr)) -> output_string args.chan ("BlockConstantDeclaration no constraint "^nam^": ");
 | Triple (VhdSubSimpleExpression,
   Double (VhdParenthesedPrimary,
    Triple (VhdExpFactor, Double (VhdIntPrimary, num),

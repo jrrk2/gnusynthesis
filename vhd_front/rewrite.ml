@@ -164,7 +164,13 @@ let rec match2' (args:match2_args) = function
   | Triple (VhdSubSimpleExpression, lft, rght) ->
       (match2 args) lft; output_string args.chan " - "; (match2 args) rght
   | Triple (VhdOrLogicalExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " || "; (match2 args) rght
+      (match2 args) lft; output_string args.chan " | "; (match2 args) rght
+  | Triple (VhdXorLogicalExpression, lft, rght) ->
+      (match2 args) lft; output_string args.chan " ^ "; (match2 args) rght
+  | Triple (VhdShiftLeftLogicalExpression, lft, rght) ->
+      (match2 args) lft; output_string args.chan " << "; (match2 args) rght
+  | Triple (VhdShiftRightLogicalExpression, lft, rght) ->
+      (match2 args) lft; output_string args.chan " >> "; (match2 args) rght
   | Double (VhdParenthesedPrimary, x) ->
      output_string args.chan "(";
      match2 args x;
@@ -446,8 +452,55 @@ List.iter (match2 args) lst2;
   decls, stmts)) ->
    if List.mem_assoc fn !(args.fns) then
      begin
-       let (fnargs,fnkind) = List.assoc fn !(args.fns) in
-       output_string args.chan ("/* VhdBlockSubProgramBody "^fn^": "^fnkind^" */\n");
+       match List.assoc fn !(args.fns) with
+       | (fnargs,fnkind) ->
+	  if List.mem_assoc fnkind !(args.subtype) then
+	    begin
+	      match List.assoc typ !(args.subtype) with
+	      | "std_ulogic_vector", range ->
+		 output_string args.chan ("      function ");
+		match2 args range;
+		output_string args.chan (" "^fn^";\n");
+	      | _ -> output_string args.chan ("    function [???] "^fn^";\n");
+	    end
+	  else
+	    begin
+	      output_string args.chan ("    function "^fnkind^" "^fn^";\n");
+	    end;
+	 List.iter (function
+	 | Double (VhdInterfaceObjectDeclaration,
+		   Double (VhdInterfaceDefaultDeclaration,
+			   Sextuple (Vhdinterface_default_declaration, Str itm,
+				     dir,
+				     Quadruple (Vhdsubtype_indication, Str "", Str kind,
+						VhdNoConstraint),
+				     VhdSignalKindDefault, VhdNone))) ->
+	    if List.mem_assoc kind !(args.subtype) then
+	      begin
+		match List.assoc typ !(args.subtype) with
+		| "std_ulogic_vector", range ->
+		   output_string args.chan ("       input ");
+		  match2 args range;
+		  output_string args.chan (itm^";\n");
+		| _ -> output_string args.chan ("       input [???] "^itm^";\n");
+	      end
+	 | Double (VhdInterfaceObjectDeclaration,
+		   Double (VhdInterfaceDefaultDeclaration,
+			   Sextuple (Vhdinterface_default_declaration, Str itm,
+				     dir,
+				     Quadruple (Vhdsubtype_indication, Str "", Str kind,
+						Double (VhdArrayConstraint,
+							Triple (Vhdassociation_element, VhdFormalIndexed, range))),
+				     VhdSignalKindDefault, VhdNone))) ->
+            output_string args.chan ("       input ");
+	   match2 args range;
+	   output_string args.chan (itm^";\n");
+	 | oth -> failwith "fnargs") (match fnargs with List lst -> lst | oth -> [oth]);
+	 match2 args decls;
+	 output_string args.chan ("       begin\n");
+	 match2 args stmts;
+	 output_string args.chan ("       end\n");
+	 output_string args.chan ("    endfunction \n");
      end
    else
        output_string args.chan ("/* VhdBlockSubProgramBody "^fn^": interface not found */\n");
@@ -625,6 +678,114 @@ List.iter (match2 args) lst2;
        else
 	 output_string args.chan ("vhdattr_"^attr^"("^typ^")");
     | _ -> output_string args.chan ("vhdattr_"^attr^"("^typ^")"))
+
+|
+  Double (VhdSequentialReturn,
+   Triple (Vhdreturn_statement, Str _, Str _new_crc_))
+   -> output_string args.chan " pattern_685"
+ |
+       
+  Double (VhdSequentialLoop,
+   Quadruple (Vhdloop_statement, Str "",
+    Double (VhdForLoop,
+     Triple (Vhdparameter_specification, Str _i_1, range)),
+    Double (VhdSequentialVariableAssignment,
+     Double (VhdSimpleVariableAssignment, asgn))))
+   -> output_string args.chan " pattern_694"
+ |
+	     
+  Double (VhdSequentialAssertion,
+   Triple (Vhdassertion_statement, Str _,
+    Quadruple (Vhdassertion,
+     Double (VhdCondition,
+      Double (VhdNotFactor,
+       Double (VhdAttributeName,
+        Triple (Vhdattribute_name, Double (VhdSuffixSimpleName, Str _input_),
+         Str _ascending_)))),
+     Double (VhdOperatorString,
+      Str _range_),
+     VhdNone)))
+   -> output_string args.chan " pattern_708"
+ |
+	       
+		 		     
+  Double (VhdSubProgramVariableDeclaration,
+   Quintuple (Vhdvariable_declaration, Str _false_, Str _new_crc_,
+    Quadruple (Vhdsubtype_indication, Str _, Str _std_ulogic_vector_,
+     Double (VhdArrayConstraint,
+      Triple (Vhdassociation_element, VhdFormalIndexed,
+       Double (VhdActualExpression,
+        Double (VhdAttributeName,
+         Triple (Vhdattribute_name,
+          Double (VhdSuffixSimpleName, Str _old_crc_), Str _range_)))))),
+    VhdNone))
+   -> output_string args.chan " pattern_722"
+ | Double (VhdSubProgramAliasDeclaration,
+    Quintuple (Vhdalias_declaration,
+     Double (VhdDesignatorIdentifier, Str "rev_vec"),
+     Quadruple (Vhdsubtype_indication, Str "", Str "std_ulogic_vector",
+      Double (VhdArrayConstraint,
+       Triple (Vhdassociation_element, VhdFormalIndexed,
+        Double (VhdActualExpression,
+         Double (VhdAttributeName,
+          Triple (Vhdattribute_name, Double (VhdSuffixSimpleName, Str "vec"),
+           Str "reverse_range")))))),
+     Str "vec", VhdNone)) -> output_string args.chan " pattern_1"
+ |					     
+  Double (VhdSubProgramVariableDeclaration,
+   Quintuple (Vhdvariable_declaration, Str _false_, Str _feedback_,
+    Quadruple (Vhdsubtype_indication, Str _, Str _std_ulogic_,
+     VhdNoConstraint),
+    VhdNone))
+   -> output_string args.chan " pattern_740"
+
+ |  Double (VhdNotFactor, Str _out_byte_)
+  
+   -> output_string args.chan " pattern_744"
+ |
+								 
+  Triple (VhdMultTerm, Str _byte_, Double (VhdIntPrimary, Num "8"))
+   -> output_string args.chan " pattern_748"
+ |
+								     
+  Triple (VhdMultTerm,
+   Double (VhdParenthesedPrimary,
+    Triple (VhdAddSimpleExpression, Str _byte_,
+     Double (VhdIntPrimary, Num "1"))),
+   Double (VhdIntPrimary, Num "8"))
+   -> output_string args.chan " pattern_756"
+ |
+									 
+  Double (VhdSubProgramVariableDeclaration,
+   Quintuple (Vhdvariable_declaration, Str _false_, Str _inverted_,
+    Quadruple (Vhdsubtype_indication, Str _, Str _std_ulogic_vector_,
+     Double (VhdArrayConstraint,
+      Triple (Vhdassociation_element, VhdFormalIndexed,
+       Double (VhdActualDiscreteRange,
+        Double (VhdRange,
+         Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num "7"),
+          Double (VhdIntPrimary, Num "0"))))))),
+    VhdNone))
+   -> output_string args.chan " pattern_769"
+ |
+									   
+  Double (VhdSequentialReturn,
+   Triple (Vhdreturn_statement, Str _,
+    Double (VhdOperatorString, Str _00000000_)))
+   -> output_string args.chan ("return 'b"^_00000000_^";")
+ |
+													     
+  Double (VhdSequentialReturn,
+   Triple (Vhdreturn_statement, Str _,
+    Triple (VhdNameParametersPrimary, Str _vec_,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      range))))
+   -> output_string args.chan ("return "^_vec_); match2 args range;  output_string args.chan (";");
+ |
+ Double (VhdOperatorString, Str _101_)
+  
+   -> output_string args.chan " pattern_789"
+											         
 | oth -> unmatched := List.hd !(args.matched) :: List.nth !(args.matched) 1 :: !unmatched
 
 and match2 args pat =

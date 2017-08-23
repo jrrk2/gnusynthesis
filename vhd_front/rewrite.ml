@@ -227,11 +227,19 @@ let rec match2' (args:match2_args) = function
           VhdFormalIndexed,
           Double (VhdActualExpression,
 		  Double (VhdIntPrimary, Num n))) -> output_string args.chan n
+  | Double (VhdTargetDotted,
+    Triple (VhdNameParametersPrimary, Str result,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      Double (VhdActualExpression, Str i)))) -> output_string args.chan (result^"."^i);
+
   | Double (VhdSequentialVariableAssignment,
                                    Double (VhdSimpleVariableAssignment,
                                     Quadruple (Vhdsimple_variable_assignment,
-					       Str "", Str dst, expr))) ->
-   output_string args.chan (dst^" <= "); (match2 args) expr; output_string args.chan (";\n"^args.indent)
+					       Str "", dst, expr))) ->
+   (match2 args) dst;
+   output_string args.chan (" <= ");
+   (match2 args) expr;
+   output_string args.chan (";\n"^args.indent)
 
   | Double (VhdSequentialSignalAssignment,
           Double (VhdSimpleSignalAssignment,
@@ -652,10 +660,18 @@ List.iter (match2 args) lst2;
      match2 args expr;
      output_string args.chan (";\n");
    args.localp := (nam,expr) :: !(args.localp)
+| Triple (VhdMultTerm, lft, rght) ->
+   match2 args lft;
+   output_string args.chan (" * ");
+   match2 args rght;
 | Triple (VhdDivTerm, lft, rght) ->
    match2 args lft;
    output_string args.chan (" / ");
    match2 args rght;
+| Double (VhdNotFactor, arg) ->
+   output_string args.chan (" ~ ");
+   match2 args arg;
+   
 | Double (VhdAttributeName,
      Triple (Vhdattribute_name, Double (VhdSuffixSimpleName, Str typ),
 	     Str attr)) ->
@@ -681,111 +697,74 @@ List.iter (match2 args) lst2;
 
 |
   Double (VhdSequentialReturn,
-   Triple (Vhdreturn_statement, Str _, Str _new_crc_))
-   -> output_string args.chan " pattern_685"
- |
-       
-  Double (VhdSequentialLoop,
+   Triple (Vhdreturn_statement, Str "", arg))
+   -> output_string args.chan "return ";
+match2 args arg;
+
+| Double (VhdSequentialLoop,
    Quadruple (Vhdloop_statement, Str "",
     Double (VhdForLoop,
-     Triple (Vhdparameter_specification, Str _i_1, range)),
-    Double (VhdSequentialVariableAssignment,
-     Double (VhdSimpleVariableAssignment, asgn))))
-   -> output_string args.chan " pattern_694"
- |
-	     
-  Double (VhdSequentialAssertion,
+     Triple (Vhdparameter_specification, Str i, range)), stmt))
+-> output_string args.chan ("for ("^i^"= ...)");
+match2 args stmt
+
+| Double (VhdSequentialAssertion,
    Triple (Vhdassertion_statement, Str _,
-    Quadruple (Vhdassertion,
-     Double (VhdCondition,
-      Double (VhdNotFactor,
-       Double (VhdAttributeName,
-        Triple (Vhdattribute_name, Double (VhdSuffixSimpleName, Str _input_),
-         Str _ascending_)))),
-     Double (VhdOperatorString,
-      Str _range_),
-     VhdNone)))
-   -> output_string args.chan " pattern_708"
- |
-	       
-		 		     
-  Double (VhdSubProgramVariableDeclaration,
-   Quintuple (Vhdvariable_declaration, Str _false_, Str _new_crc_,
-    Quadruple (Vhdsubtype_indication, Str _, Str _std_ulogic_vector_,
+    Quadruple (Vhdassertion, cond, arange, VhdNone)))
+   -> output_string args.chan ("/* assert ");
+      match2 args cond;
+output_string args.chan (" */");
+| Double (VhdSubProgramVariableDeclaration,
+   Quintuple (Vhdvariable_declaration, Str _false_, Str nam,
+    Quadruple (Vhdsubtype_indication, Str _, Str kind,
      Double (VhdArrayConstraint,
       Triple (Vhdassociation_element, VhdFormalIndexed,
        Double (VhdActualExpression,
         Double (VhdAttributeName,
          Triple (Vhdattribute_name,
           Double (VhdSuffixSimpleName, Str _old_crc_), Str _range_)))))),
-    VhdNone))
-   -> output_string args.chan " pattern_722"
+    VhdNone)) ->
+   (match kind with
+   | "std_ulogic_vector" -> output_string args.chan ("reg "^_range_^nam^";\n")
+		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+
  | Double (VhdSubProgramAliasDeclaration,
     Quintuple (Vhdalias_declaration,
-     Double (VhdDesignatorIdentifier, Str "rev_vec"),
+     Double (VhdDesignatorIdentifier, Str vec1),
      Quadruple (Vhdsubtype_indication, Str "", Str "std_ulogic_vector",
       Double (VhdArrayConstraint,
        Triple (Vhdassociation_element, VhdFormalIndexed,
         Double (VhdActualExpression,
          Double (VhdAttributeName,
-          Triple (Vhdattribute_name, Double (VhdSuffixSimpleName, Str "vec"),
-           Str "reverse_range")))))),
-     Str "vec", VhdNone)) -> output_string args.chan " pattern_1"
- |					     
-  Double (VhdSubProgramVariableDeclaration,
-   Quintuple (Vhdvariable_declaration, Str _false_, Str _feedback_,
-    Quadruple (Vhdsubtype_indication, Str _, Str _std_ulogic_,
-     VhdNoConstraint),
-    VhdNone))
-   -> output_string args.chan " pattern_740"
+          Triple (Vhdattribute_name, Double (VhdSuffixSimpleName, Str vec2),
+           Str range)))))),
+     Str vec3, VhdNone)) -> output_string args.chan ("/* alias "^vec1^" "^vec2^" "^vec3^" "^range^" */\n");
 
- |  Double (VhdNotFactor, Str _out_byte_)
-  
-   -> output_string args.chan " pattern_744"
- |
-								 
-  Triple (VhdMultTerm, Str _byte_, Double (VhdIntPrimary, Num "8"))
-   -> output_string args.chan " pattern_748"
- |
-								     
-  Triple (VhdMultTerm,
-   Double (VhdParenthesedPrimary,
-    Triple (VhdAddSimpleExpression, Str _byte_,
-     Double (VhdIntPrimary, Num "1"))),
-   Double (VhdIntPrimary, Num "8"))
-   -> output_string args.chan " pattern_756"
- |
-									 
+| Double (VhdSubProgramVariableDeclaration,
+          Quintuple (Vhdvariable_declaration, Str _false, Str nam,
+           Quadruple (Vhdsubtype_indication, Str "", Str kind,
+            VhdNoConstraint),
+		     VhdNone)) -> (match kind with
+		     | "boolean" -> output_string args.chan ("reg "^nam^";\n")
+		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+
+ |									 
   Double (VhdSubProgramVariableDeclaration,
-   Quintuple (Vhdvariable_declaration, Str _false_, Str _inverted_,
-    Quadruple (Vhdsubtype_indication, Str _, Str _std_ulogic_vector_,
-     Double (VhdArrayConstraint,
-      Triple (Vhdassociation_element, VhdFormalIndexed,
-       Double (VhdActualDiscreteRange,
-        Double (VhdRange,
-         Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num "7"),
-          Double (VhdIntPrimary, Num "0"))))))),
-    VhdNone))
-   -> output_string args.chan " pattern_769"
- |
-									   
-  Double (VhdSequentialReturn,
-   Triple (Vhdreturn_statement, Str _,
-    Double (VhdOperatorString, Str _00000000_)))
-   -> output_string args.chan ("return 'b"^_00000000_^";")
- |
-													     
-  Double (VhdSequentialReturn,
-   Triple (Vhdreturn_statement, Str _,
-    Triple (VhdNameParametersPrimary, Str _vec_,
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-      range))))
-   -> output_string args.chan ("return "^_vec_); match2 args range;  output_string args.chan (";");
- |
- Double (VhdOperatorString, Str _101_)
-  
-   -> output_string args.chan " pattern_789"
-											         
+          Quintuple (Vhdvariable_declaration, Str _false, Str nam,
+           Quadruple (Vhdsubtype_indication, Str "", Str kind,
+            Double (VhdArrayConstraint,
+             Triple (Vhdassociation_element, VhdFormalIndexed,
+              range))),
+		     VhdNone)) ->
+   (match kind with
+   | "std_ulogic_vector" -> output_string args.chan ("reg "); match2 args range;  output_string args.chan (nam^";\n")
+		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+| Triple (Vhdassociation_element, VhdFormalIndexed,
+ Double (VhdActualExpression,
+  Triple (VhdNameParametersPrimary, Str input,
+   Triple (Vhdassociation_element, VhdFormalIndexed,
+                                   Double (VhdActualExpression, Str i))))) -> output_string args.chan (input^"("^i^")")
+
 | oth -> unmatched := List.hd !(args.matched) :: List.nth !(args.matched) 1 :: !unmatched
 
 and match2 args pat =

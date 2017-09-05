@@ -152,21 +152,22 @@ architecture rtl of framing is
 	signal tx_padding_required        : natural range 0 to MIN_FRAME_DATA_BYTES + 4 + 1;
 	signal tx_interpacket_gap_counter : std_logic_vector(3 downto 0);
 	signal tx_mac_address_byte        : std_logic_vector(2 downto 0);
-
 	-- Reception
 	type t_rx_state is (
 		RX_WAIT_START_FRAME_DELIMITER,
 		RX_DATA,
 		RX_ERROR,
-		RX_SKIP_FRAME
+		RX_SKIP_FRAME,
+                RX_WAIT
 	);
 
 	signal rx_state                : t_rx_state;
 	signal rx_frame_check_sequence : t_crc32;
 	subtype t_rx_frame_size is natural range 0 to MAX_FRAME_DATA_BYTES + CRC32_BYTES + 1;
-	signal rx_frame_size       : t_rx_frame_size;
+	signal rx_frame_size           : t_rx_frame_size;
 	signal rx_is_group_address     : std_ulogic;
-	signal rx_mac_address_byte : std_logic_vector(2 downto 0);
+	signal rx_mac_address_byte     : std_logic_vector(2 downto 0);
+    signal rx_padding              : std_logic_vector(2 downto 0);
 
 	function extract_byte(vec : in std_ulogic_vector(47 downto 0); byteno : in std_logic_vector(2 downto 0)) return std_ulogic_vector is
 	begin
@@ -515,6 +516,16 @@ begin
 					rx_error_o <= '1';
 					if mii_rx_frame_i = '0' then
 						rx_state <= RX_WAIT_START_FRAME_DELIMITER;
+					end if;
+				when RX_WAIT =>
+					-- Wait for end of rx_padding
+					rx_frame_o <= '1';
+					rx_byte_received_o <= mii_rx_byte_received_i;
+					if rx_padding = "000" then
+                        rx_state <= RX_WAIT_START_FRAME_DELIMITER;
+                    elsif mii_rx_byte_received_i = '1' then
+                        rx_padding <= rx_padding - "001";
+                        rx_frame_size <= rx_frame_size + 1;
 					end if;
 			end case;
 		end if;

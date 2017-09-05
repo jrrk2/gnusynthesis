@@ -51,6 +51,9 @@ let srclst = [
 
 let srclst = [ "../../hdlConvertor/tests/mux.vhd" ];;
 let srclst = [ "framing_golden.vhd" ];;
+(* 
+let srclst = [ "others.vhd" ];;
+*)
 
 let succ = ref true;;
 let _ = main succ srclst;;
@@ -60,3 +63,4 @@ let errlst = ref [];;
 let _ = Hashtbl.iter (fun (k,_) _ -> lst := abstraction(abstraction k) :: !lst) vhdlhash;;
 
 let args = dump "logfile.v" !lst;;
+let args = {args with chan=stdout};;

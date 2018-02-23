@@ -32,7 +32,7 @@ CML = str.cma unix.cma nums.cma ../ver_front/ver_front.cma
 CMLX = str.cmxa unix.cmxa nums.cmxa
 MAING = v2abcgen.cmo
 
-all: vgen vhd_front.cma vhd_front.cmxa
+all: vgen vhdltop vhd_front.cma vhd_front.cmxa
 
 vgen: $(VHDO) $(MAING)
 	ocamlc.opt -g -o $@ $(PARSERLIB) $(CML) $(VHDO) $(MAING)

@@ -100,7 +100,9 @@ let digit = function
   | _ -> false
 
 type match2_args = {
-  chan: out_channel;
+  mutable modref: string;
+  bufhash: (string,Buffer.t)Hashtbl.t;
+  mutable buf: Buffer.t;
   indent: string;
   liblst: (((vhdintf*string)*vhdintf) list) ref;
   subtype: ((string*(string*vhdintf)) list) ref;
@@ -160,96 +162,96 @@ let rec const_expr args = function
 
 let rec match2' (args:match2_args) = function
   | List lst12 ->
-    output_string args.chan (args.indent^"begin\n");
-    List.iter (output_string args.chan args.indent; match2 {args with indent=args.indent^"  "}) lst12;
-    output_string args.chan (args.indent^"end\n"^args.indent);
-  | Str str -> output_string args.chan str
+    Buffer.add_string args.buf (args.indent^"begin\n");
+    List.iter (Buffer.add_string args.buf args.indent; match2 {args with indent=args.indent^"  "}) lst12;
+    Buffer.add_string args.buf (args.indent^"end\n"^args.indent);
+  | Str str -> Buffer.add_string args.buf str
   | Triple (VhdEqualRelation, lft, rght) ->
-     (match2 args) lft; output_string args.chan " == "; (match2 args) rght
+     (match2 args) lft; Buffer.add_string args.buf " == "; (match2 args) rght
   | Triple (VhdNotEqualRelation, lft, rght) ->
-     (match2 args) lft; output_string args.chan " != "; (match2 args) rght
+     (match2 args) lft; Buffer.add_string args.buf " != "; (match2 args) rght
   | Triple (VhdLessRelation, lft, rght) ->
-     (match2 args) lft; output_string args.chan " < "; (match2 args) rght
+     (match2 args) lft; Buffer.add_string args.buf " < "; (match2 args) rght
   | Triple (VhdGreaterRelation, lft, rght) ->
-     (match2 args) lft; output_string args.chan " > "; (match2 args) rght
+     (match2 args) lft; Buffer.add_string args.buf " > "; (match2 args) rght
   | Triple (VhdAddSimpleExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " + "; (match2 args) rght
+      (match2 args) lft; Buffer.add_string args.buf " + "; (match2 args) rght
   | Triple (VhdSubSimpleExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " - "; (match2 args) rght
+      (match2 args) lft; Buffer.add_string args.buf " - "; (match2 args) rght
   | Triple (VhdOrLogicalExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " | "; (match2 args) rght
+      (match2 args) lft; Buffer.add_string args.buf " | "; (match2 args) rght
   | Triple (VhdXorLogicalExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " ^ "; (match2 args) rght
+      (match2 args) lft; Buffer.add_string args.buf " ^ "; (match2 args) rght
   | Triple (VhdShiftLeftLogicalExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " << "; (match2 args) rght
+      (match2 args) lft; Buffer.add_string args.buf " << "; (match2 args) rght
   | Triple (VhdShiftRightLogicalExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " >> "; (match2 args) rght
+      (match2 args) lft; Buffer.add_string args.buf " >> "; (match2 args) rght
   | Double (VhdParenthesedPrimary, x) ->
-     output_string args.chan "(";
+     Buffer.add_string args.buf "(";
      match2 args x;
-     output_string args.chan ")"
+     Buffer.add_string args.buf ")"
   | Triple (VhdAndLogicalExpression, lft, rght) ->
-      (match2 args) lft; output_string args.chan " && "; (match2 args) rght
+      (match2 args) lft; Buffer.add_string args.buf " && "; (match2 args) rght
   | Triple (VhdExpFactor, Double (VhdIntPrimary, Num "2"), expr) ->
-      output_string args.chan "1 << "; (match2 args) expr
-  | Double (VhdCondition, VhdNone) -> output_string args.chan ("/* cond none */");
+      Buffer.add_string args.buf "1 << "; (match2 args) expr
+  | Double (VhdCondition, VhdNone) -> Buffer.add_string args.buf ("/* cond none, 197 */");
   | Double (VhdCondition,
             Triple (VhdNameParametersPrimary, Str rising_edge,
 		    Triple (Vhdassociation_element, VhdFormalIndexed,
 			    Double (VhdActualExpression, Str clk)))) ->
-     output_string args.chan ("@(posedge "^clk)
+     Buffer.add_string args.buf ("@(posedge "^clk)
   | Triple (VhdNameParametersPrimary,
             Str src,
             Triple (Vhdassociation_element,
                     VhdFormalIndexed,
                     Double (VhdActualExpression, idx))) ->
-	    output_string args.chan (src^"[");
+	    Buffer.add_string args.buf (src^"[");
 	    match2 args idx;
-	    output_string args.chan ("]");
+	    Buffer.add_string args.buf ("]");
   | Triple (VhdNameParametersPrimary, Str src,
 	    Triple (Vhdassociation_element, VhdFormalIndexed,
 		    Double (VhdActualDiscreteRange, range))) ->
-	    output_string args.chan (src);
+	    Buffer.add_string args.buf (src);
 	    match2 args range
-  | Double (VhdCondition, x) -> output_string args.chan "("; (match2 args) x; output_string args.chan ")"
+  | Double (VhdCondition, x) -> Buffer.add_string args.buf "("; (match2 args) x; Buffer.add_string args.buf ")"
   | Double (VhdOperatorString, Str v) when digit v.[0] ->
-     output_string args.chan (string_of_int (String.length v)^"'b"^v);
-  | Double (VhdCharPrimary, Char ch) -> output_string args.chan (" 1'b"^String.make 1 ch)
+     Buffer.add_string args.buf (string_of_int (String.length v)^"'b"^v);
+  | Double (VhdCharPrimary, Char ch) -> Buffer.add_string args.buf (" 1'b"^String.make 1 ch)
   | Triple (VhdNameParametersPrimary,
 	    Double (VhdAttributeName,
 		    Triple (Vhdattribute_name,
 			    Double (VhdSuffixSimpleName, Str typ), Str "succ")),
 	    Triple (Vhdassociation_element, VhdFormalIndexed,
 					    Double (VhdActualExpression, Str state))) ->
-					    output_string args.chan (state^"+1");
+					    Buffer.add_string args.buf (state^"+1");
   | Triple (VhdNameParametersPrimary, fn, List params) ->
      (match2 args) fn;
-     let delim = ref "(" in List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ", ") params;
-     output_string args.chan ")";
+     let delim = ref "(" in List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := ", ") params;
+     Buffer.add_string args.buf ")";
   | Triple (Vhdassociation_element,
                     VhdFormalIndexed,
                     Double (VhdActualExpression,
-			    Str src)) -> output_string args.chan src
+			    Str src)) -> Buffer.add_string args.buf src
 
-  | Double (VhdIntPrimary, Num n) -> output_string args.chan (n);
+  | Double (VhdIntPrimary, Num n) -> Buffer.add_string args.buf (n);
     
   | Triple (Vhdassociation_element,
           VhdFormalIndexed,
           Double (VhdActualExpression,
-		  Double (VhdIntPrimary, Num n))) -> output_string args.chan n
+		  Double (VhdIntPrimary, Num n))) -> Buffer.add_string args.buf n
   | Double (VhdTargetDotted,
     Triple (VhdNameParametersPrimary, Str result,
      Triple (Vhdassociation_element, VhdFormalIndexed,
-      Double (VhdActualExpression, Str i)))) -> output_string args.chan (result^"."^i);
+      Double (VhdActualExpression, Str i)))) -> Buffer.add_string args.buf (result^"."^i);
 
   | Double (VhdSequentialVariableAssignment,
                                    Double (VhdSimpleVariableAssignment,
                                     Quadruple (Vhdsimple_variable_assignment,
 					       Str "", dst, expr))) ->
    (match2 args) dst;
-   output_string args.chan (" = ");
+   Buffer.add_string args.buf (" = ");
    (match2 args) expr;
-   output_string args.chan (";\n"^args.indent)
+   Buffer.add_string args.buf (";\n"^args.indent)
 
   | Double (VhdSequentialSignalAssignment,
           Double (VhdSimpleSignalAssignment,
@@ -265,23 +267,23 @@ let rec match2' (args:match2_args) = function
                   cond,
                    thenstmts,
 			    VhdElseNone)) ->
-     output_string args.chan ("if ");
+     Buffer.add_string args.buf ("if ");
     (match2 args) cond;
-    output_string args.chan ("\n"^args.indent);
+    Buffer.add_string args.buf ("\n"^args.indent);
     (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts);
-    output_string args.chan "\n";
-  | Double (VhdSequentialNull, Double (Vhdnull_statement, Str "")) -> output_string args.chan "begin end"
+    Buffer.add_string args.buf "\n";
+  | Double (VhdSequentialNull, Double (Vhdnull_statement, Str "")) -> Buffer.add_string args.buf "begin end"
   | Double (VhdSequentialIf,
           Quintuple (Vhdif_statement, Str "",
                      cond,
                      thenstmts,
                      Double (VhdElse,
                              elsestmts))) ->
-  output_string args.chan ("if ");
+  Buffer.add_string args.buf ("if ");
   (match2 args) cond;
-    output_string args.chan ("\n"^args.indent);
+    Buffer.add_string args.buf ("\n"^args.indent);
   (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts);
-  output_string args.chan " else\n";
+  Buffer.add_string args.buf " else\n";
   (match2  {args with indent=args.indent^"  "}) (mkblk elsestmts);
 
 | Double (VhdSequentialIf,
@@ -293,23 +295,23 @@ let rec match2' (args:match2_args) = function
 					cond',
 					thenstmts',
 					VhdElseNone)))) ->		
-  output_string args.chan ("if ");
+  Buffer.add_string args.buf ("if ");
   (match2 args) cond;
-    output_string args.chan ("\n"^args.indent);
+    Buffer.add_string args.buf ("\n"^args.indent);
   (match2 {args with indent=args.indent^"  "}) (mkblk thenstmts);
-  output_string args.chan (args.indent^"else if "^args.indent);
+  Buffer.add_string args.buf (args.indent^"else if "^args.indent);
   (match2 args) cond';
-  output_string args.chan ("\n"^args.indent);
+  Buffer.add_string args.buf ("\n"^args.indent);
   (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts');
    
 | Double (VhdSequentialCase,
           Quintuple (Vhdcase_statement, Str "",
                      Double (VhdSelector, sel), VhdOrdinarySelection,
-                     List cases)) -> output_string args.chan ("case (");
+                     List cases)) -> Buffer.add_string args.buf ("case (");
   (match2 args) sel;
-  output_string args.chan ")";
+  Buffer.add_string args.buf ")";
   List.iter (match2 {args with indent=args.indent^"  "}) cases;
-  output_string args.chan ("\n"^args.indent^"endcase\n");
+  Buffer.add_string args.buf ("\n"^args.indent^"endcase\n");
   if !cselst = [] then cselst := cases;
 
 | Double (VhdChoiceSimpleExpression,
@@ -318,37 +320,37 @@ let rec match2' (args:match2_args) = function
 
 
 | Triple (Vhdcase_statement_alternative, cse, stmts) ->
-  output_string args.chan ("\n"^args.indent);
+  Buffer.add_string args.buf ("\n"^args.indent);
    (match cse with
-   | VhdChoiceOthers -> output_string args.chan "default"
-   | List lst -> let delim = ref "" in List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ", ") lst
+   | VhdChoiceOthers -> Buffer.add_string args.buf "default"
+   | List lst -> let delim = ref "" in List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := ", ") lst
    | oth -> (match2 args) cse);
-  output_string args.chan (":\n"^args.indent);
+  Buffer.add_string args.buf (":\n"^args.indent);
   match2 args (match stmts with List _ -> stmts | _ -> List [stmts])
      
   |              Double (VhdSequentialIf,
                Quintuple (Vhdif_statement, Str "",
 			  cond,
 			  then',else')) ->
-     output_string args.chan ("if ");
+     Buffer.add_string args.buf ("if ");
     (match2 args) cond;
-    output_string args.chan ("\n  "^args.indent);
+    Buffer.add_string args.buf ("\n  "^args.indent);
     (match2  {args with indent=args.indent^"  "}) (mkblk then');
-    output_string args.chan (args.indent^"else\n"^args.indent);
+    Buffer.add_string args.buf (args.indent^"else\n"^args.indent);
     (match2  {args with indent=args.indent^"  "}) (mkblk else');
 
   | Double (VhdElse,
                  List
                    lst51) ->
 		       List.iter (match2 args) lst51;
-| VhdElseNone -> output_string args.chan "/* else begin end */"
+| VhdElseNone -> Buffer.add_string args.buf "/* else begin end */"
 | Double (VhdProcessVariableDeclaration,
           Quintuple (Vhdvariable_declaration, Str _false, Str nam,
            Quadruple (Vhdsubtype_indication, Str "", Str kind,
             VhdNoConstraint),
 		     VhdNone)) -> (match kind with
-		     | "boolean" -> output_string args.chan ("reg "^nam^";\n")
-		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+		     | "boolean" -> Buffer.add_string args.buf ("reg "^nam^";\n")
+		     | oth ->  Buffer.add_string args.buf ("reg /*"^oth^" */ "^nam^";\n"))
 
 | Double (VhdProcessVariableDeclaration,
           Quintuple (Vhdvariable_declaration, Str _false, Str nam,
@@ -358,8 +360,8 @@ let rec match2' (args:match2_args) = function
               range))),
 		     VhdNone)) ->
    (match kind with
-   | "std_ulogic_vector" -> output_string args.chan ("reg "); match2 args range;  output_string args.chan (nam^";\n")
-		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+   | "std_ulogic_vector" -> Buffer.add_string args.buf ("reg "); match2 args range;  Buffer.add_string args.buf (nam^";\n")
+		     | oth ->  Buffer.add_string args.buf ("reg /*"^oth^" */ "^nam^";\n"))
 	   
 | Triple (Vhdconditional_waveform,
             Double (Vhdwaveform_element, ch), Double (VhdCondition, VhdNone)) -> (match2 args) ch;
@@ -368,9 +370,9 @@ let rec match2' (args:match2_args) = function
           Double (Vhdwaveform_element, level),
           Double (VhdCondition, cond)) -> 
                 match2 args cond;
-                output_string args.chan (" ? ");
+                Buffer.add_string args.buf (" ? ");
                 match2 args level; 
-                output_string args.chan (" : ");
+                Buffer.add_string args.buf (" : ");
 (* *)
 |   Double (VhdConcurrentSignalAssignmentStatement,
     Quadruple (Vhdconcurrent_signal_assignment_statement, Str "",
@@ -382,7 +384,7 @@ let rec match2' (args:match2_args) = function
         Double (VhdAggregatePrimary,
          (Triple (Vhdelement_association, VhdChoiceOthers, _) as oth))))))) ->
 (*
- output_string args.chan ("assign1 "^nam^" = "); (match2 args) oth;
+ Buffer.add_string args.buf ("assign1 "^nam^" = "); (match2 args) oth;
 *)
      block_const args nam (lookuprng args nam) [oth]
 (* *)
@@ -396,7 +398,7 @@ let rec match2' (args:match2_args) = function
        Double (Vhdwaveform_element,
         Double (VhdAggregatePrimary, oth)))))) ->
 
- output_string args.chan ("assign "^nam^" = "); (match2 args) oth;
+ Buffer.add_string args.buf ("assign "^nam^" = "); (match2 args) oth;
   (*
      block_const args nam (lookuprng args nam) [oth]
   *)
@@ -408,7 +410,7 @@ let rec match2' (args:match2_args) = function
                      Str "", Str dst, VhdDelayNone,
                      Double (Vhdwaveform_element,
 			     expr)))) ->
-   output_string args.chan (dst^" <= "); (match2 args) expr; output_string args.chan (";\n"^args.indent)
+   Buffer.add_string args.buf (dst^" <= "); (match2 args) expr; Buffer.add_string args.buf (";\n"^args.indent)
 (*
 | Double (VhdConcurrentSignalAssignmentStatement,
     Quadruple (Vhdconcurrent_signal_assignment_statement, Str "",
@@ -419,7 +421,7 @@ let rec match2' (args:match2_args) = function
        Double (Vhdwaveform_element,
         Double (VhdAggregatePrimary,
          Triple (Vhdelement_association, VhdChoiceOthers,
-		 Double (VhdCharPrimary, Char '0')))))))) ->  output_string args.chan ("assign "^dst^";\n")
+		 Double (VhdCharPrimary, Char '0')))))))) ->  Buffer.add_string args.buf ("assign "^dst^";\n")
 *)
 | Double (VhdConcurrentSignalAssignmentStatement,
       Quadruple (Vhdconcurrent_signal_assignment_statement, Str "",
@@ -427,9 +429,9 @@ let rec match2' (args:match2_args) = function
        Double (VhdConcurrentSimpleSignalAssignment,
         Quintuple (Vhdconcurrent_simple_signal_assignment,
          Str dst, Str _false', VhdDelayNone,
-         Double (Vhdwaveform_element, expr))))) -> output_string args.chan ("assign "^dst^" = ");
+         Double (Vhdwaveform_element, expr))))) -> Buffer.add_string args.buf ("assign "^dst^" = ");
   (match2 args) expr;
-    output_string args.chan (";\n"^args.indent);
+    Buffer.add_string args.buf (";\n"^args.indent);
   
   
 | Double (VhdConcurrentProcessStatement,
@@ -444,37 +446,64 @@ let rec match2' (args:match2_args) = function
 							   Double (VhdElse,
 								   stmts))),
 					VhdElseNone)))) ->
-   output_string args.chan ("\n"^args.indent^"always @ ( posedge "^clk^")\n");
-   output_string args.chan (args.indent^"  if ");
+   Buffer.add_string args.buf ("\n"^args.indent^"always @ ( posedge "^clk^")\n");
+   Buffer.add_string args.buf (args.indent^"  if ");
    match2 {args with indent=args.indent^"  "} cond';
-   output_string args.chan ("\n");
+   Buffer.add_string args.buf ("\n");
    match2 {args with indent=args.indent^"  "} (mkblk rststmts);
-   output_string args.chan (args.indent^"  else\n");
+   Buffer.add_string args.buf (args.indent^"  else\n");
    match2 args stmts;
-| VhdInterfaceModeIn -> output_string args.chan "input wire"
-| VhdInterfaceModeOut -> output_string args.chan "output wire"
-| Num n -> output_string args.chan ("/* Num */'d"^n)
+| VhdInterfaceModeIn -> Buffer.add_string args.buf "input wire"
+| VhdInterfaceModeOut -> Buffer.add_string args.buf "output wire"
+| Num n -> Buffer.add_string args.buf ("/* Num */'d"^n)
 | Triple (Vhddesign_unit,
     List liblst,
  Double (VhdPrimaryUnit,
    Double (VhdEntityDeclaration,
-   Quintuple (Vhdentity_declaration, Str modnam,
+   Quintuple (Vhdentity_declaration, Str design,
       Triple (Vhdentity_header, obj,
        List lst),
    List [], List [])))) ->
+        let buf' = Buffer.create 4096 in
+        if Hashtbl.mem args.bufhash design then
+            begin
+            args.buf <- Hashtbl.find args.bufhash design;
+            Buffer.add_buffer buf' args.buf;
+            Buffer.clear args.buf;
+            end
+        else
+            begin
+            let buf'' = Buffer.create 4096 in
+            Hashtbl.add args.bufhash design buf'';
+            args.buf <- buf'';
+            end;
    	let delim = ref "(\n" in
-	output_string args.chan ("module "^modnam);
+	Buffer.add_string args.buf ("module "^design);
 	List.iter (fun itm ->
-		   output_string args.chan (!delim^"\t");
+		   Buffer.add_string args.buf (!delim^"\t");
 		   match2 args itm;
 		   delim := ",\n") lst;
-	output_string args.chan ");\n"
+	Buffer.add_string args.buf ");\n";
+        Buffer.add_buffer args.buf buf';
+        args.modref <- design
 | Triple (Vhddesign_unit, List liblst,
 			  Double (VhdSecondaryUnit,
 				  Double (VhdArchitectureBody,
 					  Quintuple (Vhdarchitecture_body, Str arch, Str design, lst1, lst2)))) ->
-   output_string args.chan ("/* design "^design^" */\n");
-   output_string args.chan ("/* architecture "^arch^" */\n");
+        if Hashtbl.mem args.bufhash design then
+            begin
+            args.buf <- Hashtbl.find args.bufhash design;
+            end
+        else
+            begin
+            let buf' = Buffer.create 4096 in
+            Hashtbl.add args.bufhash design buf';
+            args.buf <- buf';
+            end;
+        
+   Buffer.add_string args.buf ("/* design "^design^" */\n");
+   Buffer.add_string args.buf ("/* architecture "^arch^" */\n");
+   Buffer.add_string args.buf ("typedef enum {FALSE,TRUE} bool_t;\n");
 List.iter (match2 args) (match lst1 with List lst -> lst | _ -> [lst1]);
 List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 | Triple (Vhddesign_unit,
@@ -499,7 +528,7 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
        Septuple (Vhdfunction_specification,
         Double (VhdDesignatorIdentifier, Str fn),
         arg', List [], List [], Str kind, VhdUnknown))) ->
-   output_string args.chan ("/* FunctionSpecification "^fn^":"^kind^" */\n");
+   Buffer.add_string args.buf ("/* FunctionSpecification "^fn^":"^kind^" */\n");
    args.fns := (fn, (arg', kind)) :: !(args.fns);
 | Double (VhdBlockSubProgramBody,
  Quadruple (Vhdsubprogram_body,
@@ -516,14 +545,14 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 	    begin
 	      match List.assoc typ !(args.subtype) with
 	      | "std_ulogic_vector", range ->
-		 output_string args.chan ("      function ");
+		 Buffer.add_string args.buf ("      function ");
 		match2 args range;
-		output_string args.chan (" "^fn^";\n");
-	      | _ -> output_string args.chan ("    function [???] "^fn^";\n");
+		Buffer.add_string args.buf (" "^fn^";\n");
+	      | _ -> Buffer.add_string args.buf ("    function [???] "^fn^";\n");
 	    end
 	  else
 	    begin
-	      output_string args.chan ("    function "^fnkind^" "^fn^";\n");
+	      Buffer.add_string args.buf ("    function "^fnkind^" "^fn^";\n");
 	    end;
 	 List.iter (function
 	 | Double (VhdInterfaceObjectDeclaration,
@@ -537,11 +566,11 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 	      begin
 		match List.assoc typ !(args.subtype) with
 		| "std_ulogic_vector", range ->
-		   output_string args.chan ("       input ");
+		   Buffer.add_string args.buf ("       input ");
 		  match2 args range;
-		  output_string args.chan (itm^";\n");
+		  Buffer.add_string args.buf (itm^";\n");
 		  args.siglst := (itm,range) :: !(args.siglst);
-		| _ -> output_string args.chan ("       input [???] "^itm^";\n");
+		| _ -> Buffer.add_string args.buf ("       input [???] "^itm^";\n");
 		  args.siglst := (itm,dummyrng 0 0) :: !(args.siglst);
 	      end
 	 | Double (VhdInterfaceObjectDeclaration,
@@ -552,35 +581,43 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 						Double (VhdArrayConstraint,
 							Triple (Vhdassociation_element, VhdFormalIndexed, range))),
 				     VhdSignalKindDefault, VhdNone))) ->
-            output_string args.chan ("       input ");
+            Buffer.add_string args.buf ("       input ");
 	   match2 args range;
-	   output_string args.chan (itm^";\n");
+	   Buffer.add_string args.buf (itm^";\n");
 	   args.siglst := (itm,range) :: !(args.siglst);
 	 | oth -> failwith "fnargs") (match fnargs with List lst -> lst | oth -> [oth]);
 	 match2 args decls;
-	 output_string args.chan ("       begin\n");
+	 Buffer.add_string args.buf ("       begin\n");
 	 match2 args stmts;
-	 output_string args.chan ("       end\n");
-	 output_string args.chan ("    endfunction \n");
+	 Buffer.add_string args.buf ("       end\n");
+	 Buffer.add_string args.buf ("    endfunction \n");
      end
    else
-       output_string args.chan ("/* VhdBlockSubProgramBody "^fn^": interface not found */\n");
+       Buffer.add_string args.buf ("/* VhdBlockSubProgramBody "^fn^": interface not found */\n");
+| Double (VhdBlockSignalDeclaration,
+          Quintuple (Vhdsignal_declaration,
+           List lst,
+           Quadruple (Vhdsubtype_indication, Str "", Str typ,
+            VhdNoConstraint), VhdSignalKindDefault, Str reset)) ->
+   let delim = ref typ in
+   List.iter (fun itm -> Buffer.add_string args.buf (!delim^" "); match2 args itm; delim := ",") lst;
+   Buffer.add_string args.buf ("; // 604\n");
 | Double (VhdBlockSignalDeclaration,
  Quintuple (Vhdsignal_declaration, Str signal,
   Quadruple (Vhdsubtype_indication, Str "", Str typ,
    Double (VhdArrayConstraint,
     Triple (Vhdassociation_element, VhdFormalIndexed, range))),
   VhdSignalKindDefault, VhdNone)) ->
-   output_string args.chan ("reg ");
+   Buffer.add_string args.buf ("reg ");
    match2 args range;
-   output_string args.chan (signal^";\n");
+   Buffer.add_string args.buf (signal^"; // 605\n");
    args.siglst := (signal,range) :: !(args.siglst);
 | Double (VhdBlockSignalDeclaration,
 	    Quintuple (Vhdsignal_declaration, Str signal,
 		       Quadruple (Vhdsubtype_indication, Str "", typ,
 				  VhdNoConstraint),
 		       VhdSignalKindDefault, VhdNone)) ->
-   output_string args.chan ("reg "^signal^";\n");
+   Buffer.add_string args.buf ("reg "^signal^"; // 612\n");
    args.siglst := (signal,dummyrng 0 0) :: !(args.siglst);
 | Double (VhdBlockSignalDeclaration,
  Quintuple (Vhdsignal_declaration, Str signal,
@@ -593,38 +630,37 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
      | Int hi -> hi
      | oth -> failwith "Invalid natural range" in
    let hi = maxidx hi and lo = int_of_string num in
-   output_string args.chan ("reg ["^string_of_int hi^":"^num^"] "^signal^";\n");
+   Buffer.add_string args.buf ("reg ["^string_of_int hi^":"^num^"] "^signal^"; // 625\n");
    args.siglst := (signal,dummyrng hi lo) :: !(args.siglst);
 | Double (VhdBlockSubTypeDeclaration,
 	  Triple (Vhdsubtype_declaration, Str typ,
 		  Quadruple (Vhdsubtype_indication, Str "", kind,
 			     Double (VhdRangeConstraint,
 				     Triple (VhdIncreasingRange, lo, hi))))) ->
-   output_string args.chan ("/* SubTypeDeclaration_range "^typ^" */\n");
+   Buffer.add_string args.buf ("/* SubTypeDeclaration_range "^typ^" */\n");
 | Triple (VhdEnumerationTypeDefinition, Str typ, List enumlst) ->
    let hi = maxidx (List.length enumlst) and lo = 0 in
-   output_string args.chan ("wire ["^string_of_int hi^":0]");
-   let delim = ref " " in
+   Buffer.add_string args.buf ("typedef enum");
+   let delim = ref " {" in
    List.iteri (fun ix itm ->
-     output_string args.chan !delim;
+     Buffer.add_string args.buf !delim;
      match2 args itm;
-     output_string args.chan ("="^string_of_int ix);
      delim := ",\n"^args.indent;
      match itm with
      | Str id -> 
 	args.siglst := (id,dummyrng hi lo) :: !(args.siglst);
      | _ -> ()) enumlst;
-   output_string args.chan ";\n";
-| Double (VhdIdentifierEnumeration, Str enum) -> output_string args.chan enum
+   Buffer.add_string args.buf ("} "^typ^";\n");
+| Double (VhdIdentifierEnumeration, Str enum) -> Buffer.add_string args.buf enum
 | Double (VhdRange, Triple (VhdDecreasingRange, hi, lo)) ->
-   output_string args.chan ("[");
+   Buffer.add_string args.buf ("[");
    match2 args hi;
-   output_string args.chan (":");
+   Buffer.add_string args.buf (":");
    match2 args lo;
-   output_string args.chan ("] ");
+   Buffer.add_string args.buf ("] ");
 | Triple (VhdDecreasingRange, hi, lo) ->
    match2 args hi;
-   output_string args.chan (":");
+   Buffer.add_string args.buf (":");
    match2 args lo;
 | Double (VhdBlockConstantDeclaration,
 	  Quadruple (Vhdconstant_declaration, Str nam,
@@ -633,7 +669,7 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 					Triple (Vhdassociation_element, VhdFormalIndexed,
 						range))), Double (VhdAggregatePrimary, List lst))) ->
    block_const args nam range lst
-| Triple (Str nam, Str kind, mode) ->  output_string args.chan ("Nam "^kind^":"); match2 args mode
+| Triple (Str nam, Str kind, mode) ->  Buffer.add_string args.buf ("Nam "^kind^":"); match2 args mode
 | Double (VhdInterfaceObjectDeclaration,
 	  Double (VhdInterfaceDefaultDeclaration,
 		  Sextuple (Vhdinterface_default_declaration, Str port,
@@ -642,7 +678,7 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 				       VhdNoConstraint),
 			    VhdSignalKindDefault, VhdNone))) ->
    match2 args mode;
-  output_string args.chan ("\t\t"^port);
+  Buffer.add_string args.buf ("\t\t"^port);
   args.siglst := (port,dummyrng 0 0) :: !(args.siglst);
 | Double (VhdInterfaceObjectDeclaration,
 	  Double (VhdInterfaceDefaultDeclaration,
@@ -654,12 +690,12 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 						       range))),
 			    VhdSignalKindDefault, VhdNone))) ->
    match2 args mode;
-   output_string args.chan ("\t");
+   Buffer.add_string args.buf ("\t");
    match2 args range;
-   output_string args.chan ("\t"^port);
+   Buffer.add_string args.buf ("\t"^port);
   args.siglst := (port,range) :: !(args.siglst);
 (*
-| Double (VhdActualExpression, Double (VhdIntPrimary, Num n)) -> output_string args.chan ("/* actual */'d"^n)
+| Double (VhdActualExpression, Double (VhdIntPrimary, Num n)) -> Buffer.add_string args.buf ("/* actual */'d"^n)
  *)
 | Double (VhdActualExpression,
     (Triple (VhdNameParametersPrimary, Str "to_unsigned",
@@ -671,39 +707,39 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
         Double (VhdArrayConstraint,
 		Triple (Vhdassociation_element, VhdFormalIndexed, rng))))) ->
    args.subtype := (typ, (kind,rng)) :: !(args.subtype);
-   output_string args.chan ("/* SubTypeDeclaration "^typ^":"^kind^":");
+   Buffer.add_string args.buf ("/* SubTypeDeclaration "^typ^":"^kind^":");
    match2 args rng;
-   output_string args.chan " */\n"
+   Buffer.add_string args.buf " */\n"
 | Double (VhdBlockConstantDeclaration,
       Quadruple (Vhdconstant_declaration, Str nam,
        Quadruple (Vhdsubtype_indication, Str "", kind,
         Double (VhdArrayConstraint,
          Triple (Vhdassociation_element, VhdFormalIndexed,
           range))), cexpr)) ->
-   output_string args.chan ("localparam ");
+   Buffer.add_string args.buf ("localparam ");
    match2 args range;
-   output_string args.chan (" "^nam^" = ");
+   Buffer.add_string args.buf (" "^nam^" = ");
    match2 args cexpr;
-   output_string args.chan ";\n";
+   Buffer.add_string args.buf ";\n";
    args.localp := (nam,cexpr) :: !(args.localp)
 | Double (VhdBlockConstantDeclaration,
       Quadruple (Vhdconstant_declaration, Str nam,
        Quadruple (Vhdsubtype_indication, Str "", typ,
 		  VhdNoConstraint), expr)) ->
-     output_string args.chan ("localparam "^nam^" = ");
+     Buffer.add_string args.buf ("localparam "^nam^" = ");
      match2 args expr;
-     output_string args.chan (";\n");
+     Buffer.add_string args.buf (";\n");
    args.localp := (nam,expr) :: !(args.localp)
 | Triple (VhdMultTerm, lft, rght) ->
    match2 args lft;
-   output_string args.chan (" * ");
+   Buffer.add_string args.buf (" * ");
    match2 args rght;
 | Triple (VhdDivTerm, lft, rght) ->
    match2 args lft;
-   output_string args.chan (" / ");
+   Buffer.add_string args.buf (" / ");
    match2 args rght;
 | Double (VhdNotFactor, arg) ->
-   output_string args.chan (" ~ ");
+   Buffer.add_string args.buf (" ~ ");
    match2 args arg;
    
 | Double (VhdAttributeName,
@@ -718,36 +754,36 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 	     Double (VhdActualDiscreteRange,
 		     Double (VhdRange,
 			     Triple (VhdDecreasingRange, hi, lo))) ->
-	      output_string args.chan ("((");
+	      Buffer.add_string args.buf ("((");
 	      match2 args hi;
-	      output_string args.chan (")-(");
+	      Buffer.add_string args.buf (")-(");
 	      match2 args lo;
-	      output_string args.chan (")+1)");
-	   | _ -> output_string args.chan ("vhdattr_"^attr^"("^typ^")");
+	      Buffer.add_string args.buf (")+1)");
+	   | _ -> Buffer.add_string args.buf ("vhdattr_"^attr^"("^typ^")");
 	 end
        else
-	 output_string args.chan ("vhdattr_"^attr^"("^typ^")");
-    | _ -> output_string args.chan ("vhdattr_"^attr^"("^typ^")"))
+	 Buffer.add_string args.buf ("vhdattr_"^attr^"("^typ^")");
+    | _ -> Buffer.add_string args.buf ("vhdattr_"^attr^"("^typ^")"))
 
 |
   Double (VhdSequentialReturn,
    Triple (Vhdreturn_statement, Str "", arg))
-   -> output_string args.chan "return ";
+   -> Buffer.add_string args.buf "return ";
 match2 args arg;
 
 | Double (VhdSequentialLoop,
    Quadruple (Vhdloop_statement, Str "",
     Double (VhdForLoop,
      Triple (Vhdparameter_specification, Str i, range)), stmt))
--> output_string args.chan ("for ("^i^"= ...)");
+-> Buffer.add_string args.buf ("for ("^i^"= ...)");
 match2 args stmt
 
 | Double (VhdSequentialAssertion,
    Triple (Vhdassertion_statement, Str _,
     Quadruple (Vhdassertion, cond, arange, VhdNone)))
-   -> output_string args.chan ("/* assert ");
+   -> Buffer.add_string args.buf ("/* assert ");
       match2 args cond;
-output_string args.chan (" */");
+Buffer.add_string args.buf (" */");
 | Double (VhdSubProgramVariableDeclaration,
    Quintuple (Vhdvariable_declaration, Str _false_, Str nam,
     Quadruple (Vhdsubtype_indication, Str _, Str kind,
@@ -759,8 +795,8 @@ output_string args.chan (" */");
           Double (VhdSuffixSimpleName, Str _old_crc_), Str _range_)))))),
     VhdNone)) ->
    (match kind with
-   | "std_ulogic_vector" -> output_string args.chan ("reg "^_range_^nam^";\n")
-		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+   | "std_ulogic_vector" -> Buffer.add_string args.buf ("reg "^_range_^nam^";\n")
+		     | oth ->  Buffer.add_string args.buf ("reg /*"^oth^" */ "^nam^";\n"))
 
  | Double (VhdSubProgramAliasDeclaration,
     Quintuple (Vhdalias_declaration,
@@ -772,15 +808,15 @@ output_string args.chan (" */");
          Double (VhdAttributeName,
           Triple (Vhdattribute_name, Double (VhdSuffixSimpleName, Str vec2),
            Str range)))))),
-     Str vec3, VhdNone)) -> output_string args.chan ("/* alias "^vec1^" "^vec2^" "^vec3^" "^range^" */\n");
+     Str vec3, VhdNone)) -> Buffer.add_string args.buf ("/* alias "^vec1^" "^vec2^" "^vec3^" "^range^" */\n");
 
 | Double (VhdSubProgramVariableDeclaration,
           Quintuple (Vhdvariable_declaration, Str _false, Str nam,
            Quadruple (Vhdsubtype_indication, Str "", Str kind,
             VhdNoConstraint),
 		     VhdNone)) -> (match kind with
-		     | "boolean" -> output_string args.chan ("reg "^nam^";\n")
-		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+		     | "boolean" -> Buffer.add_string args.buf ("reg "^nam^";\n")
+		     | oth ->  Buffer.add_string args.buf ("reg /*"^oth^" */ "^nam^";\n"))
 
  |									 
   Double (VhdSubProgramVariableDeclaration,
@@ -791,13 +827,13 @@ output_string args.chan (" */");
               range))),
 		     VhdNone)) ->
    (match kind with
-   | "std_ulogic_vector" -> output_string args.chan ("reg "); match2 args range;  output_string args.chan (nam^";\n")
-		     | oth ->  output_string args.chan ("reg /*"^oth^" */ "^nam^";\n"))
+   | "std_ulogic_vector" -> Buffer.add_string args.buf ("reg "); match2 args range;  Buffer.add_string args.buf (nam^";\n")
+		     | oth ->  Buffer.add_string args.buf ("reg /*"^oth^" */ "^nam^";\n"))
 | Triple (Vhdassociation_element, VhdFormalIndexed,
  Double (VhdActualExpression,
   Triple (VhdNameParametersPrimary, Str input,
    Triple (Vhdassociation_element, VhdFormalIndexed,
-                                   Double (VhdActualExpression, Str i))))) -> output_string args.chan (input^"("^i^")")
+                                   Double (VhdActualExpression, Str i))))) -> Buffer.add_string args.buf (input^"("^i^")")
 
 | Double (VhdConcurrentComponentInstantiationStatement,
  Quintuple (Vhdcomponent_instantiation_statement,
@@ -805,38 +841,42 @@ output_string args.chan (" */");
   Double (VhdInstantiatedComponent, Str kind),
   assoc,
   List lst)) ->
- output_string args.chan (kind^" "^inst^" ");
+ Buffer.add_string args.buf (kind^" "^inst^" ");
  let delim = ref "(" in
- List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ",") lst;
- output_string args.chan ");\n"
+ List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := ",") lst;
+ Buffer.add_string args.buf ");\n"
 | Triple (Vhdassociation_element,
               Double (VhdFormalExpression, Str formal),
               Double (VhdActualExpression, actual)) ->
- output_string args.chan ("\n\t."^formal^"(");
+ Buffer.add_string args.buf ("\n\t."^formal^"(");
  match2 args actual;
- output_string args.chan (")");
+ Buffer.add_string args.buf (")");
 | Double (VhdConcurrentProcessStatement, Sextuple (Vhdprocess_statement, Str process, Str cond,
   Double (VhdSensitivityExpressionList,
    List dep_lst),
   List [],
   List contents)) ->
   let delim = ref "always @(" in
-  List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := " or ") dep_lst;
-  output_string args.chan ")\nbegin";
+  List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := " or ") dep_lst;
+  Buffer.add_string args.buf ")\nbegin\n";
   List.iter (match2 args) contents;
-  output_string args.chan "end\n"
+  Buffer.add_string args.buf "\nend\n"
 
 | Double (VhdConcurrentSignalAssignmentStatement,
  Quadruple (Vhdconcurrent_signal_assignment_statement, Str "", Str cond,
   Double (VhdConcurrentConditionalSignalAssignment,
    Quintuple (Vhdconcurrent_conditional_signal_assignment,
     Str state, Str cond', VhdDelayNone,
-    List lst)))) ->  output_string args.chan ("VhdConcurrentSignalAssignmentStatement, 825, ...);\n")
+    List lst)))) ->
+  let delim = ref ("assign "^cond^" = ") in
+  List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := " ") lst;
+  Buffer.add_string args.buf " */\n";
+    Buffer.add_string args.buf ("/* "^cond^", 862 */\n")
 
 | Double (VhdConcatSimpleExpression, List lst) ->
   let delim = ref "{" in
-  List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ", ") lst;
-  output_string args.chan "}\n";
+  List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := ", ") lst;
+  Buffer.add_string args.buf "}\n";
 
 | Double (VhdConcurrentProcessStatement,
  Sextuple (Vhdprocess_statement, Str nam, Str _false,
@@ -850,14 +890,14 @@ output_string args.chan (" */");
         Double (VhdSuffixSimpleName, Str clk'), Str "event")),
       Triple (VhdEqualRelation, Str clk'',
        Double (VhdCharPrimary, Char '1')))), stmt, VhdElseNone)))) when clk=clk' && clk'=clk'' ->
-   output_string args.chan ("\n"^args.indent^"always @ ( posedge "^clk^")\n");
+   Buffer.add_string args.buf ("\n"^args.indent^"always @ ( posedge "^clk^")\n");
    match2 args stmt
 | Double (VhdElsif, Quintuple (Vhdif_statement, Str "", cond, thenstmts, elsestmts)) ->
-   output_string args.chan ("else if ");
+   Buffer.add_string args.buf ("else if ");
     (match2 args) cond;
-    output_string args.chan ("\n"^args.indent);
+    Buffer.add_string args.buf ("\n"^args.indent);
     (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts);
-    output_string args.chan "\n";
+    Buffer.add_string args.buf "\n";
     match2 args elsestmts
 | Double (VhdBlockSignalDeclaration,
  Quintuple (Vhdsignal_declaration, Str nam,
@@ -865,17 +905,17 @@ output_string args.chan (" */");
    Double (VhdRangeConstraint,
     Triple (VhdIncreasingRange, Double (VhdIntPrimary, Num lo),
      Double (VhdIntPrimary, Num hi)))),
-  VhdSignalKindDefault, VhdNone)) ->  output_string args.chan ("integer "^nam)
+  VhdSignalKindDefault, VhdNone)) ->  Buffer.add_string args.buf ("integer "^nam^"; // 900\n")
 | Double (VhdBlockSignalDeclaration,
  Quintuple (Vhdsignal_declaration,
   List decls,
   Quadruple (Vhdsubtype_indication, Str "", Str kind,
    VhdNoConstraint),
   VhdSignalKindDefault, VhdNone)) ->
-   let delim = ref kind in List.iter (fun itm -> output_string args.chan (!delim^" "); match2 args itm; delim := ",") decls;
-   output_string args.chan (";\n")
+   let delim = ref kind in List.iter (fun itm -> Buffer.add_string args.buf (!delim^" "); match2 args itm; delim := ",") decls;
+   Buffer.add_string args.buf ("; // 908\n")
 | Double (VhdBlockComponentDeclaration, Quadruple (Vhdcomponent_declaration, Str kind,  List [],  List fields)) ->
-   output_string args.chan ("// Declare component "^kind^";\n") (* Verilog doesn't need this *)
+   Buffer.add_string args.buf ("// Declare component "^kind^";\n") (* Verilog doesn't need this *)
 | Double (VhdBlockComponentDeclaration,
  Quadruple (Vhdcomponent_declaration, Str kind,
   Double (VhdInterfaceObjectDeclaration,
@@ -888,7 +928,7 @@ output_string args.chan (" */");
         Double (VhdIntPrimary, Num num')))),
      VhdSignalKindDefault, Double (VhdIntPrimary, Num num'')))),
   List lst)) ->
-   output_string args.chan ("// Declare component "^kind^";\n") (* Verilog doesn't need this *)
+   Buffer.add_string args.buf ("// Declare component "^kind^";\n") (* Verilog doesn't need this *)
 
 | oth -> unmatched := oth :: !unmatched
 
@@ -901,9 +941,9 @@ and block_const args nam range lst =
   match const_expr args range with
     | Down(hi, lo) ->
        let delim = ref "" in
-       output_string args.chan ("wire ");
+       Buffer.add_string args.buf ("wire ");
        match2 args range;
-       output_string args.chan (nam^" = ");
+       Buffer.add_string args.buf (nam^" = ");
        for i = hi downto lo do
 	 let others = ref None and choice = ref None in
 	 List.iter (function
@@ -925,14 +965,16 @@ and block_const args nam range lst =
 	   | Some n, _ -> n
 	   | None, Some n -> n
 	   | None, None -> failwith "No others choice found in constant init" in
-	 output_string args.chan (!delim^"("^string_of_int chosen^"<<"^string_of_int i^")");
+	 Buffer.add_string args.buf (!delim^"("^string_of_int chosen^"<<"^string_of_int i^")");
 	 delim := "|";
        done;
-       output_string args.chan (";\n");
+       Buffer.add_string args.buf (";\n");
    | oth  -> failwith "const_expr_range"
 
-let dump nam lst =
-  let args = {chan=open_out nam;
+let cnv lst =
+  let args = {modref="TBD";
+              bufhash=Hashtbl.create 256;
+              buf=Buffer.create 4096;
 	      indent="";
 	      liblst=ref [];
 	      subtype=ref [];
@@ -942,7 +984,15 @@ let dump nam lst =
 	      siglst = ref []} in
   Printexc.record_backtrace true;
   List.iter (match2 args) lst;
-  output_string args.chan ("\nendmodule\n");
-  close_out args.chan;
+  Buffer.add_string args.buf ("\nendmodule\n");
+  args
+
+let dump lst =
+  let args = cnv lst in
+  Hashtbl.iter (fun design buf ->
+    let chan = open_out (design^"_tran.sv") in
+    Buffer.output_buffer chan buf;
+    Buffer.clear buf;
+    close_out chan) args.bufhash;
   Printexc.print_backtrace stderr;
   args

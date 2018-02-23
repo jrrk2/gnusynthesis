@@ -341,7 +341,7 @@ let rec match2' (args:match2_args) = function
                  List
                    lst51) ->
 		       List.iter (match2 args) lst51;
-
+| VhdElseNone -> output_string args.chan "/* else begin end */"
 | Double (VhdProcessVariableDeclaration,
           Quintuple (Vhdvariable_declaration, Str _false, Str nam,
            Quadruple (Vhdsubtype_indication, Str "", Str kind,
@@ -459,7 +459,7 @@ let rec match2' (args:match2_args) = function
  Double (VhdPrimaryUnit,
    Double (VhdEntityDeclaration,
    Quintuple (Vhdentity_declaration, Str modnam,
-      Triple (Vhdentity_header, List [],
+      Triple (Vhdentity_header, obj,
        List lst),
    List [], List [])))) ->
    	let delim = ref "(\n" in
@@ -798,6 +798,97 @@ output_string args.chan (" */");
   Triple (VhdNameParametersPrimary, Str input,
    Triple (Vhdassociation_element, VhdFormalIndexed,
                                    Double (VhdActualExpression, Str i))))) -> output_string args.chan (input^"("^i^")")
+
+| Double (VhdConcurrentComponentInstantiationStatement,
+ Quintuple (Vhdcomponent_instantiation_statement,
+  Str inst,
+  Double (VhdInstantiatedComponent, Str kind),
+  assoc,
+  List lst)) ->
+ output_string args.chan (kind^" "^inst^" ");
+ let delim = ref "(" in
+ List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ",") lst;
+ output_string args.chan ");\n"
+| Triple (Vhdassociation_element,
+              Double (VhdFormalExpression, Str formal),
+              Double (VhdActualExpression, actual)) ->
+ output_string args.chan ("\n\t."^formal^"(");
+ match2 args actual;
+ output_string args.chan (")");
+| Double (VhdConcurrentProcessStatement, Sextuple (Vhdprocess_statement, Str process, Str cond,
+  Double (VhdSensitivityExpressionList,
+   List dep_lst),
+  List [],
+  List contents)) ->
+  let delim = ref "always @(" in
+  List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := " or ") dep_lst;
+  output_string args.chan ")\nbegin";
+  List.iter (match2 args) contents;
+  output_string args.chan "end\n"
+
+| Double (VhdConcurrentSignalAssignmentStatement,
+ Quadruple (Vhdconcurrent_signal_assignment_statement, Str "", Str cond,
+  Double (VhdConcurrentConditionalSignalAssignment,
+   Quintuple (Vhdconcurrent_conditional_signal_assignment,
+    Str state, Str cond', VhdDelayNone,
+    List lst)))) ->  output_string args.chan ("VhdConcurrentSignalAssignmentStatement, 825, ...);\n")
+
+| Double (VhdConcatSimpleExpression, List lst) ->
+  let delim = ref "{" in
+  List.iter (fun itm -> output_string args.chan !delim; match2 args itm; delim := ", ") lst;
+  output_string args.chan "}\n";
+
+| Double (VhdConcurrentProcessStatement,
+ Sextuple (Vhdprocess_statement, Str nam, Str _false,
+  Double (VhdSensitivityExpressionList, Str clk), List decls,
+  Double (VhdSequentialIf,
+   Quintuple (Vhdif_statement, Str "",
+    Double (VhdCondition,
+     Triple (VhdAndLogicalExpression,
+      Double (VhdAttributeName,
+       Triple (Vhdattribute_name,
+        Double (VhdSuffixSimpleName, Str clk'), Str "event")),
+      Triple (VhdEqualRelation, Str clk'',
+       Double (VhdCharPrimary, Char '1')))), stmt, VhdElseNone)))) when clk=clk' && clk'=clk'' ->
+   output_string args.chan ("\n"^args.indent^"always @ ( posedge "^clk^")\n");
+   match2 args stmt
+| Double (VhdElsif, Quintuple (Vhdif_statement, Str "", cond, thenstmts, elsestmts)) ->
+   output_string args.chan ("else if ");
+    (match2 args) cond;
+    output_string args.chan ("\n"^args.indent);
+    (match2  {args with indent=args.indent^"  "}) (mkblk thenstmts);
+    output_string args.chan "\n";
+    match2 args elsestmts
+| Double (VhdBlockSignalDeclaration,
+ Quintuple (Vhdsignal_declaration, Str nam,
+  Quadruple (Vhdsubtype_indication, Str "", Str "integer",
+   Double (VhdRangeConstraint,
+    Triple (VhdIncreasingRange, Double (VhdIntPrimary, Num lo),
+     Double (VhdIntPrimary, Num hi)))),
+  VhdSignalKindDefault, VhdNone)) ->  output_string args.chan ("integer "^nam)
+| Double (VhdBlockSignalDeclaration,
+ Quintuple (Vhdsignal_declaration,
+  List decls,
+  Quadruple (Vhdsubtype_indication, Str "", Str kind,
+   VhdNoConstraint),
+  VhdSignalKindDefault, VhdNone)) ->
+   let delim = ref kind in List.iter (fun itm -> output_string args.chan (!delim^" "); match2 args itm; delim := ",") decls;
+   output_string args.chan (";\n")
+| Double (VhdBlockComponentDeclaration, Quadruple (Vhdcomponent_declaration, Str kind,  List [],  List fields)) ->
+   output_string args.chan ("// Declare component "^kind^";\n") (* Verilog doesn't need this *)
+| Double (VhdBlockComponentDeclaration,
+ Quadruple (Vhdcomponent_declaration, Str kind,
+  Double (VhdInterfaceObjectDeclaration,
+   Double (VhdInterfaceDefaultDeclaration,
+    Sextuple (Vhdinterface_default_declaration, Str width,
+     VhdInterfaceModeIn,
+     Quadruple (Vhdsubtype_indication, Str "", Str typ,
+      Double (VhdRangeConstraint,
+       Triple (VhdIncreasingRange, Double (VhdIntPrimary, Num num),
+        Double (VhdIntPrimary, Num num')))),
+     VhdSignalKindDefault, Double (VhdIntPrimary, Num num'')))),
+  List lst)) ->
+   output_string args.chan ("// Declare component "^kind^";\n") (* Verilog doesn't need this *)
 
 | oth -> unmatched := oth :: !unmatched
 

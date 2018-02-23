@@ -1,0 +1,16 @@
+*.cma
+*.cmi
+*.cmo
+*.cmx
+*.cmxa
+*.o
+*.a
+vhd_front/VhdlParser.ml
+vhd_front/VhdlParser.mli
+vhd_front/vhd_front.a
+vhd_front/vgen
+vhd_front/vhdltop
+ver_front/vlexer.ml
+ver_front/vparser.ml
+ver_front/vparser.mli
+ver_front/ord.ml

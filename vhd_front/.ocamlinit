@@ -11,11 +11,15 @@ let srclst = [
 "AXI_master_transaction.vhd";
 "AXI_READ_DATA_CHANNEL.vhd";
 "AXI_WRITE_DATA_CHANNEL.vhd";
-"AXI_WRITE_RESPONSE_CHANNEL.vhd";
+"AXI_WRITE_DATA_RESPONSE_CHANNEL.vhd";
 ];;
 
 (*
 let srclst = [ "junk.vhd" ];;
+
+let srclst = [
+"AXI_WRITE_DATA_CHANNEL.vhd"
+]
 *)
 
 let lst = ref [];;

@@ -6,21 +6,29 @@ open VhdlTree
 open VhdlMain
 open Rewrite
 
-let srclst = [
-"AXI_ADDRESS_CONTROL_CHANNEL.vhd";
-"AXI_master_transaction.vhd";
-"AXI_READ_DATA_CHANNEL.vhd";
-"AXI_WRITE_DATA_CHANNEL.vhd";
-"AXI_WRITE_DATA_RESPONSE_CHANNEL.vhd";
-];;
-
 (*
-let srclst = [ "junk.vhd" ];;
+let srclst = [
+"miim_control.vhd";
+"miim_registers.vhd";
+"miim_types.vhd";
+"miim.vhd";
+];;
+*)
 
 let srclst = [
-"AXI_WRITE_DATA_CHANNEL.vhd"
-]
-*)
+"apb_uart.vhd";
+"slib_clock_div.vhd";
+"slib_counter.vhd";
+"slib_edge_detect.vhd";
+"slib_fifo.vhd";
+"slib_input_filter.vhd";
+"slib_input_sync.vhd";
+"slib_mv_filter.vhd";
+"uart_baudgen.vhd";
+"uart_interrupt.vhd";
+"uart_receiver.vhd";
+"uart_transmitter.vhd";
+];;
 
 let lst = ref [];;
 

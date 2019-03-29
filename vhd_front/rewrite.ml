@@ -109,6 +109,7 @@ type match2_args = {
   matched: vhdintf list ref;
   fns: ((string*(vhdintf*string)) list) ref;
   siglst: (string*vhdintf) list ref;
+  components: (string*vhdintf list) list ref;
 }
 
 type const =
@@ -162,6 +163,8 @@ let rec const_expr args = function
       | oth -> Minus oth)
   | Double (VhdActualDiscreteRange, expr) -> const_expr args expr
   | oth -> blocklst := ("",oth,[]) :: !blocklst; Unmatched
+
+let noportlst = ref []
 
 let rec match2' (args:match2_args) = function
   | List lst12 ->
@@ -271,7 +274,10 @@ let rec match2' (args:match2_args) = function
  Double (VhdSimpleSignalAssignment,
   Quintuple (Vhdsimple_signal_assignment_statement, Str "",
    Double (VhdTargetDotted, dst), VhdDelayNone, Double (Vhdwaveform_element, rhs)))) ->
-   Buffer.add_string args.buf ("/* dotted.. 272 */\n");
+    (match2 args) dst;
+   Buffer.add_string args.buf (" <= ");
+    (match2 args) rhs;
+   Buffer.add_string args.buf (";\n");
 
   | Double (VhdSequentialIf,
                  Quintuple (Vhdif_statement, Str "",
@@ -446,14 +452,15 @@ let rec match2' (args:match2_args) = function
      Triple (VhdNameParametersPrimary, Str dst,
       Triple (Vhdassociation_element, VhdFormalIndexed,
        Double (VhdActualDiscreteRange,
-        Double (VhdRange,
-         Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
-          Double (VhdIntPrimary, Num lo))))))),
+        range)))),
     Str "false", VhdDelayNone,
     Double (Vhdwaveform_element,
      Double (VhdAggregatePrimary,
       Triple (Vhdelement_association, VhdChoiceOthers,
-       Double (VhdCharPrimary, Char '0')))))))) -> Buffer.add_string args.buf ("assign /*432*/ "^dst^" = 0;\n");
+                                      Double (VhdCharPrimary, Char '0')))))))) ->
+Buffer.add_string args.buf ("assign /*459*/ "^dst^" ");
+match2 args range;
+Buffer.add_string args.buf (" = 0;\n");
 | Double (VhdConcurrentSignalAssignmentStatement,
  Quadruple (Vhdconcurrent_signal_assignment_statement, Str "", Str "false",
   Double (VhdConcurrentSimpleSignalAssignment,
@@ -463,7 +470,7 @@ let rec match2' (args:match2_args) = function
       Triple (Vhdassociation_element, VhdFormalIndexed,
        Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
     Str "false", VhdDelayNone, Double (Vhdwaveform_element, Str src))))) ->
-Buffer.add_string args.buf ("assign /*452*/ "^dst^" = "^src^";\n");
+Buffer.add_string args.buf ("assign "^dst^"["^n^"] = "^src^";\n");
 | Double (VhdConcurrentSignalAssignmentStatement,
  Quadruple (Vhdconcurrent_signal_assignment_statement, Str "", Str "false",
   Double (VhdConcurrentConditionalSignalAssignment,
@@ -473,19 +480,10 @@ Buffer.add_string args.buf ("assign /*452*/ "^dst^" = "^src^";\n");
       Triple (Vhdassociation_element, VhdFormalIndexed,
        Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
     Str "false", VhdDelayNone,
-    List
-     [Triple (Vhdconditional_waveform,
-       Double (Vhdwaveform_element, Double (VhdCharPrimary, Char '1')),
-       Double (VhdCondition,
-        Triple (VhdAndLogicalExpression,
-         Triple (VhdEqualRelation, Str src',
-          Double (VhdCharPrimary, Char '1')),
-         Triple (VhdEqualRelation, Str src'',
-          Double (VhdCharPrimary, Char '1')))));
-      Triple (Vhdconditional_waveform,
-       Double (Vhdwaveform_element, Double (VhdCharPrimary, Char '0')),
-       Double (VhdCondition, VhdNone))])))) ->
-Buffer.add_string args.buf ("assign /*474*/ "^dst^" = 0;\n");
+    List lst)))) ->
+  let delim = ref ("assign "^dst^"["^n^"] = ") in
+  List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := " ") lst;
+  Buffer.add_string args.buf ("; // 483\n"^args.indent);
 | Double (VhdConcurrentSignalAssignmentStatement,
  Quadruple (Vhdconcurrent_signal_assignment_statement, Str "", Str "false",
   Double (VhdConcurrentSimpleSignalAssignment,
@@ -495,8 +493,9 @@ Buffer.add_string args.buf ("assign /*474*/ "^dst^" = 0;\n");
       Triple (Vhdassociation_element, VhdFormalIndexed,
        Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
     Str "false", VhdDelayNone,
-    Double (Vhdwaveform_element, Double (VhdCharPrimary, Char '0')))))) ->
-Buffer.add_string args.buf ("assign /*432*/ "^dst^" = 0;\n");
+    Double (Vhdwaveform_element, expr))))) ->
+Buffer.add_string args.buf ("assign "^dst^"["^n^"] = \n");
+(match2 args) expr; Buffer.add_string args.buf ("; // 504\n"^args.indent)
 | Double (VhdConcurrentSignalAssignmentStatement,
  Quadruple (Vhdconcurrent_signal_assignment_statement, Str "", Str "false",
   Double (VhdConcurrentSimpleSignalAssignment,
@@ -511,7 +510,8 @@ Buffer.add_string args.buf ("assign /*432*/ "^dst^" = 0;\n");
     Str "false", VhdDelayNone,
     Double (Vhdwaveform_element, Str rhs))))) ->
 Buffer.add_string args.buf ("assign /*499*/ "^dst^" = "^rhs^";\n");
-| Double (VhdConcurrentSignalAssignmentStatement,
+(*
+ | Double (VhdConcurrentSignalAssignmentStatement,
  Quadruple (Vhdconcurrent_signal_assignment_statement, Str "", Str "false",
   Double (VhdConcurrentConditionalSignalAssignment,
    Quintuple (Vhdconcurrent_conditional_signal_assignment,
@@ -521,8 +521,10 @@ Buffer.add_string args.buf ("assign /*499*/ "^dst^" = "^rhs^";\n");
        Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
     Str "false", VhdDelayNone,
     List rhslst)))) ->
-Buffer.add_string args.buf ("assign /*518*/ "^dst^" = ");
+Buffer.add_string args.buf ("assign "^dst^"["^n^"] = ");
 List.iter (match2 args) rhslst;
+ Buffer.add_string args.buf ("; // 531\n"^args.indent)
+*)
 | Double (VhdSequentialSignalAssignment,
     Double (VhdSimpleSignalAssignment,
      Quintuple (Vhdsimple_signal_assignment_statement, Str "", Str dst,
@@ -548,73 +550,6 @@ List.iter (match2 args) rhslst;
                      Double (Vhdwaveform_element,
 			     expr)))) ->
    Buffer.add_string args.buf (dst^" <= "); (match2 args) expr; Buffer.add_string args.buf ("; // 413\n"^args.indent)
-| Double (VhdSequentialSignalAssignment,
- Double (VhdSimpleSignalAssignment,
-  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
-   Double (VhdTargetDotted,
-    Triple (VhdNameParametersPrimary, Str id,
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-      Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
-   VhdDelayNone, Double (Vhdwaveform_element, Str "D")))) -> Buffer.add_string args.buf ("/* 442 */")
-| Double (VhdSequentialSignalAssignment,
- Double (VhdSimpleSignalAssignment,
-  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
-   Double (VhdTargetDotted,
-    Triple (VhdNameParametersPrimary, Str id,
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-      Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
-   VhdDelayNone,
-   Double (Vhdwaveform_element,
-    Triple (VhdNameParametersPrimary, Str id',
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-                                     Double (VhdActualExpression, Double (VhdIntPrimary, Num n')))))))) -> Buffer.add_string args.buf ("/* 454 */")
-| Double (VhdSequentialSignalAssignment,
- Double (VhdSimpleSignalAssignment,
-  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
-   Double (VhdTargetDotted,
-    Triple (VhdNameParametersPrimary, Str dst,
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-      Double (VhdActualDiscreteRange,
-       Double (VhdRange,
-        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
-         Double (VhdIntPrimary, Num lo))))))),
-   VhdDelayNone, Double (Vhdwaveform_element, Str rhs)))) ->
-Buffer.add_string args.buf (dst^" <= "^rhs);
-| Double (VhdSequentialSignalAssignment,
- Double (VhdSimpleSignalAssignment,
-  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
-   Double (VhdTargetDotted,
-    Triple (VhdNameParametersPrimary, Str dst,
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-      Double (VhdActualDiscreteRange,
-       Double (VhdRange,
-        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
-         Double (VhdIntPrimary, Num lo))))))),
-   VhdDelayNone,
-   Double (Vhdwaveform_element,
-    Triple (VhdNameParametersPrimary, Str rhs,
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-      Double (VhdActualDiscreteRange,
-       Double (VhdRange,
-        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi'),
-         Double (VhdIntPrimary, Num lo')))))))))) ->
-Buffer.add_string args.buf (dst^" <= "^rhs);
-| Double (VhdSequentialSignalAssignment,
- Double (VhdSimpleSignalAssignment,
-  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
-   Double (VhdTargetDotted,
-    Triple (VhdNameParametersPrimary, Str dst,
-     Triple (Vhdassociation_element, VhdFormalIndexed,
-      Double (VhdActualDiscreteRange,
-       Double (VhdRange,
-        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
-         Double (VhdIntPrimary, Num lo))))))),
-   VhdDelayNone,
-   Double (Vhdwaveform_element,
-    Double (VhdAggregatePrimary,
-     Triple (Vhdelement_association, VhdChoiceOthers,
-      Double (VhdCharPrimary, Char '0'))))))) ->
-Buffer.add_string args.buf (dst^" <= 0;");
 | Double (VhdConcurrentProcessStatement, Sextuple (Vhdprocess_statement, Str process, Str cond,
   Double (VhdSensitivityExpressionList, List dep_lst),
   decls,
@@ -1088,12 +1023,32 @@ Buffer.add_string args.buf (" */");
  Quintuple (Vhdcomponent_instantiation_statement,
   Str inst,
   Double (VhdInstantiatedComponent, Str kind),
-  assoc,
+  assoc',
   List lst)) ->
- Buffer.add_string args.buf (kind^" "^inst^" ");
+ Buffer.add_string args.buf (kind^" ");
+ let assoc = match assoc' with List assoc -> assoc | _ -> [assoc'] in
+ if assoc <> [] then
+    begin
+    let delim = ref " #(" in
+    List.iter (fun arg -> Buffer.add_string args.buf !delim; match2 args arg; delim := ", ") assoc;
+    Buffer.add_string args.buf (") ");
+    end;
+ Buffer.add_string args.buf (inst^" ");
  let delim = ref "(" in
- List.iter (fun itm -> Buffer.add_string args.buf !delim; match2 args itm; delim := ",") lst;
- Buffer.add_string args.buf "); // 879\n"
+ let portlst = List.assoc kind !(args.components) in
+ List.iteri (fun ix itm -> Buffer.add_string args.buf !delim;
+                 (match itm, List.nth portlst ix with
+                        | Double (VhdTargetDotted, _ ),_ -> match2 args itm
+                        | _, Double (VhdInterfaceObjectDeclaration,
+                                      Double (VhdInterfaceDefaultDeclaration,
+                                       Sextuple (Vhdinterface_default_declaration, Str s, _, _, _, _))) ->
+                                       Buffer.add_string args.buf ("."^s^"(");
+                                       match2 args itm; 
+                                       Buffer.add_string args.buf (")");
+                        | oth -> noportlst := oth :: !noportlst;
+                                    Buffer.add_string args.buf (!delim^"/*"^string_of_int ix^"*/"));
+                 delim := ",\n") lst;
+ Buffer.add_string args.buf "); // 879\n";
 | Triple (Vhdassociation_element,
               Double (VhdFormalExpression, Str formal),
               Double (VhdActualExpression, actual)) ->
@@ -1137,13 +1092,6 @@ Buffer.add_string args.buf (" */");
     Buffer.add_string args.buf "\n";
     match2 args elsestmts
 | Double (VhdBlockSignalDeclaration,
- Quintuple (Vhdsignal_declaration, Str nam,
-  Quadruple (Vhdsubtype_indication, Str "", Str "integer",
-   Double (VhdRangeConstraint,
-    Triple (VhdIncreasingRange, Double (VhdIntPrimary, Num lo),
-     Double (VhdIntPrimary, Num hi)))),
-  VhdSignalKindDefault, VhdNone)) ->  Buffer.add_string args.buf ("integer "^nam^"; // 900\n")
-| Double (VhdBlockSignalDeclaration,
  Quintuple (Vhdsignal_declaration,
   List decls,
   Quadruple (Vhdsubtype_indication, Str "", Str kind,
@@ -1151,8 +1099,9 @@ Buffer.add_string args.buf (" */");
   VhdSignalKindDefault, VhdNone)) ->
    let delim = ref kind in List.iter (fun itm -> Buffer.add_string args.buf (!delim^" "); match2 args itm; delim := ",") decls;
    Buffer.add_string args.buf ("; // 908\n")
-| Double (VhdBlockComponentDeclaration, Quadruple (Vhdcomponent_declaration, Str kind,  List [],  List fields)) ->
-   Buffer.add_string args.buf ("// Declare component "^kind^"; // 950\n") (* Verilog doesn't need this *)
+| Double (VhdBlockComponentDeclaration, Quadruple (Vhdcomponent_declaration, Str kind,  _,  List fields)) ->
+   args.components := (kind,fields) :: !(args.components);
+(*
 | Double (VhdBlockComponentDeclaration,
  Quadruple (Vhdcomponent_declaration, Str kind,
   Double (VhdInterfaceObjectDeclaration,
@@ -1175,11 +1124,12 @@ Buffer.add_string args.buf (" */");
      Quadruple (Vhdsubtype_indication, Str "", Str typ,
       VhdNoConstraint),
      VhdSignalKindDefault, Double (VhdIntPrimary, Num num'')))),
-  List lst)) ->
-   Buffer.add_string args.buf ("// Declare component "^kind^"; // 1163\n") (* Verilog doesn't need this *)
+  List fields)) ->
+   args.components := (kind,fields) :: !(args.components);
 | Double (VhdBlockComponentDeclaration,
- Quadruple (Vhdcomponent_declaration, Str kind, List lst, List lst')) ->
-   Buffer.add_string args.buf ("// Declare component "^kind^"; // 1166\n") (* Verilog doesn't need this *)
+ Quadruple (Vhdcomponent_declaration, Str kind, List lst, List fields)) ->
+   args.components := (kind,fields) :: !(args.components);
+*)
 | Double (VhdAggregatePrimary,
     Triple (Vhdelement_association, VhdChoiceOthers,
                                     Double (VhdCharPrimary, Char '-'))) -> Buffer.add_string args.buf ("// Aggregate 966;\n")
@@ -1207,6 +1157,82 @@ Buffer.add_string args.buf (" */");
         Triple (Vhdassociation_element, VhdFormalIndexed,
          Double (VhdActualDiscreteRange, rng')))))))))) -> Buffer.add_string args.buf "full_type\n"
 
+(*
+| Double (VhdBlockSignalDeclaration,
+ Quintuple (Vhdsignal_declaration, Str nam,
+  Quadruple (Vhdsubtype_indication, Str "", Str "integer",
+   Double (VhdRangeConstraint,
+    Triple (VhdIncreasingRange, Double (VhdIntPrimary, Num lo),
+     Double (VhdIntPrimary, Num hi)))),
+  VhdSignalKindDefault, VhdNone)) ->  Buffer.add_string args.buf ("integer "^nam^"; // 900\n")
+| Double (VhdSequentialSignalAssignment,
+ Double (VhdSimpleSignalAssignment,
+  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
+   Double (VhdTargetDotted,
+    Triple (VhdNameParametersPrimary, Str id,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
+   VhdDelayNone, Double (Vhdwaveform_element, Str "D")))) -> Buffer.add_string args.buf ("/* 442 */")
+| Double (VhdSequentialSignalAssignment,
+ Double (VhdSimpleSignalAssignment,
+  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
+   Double (VhdTargetDotted,
+    Triple (VhdNameParametersPrimary, Str id,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      Double (VhdActualExpression, Double (VhdIntPrimary, Num n))))),
+   VhdDelayNone,
+   Double (Vhdwaveform_element,
+    Triple (VhdNameParametersPrimary, Str id',
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+                                     Double (VhdActualExpression, Double (VhdIntPrimary, Num n')))))))) -> Buffer.add_string args.buf ("/* 454 */")
+| Double (VhdSequentialSignalAssignment,
+ Double (VhdSimpleSignalAssignment,
+  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
+   Double (VhdTargetDotted,
+    Triple (VhdNameParametersPrimary, Str dst,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      Double (VhdActualDiscreteRange,
+       Double (VhdRange,
+        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
+         Double (VhdIntPrimary, Num lo))))))),
+   VhdDelayNone, Double (Vhdwaveform_element, Str rhs)))) ->
+Buffer.add_string args.buf (dst^" <= "^rhs);
+| Double (VhdSequentialSignalAssignment,
+ Double (VhdSimpleSignalAssignment,
+  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
+   Double (VhdTargetDotted,
+    Triple (VhdNameParametersPrimary, Str dst,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      Double (VhdActualDiscreteRange,
+       Double (VhdRange,
+        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
+         Double (VhdIntPrimary, Num lo))))))),
+   VhdDelayNone,
+   Double (Vhdwaveform_element,
+    Triple (VhdNameParametersPrimary, Str rhs,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      Double (VhdActualDiscreteRange,
+       Double (VhdRange,
+        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi'),
+         Double (VhdIntPrimary, Num lo')))))))))) ->
+Buffer.add_string args.buf (dst^" <= "^rhs);
+| Double (VhdSequentialSignalAssignment,
+ Double (VhdSimpleSignalAssignment,
+  Quintuple (Vhdsimple_signal_assignment_statement, Str "",
+   Double (VhdTargetDotted,
+    Triple (VhdNameParametersPrimary, Str dst,
+     Triple (Vhdassociation_element, VhdFormalIndexed,
+      Double (VhdActualDiscreteRange,
+       Double (VhdRange,
+        Triple (VhdDecreasingRange, Double (VhdIntPrimary, Num hi),
+         Double (VhdIntPrimary, Num lo))))))),
+   VhdDelayNone,
+   Double (Vhdwaveform_element,
+    Double (VhdAggregatePrimary,
+     Triple (Vhdelement_association, VhdChoiceOthers,
+      Double (VhdCharPrimary, Char '0'))))))) ->
+Buffer.add_string args.buf (dst^" <= 0;");
+*)
 | oth -> unmatched := oth :: !unmatched; Buffer.add_string args.buf "unmatched\n"
 
 and match2 args pat =
@@ -1263,7 +1289,8 @@ let cnv lst =
 	      localp=ref [];
 	      matched = ref [];
 	      fns = ref [];
-	      siglst = ref []} in
+	      siglst = ref [];
+              components = ref []} in
   Printexc.record_backtrace true;
   List.iter (match2 args) lst;
   Buffer.add_string args.buf ("\nendmodule\n");
@@ -1272,7 +1299,7 @@ let cnv lst =
 let dump lst =
   let args = cnv lst in
   Hashtbl.iter (fun design buf ->
-    let chan = open_out (design^"_tran.sv") in
+    let chan = open_out (design^".sv") in
     Buffer.output_buffer chan buf;
     Buffer.clear buf;
     close_out chan) args.bufhash;

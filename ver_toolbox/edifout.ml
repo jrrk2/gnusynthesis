@@ -16,7 +16,7 @@ let edifname' id =
     | '_' when !i > 0 -> valid.[!i] <- '_'
     | _ -> valid.[!i] <- (if !i > 0 then '_' else 'q'); escaped := true); incr i
   done;
-  (!escaped,valid)
+  (!escaped,Bytes.to_string valid)
 
 let edifname id = edifname' id.id
 

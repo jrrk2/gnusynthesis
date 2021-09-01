@@ -692,7 +692,7 @@ let valid namtab s =
     | ' ' -> if i == l-1 then truncate := true else v.[i] <- '_';
     | _ -> v.[i] <- '_';
     done;
-  uniq namtab s (if !truncate then String.sub v 0 (l-1) else v)
+  uniq namtab s (Bytes.to_string (if !truncate then Bytes.sub v 0 (l-1) else v))
 
 let validid namtab id = ID (enterid (valid namtab id.id))
     

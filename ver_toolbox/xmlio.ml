@@ -73,7 +73,7 @@ let escaped s =
           end;
           incr n
         done;
-        s'
+        Bytes.to_string s'
       end
     
 let xint n = Element("Int", [("_",string_of_int n)], [PCData "\n  "])

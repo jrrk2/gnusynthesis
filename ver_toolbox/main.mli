@@ -31,8 +31,8 @@ val main_read_hls_lib : 'a -> 'b -> int ref -> string array -> unit
 *)
 val main_mods : 'a -> 'b -> 'c -> 'd -> unit
 val main_info : 'a -> 'b -> 'c -> 'd -> unit
-val main_library_env : 'a -> 'b -> int ref -> string array -> unit
 (*
+val main_library_env : 'a -> 'b -> int ref -> string array -> unit
 val main_write_xml_arch : 'a -> 'b -> int ref -> string array -> unit
 *)
 val main_write_edif_arch : 'a -> 'b -> int ref -> string array -> unit
@@ -66,7 +66,9 @@ val main_io_write_blif : 'a -> 'b -> int ref -> string array -> unit
 val main_io_write_aig : 'a -> 'b -> int ref -> string array -> unit
 *)
 val main_read_blif : 'a -> 'b -> int ref -> string array -> unit
+(*
 val main_read_lib : 'a -> 'b -> 'c -> 'd -> unit
+*)
 val main_dump_lib : 'a -> 'b -> int ref -> string array -> unit
 val main_restore_lib : 'a -> 'b -> int ref -> string array -> unit
 val main_scan_lib : 'a -> 'b -> int ref -> string array -> unit

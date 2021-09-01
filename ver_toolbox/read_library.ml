@@ -28,8 +28,8 @@ let instcnt = ref 0
 
 let nulbuf' name tree =
   {
-  nlen=String.length name.Idhash.id;
-  nam=name;
+  nlen=String.length name;
+  nam={id=name};
   decl=tree;
   len=0;
   seq=EMPTY;
@@ -52,7 +52,7 @@ let nulbuf' name tree =
   paramlst=[];
 }
 
-let nulbuf name tree = nulbuf' (enterid name) tree
+let nulbuf name tree = nulbuf' name tree
 
 type bufset = {
   mutable buf: mybuft;
@@ -155,96 +155,46 @@ let is_member itm ipinlst = let rslt = ref false in
 			 List.iter (fun {idpin=pin} -> if itm = pin then rslt := true) ipinlst;
 			 !rslt
 
-let rec classify_cell arg = function
-  | SEXTUPLE(PARAMETER, signage, range, id, attr, expr) -> ()
-  | DOUBLE((INITIAL|FINAL|ALWAYS), items) -> ()
-  | DOUBLE((TABLE|SPECIFY|GENERATE), items) -> ()
-  | TRIPLE(GENVAR, arg1, TLIST arg3) -> ()
-  | TRIPLE(ASSIGN, dly, TLIST assignlist) -> ()
-  | TRIPLE((BUF|NOT|AND|OR|XOR|NAND|NOR|XNOR|PULLUP|NMOS|PMOS|TRAN), dly, TLIST instances) -> ()
-  | TRIPLE((BUFIF lev|NOTIF lev|TRANIF lev), weaklist, TLIST instances) -> ()
-  | QUINTUPLE((INPUT|OUTPUT|INOUT), arg1, arg2, arg3, arg4) -> ()
-  | QUADRUPLE((WIRE|TRI0|TRI1|SUPPLY0|SUPPLY1|REAL|INTEGER|EVENT), arg1, arg2, TLIST arg3) -> ()
-  | QUADRUPLE((MODINST|PRIMINST), ID prim, params, TLIST inlist) -> ()
-  | QUINTUPLE(MODULE,ID nam, TLIST params, TLIST iolst, THASH thash) ->
-      arg.iolst <- iolst;
-      arg.paramlst <- List.map (function
-	| SEXTUPLE(PARAMETER, signage, range, ID pid, attr, dflt) -> {pid=pid;prng=range;dflt=dflt}
-	| oth -> Dump.unhandled stderr 172 oth; {pid=enterid"$";prng=EMPTY;dflt=INT 0}) params;
+let cnv len str =
+  let prop = Formula_rewrite.rewrite str in
+  let func = match prop with
+    | Ptrue -> BINNUM "1'b1"
+    | Pfalse -> BINNUM "1'b0"
+    | Pvar _ -> if len = 3 then BUFIF "bufif1" else BUF
+    | Pnot (Pvar _) -> NOT
+    | Pimp (Pvar _, Pvar _) -> XOR
+    | Pand (Pvar _, Pvar _) -> AND
+    | Por (Pvar _, Pvar _) -> OR
+    | Pnot (Pimp (Pvar _, Pvar _)) -> XNOR
+    | Pnot (Por (Pvar _, Pvar _)) -> NOR
+    | Pnot (Pand (Pvar _, Pvar _)) -> NAND
+    | Por (Pand (Pvar (s), Pvar (b)), Pand (Pvar (a), Pnot (Pvar (s')))) -> QUERY
+    | oth -> (match !logfile with Open out_chan -> fprintf out_chan "Unrecognised function: %s\n" str | Closed -> ()); ASCNUM str in
+   func, prop
+
+let rec classify_cell arg (iolst',fnlst') =
+      arg.iolst <- [];
+      arg.paramlst <- [];
       let wires = Hashtbl.create 256 in
-      Hashtbl.iter (fun x _ -> match x with
-        | QUINTUPLE(OUTPUT, (EMPTY|REG as ff), EMPTY, (EMPTY|RANGE(_,_) as rng), TLIST olst)
-            when List.for_all (function
-              | TRIPLE (out1, EMPTY, EMPTY) -> List.mem out1 iolst
-              | _ -> false) olst -> let lst = List.map (function
-                  | TRIPLE (ID out1, EMPTY, EMPTY) -> {idpin=out1;rngpin=rng}
-                  | _ -> {idpin=enterid "$";rngpin=EMPTY}) olst in
-		arg.opinlst <- arg.opinlst @ lst;
+      List.iter (function
+        | (id, "output") -> arg.opinlst <- {idpin=enterid id;rngpin=EMPTY} :: arg.opinlst;
+(*
 		if ff = REG then arg.reglst <- arg.reglst @ lst
-        | QUINTUPLE(INPUT, EMPTY, EMPTY, (EMPTY|RANGE(_,_) as rng), TLIST ilst)
-            when List.for_all (function
-              | TRIPLE (in1, EMPTY, EMPTY) -> List.mem in1 iolst
-              | _ -> false) ilst -> arg.ipinlst <- arg.ipinlst @ (List.map (function
-                  | TRIPLE (ID in1, EMPTY, EMPTY) -> {idpin=in1;rngpin=rng}
-                  | _ -> {idpin=enterid "$";rngpin=EMPTY}) ilst)
-        | QUADRUPLE(REG, EMPTY, (EMPTY|RANGE(_,_) as rng), TLIST rlst) -> arg.reglst <- (List.map (function
-            | TRIPLE (ID nam, EMPTY, EMPTY) -> {idpin=nam;rngpin=rng}
-            | QUADRUPLE (ID nam, EMPTY, expr, EMPTY) -> {idpin=nam;rngpin=rng}
-	    | TRIPLE (ID mem, TLIST [rng], EMPTY) -> {idpin=mem;rngpin=rng}
-            | other -> Dump.unhandled stderr 216 other; {idpin=enterid "$";rngpin=EMPTY}) rlst) @ arg.reglst
-        | QUADRUPLE(WIRE, EMPTY, TRIPLE(EMPTY,(EMPTY|RANGE(_,_) as rng),EMPTY), TLIST wlst) -> arg.wirlst <- (List.map (function
-            | DOUBLE (ID nam, EMPTY) -> {idpin=nam;rngpin=rng}
-            | TRIPLE (ID nam, EMPTY, expr) -> {idpin=nam;rngpin=rng}
-            | other -> Dump.unhandled stderr 219 other; {idpin=enterid "$";rngpin=EMPTY}) wlst) @ arg.wirlst
-	| SEXTUPLE(PARAMETER, signage, range, ID pid, attr, dflt) -> arg.paramlst <- {pid=pid;prng=range;dflt=dflt} :: arg.paramlst
-        | other -> arg.tlst <- other :: arg.tlst) (fst thash);
-      Hashtbl.iter (fun x _ -> match x with
-        | DOUBLE(ALWAYS, TLIST [DOUBLE(DOUBLE (AT, TLIST [DOUBLE (POSEDGE, ID clk)]),
-                                TLIST[QUADRUPLE (DLYASSIGNMENT, ID regout, EMPTY, ID dat)])]) when
-            (is_member regout arg.reglst) && (is_member dat arg.ipinlst) ->
-            arg.seq <- POSEDGE; arg.clk <- clk; arg.dat <- dat
-        | DOUBLE(ALWAYS, TLIST[DOUBLE(DOUBLE (AT, TLIST [DOUBLE (POSEDGE, ID clk)]),
-                                TLIST[TRIPLE(IF, ID en,
-                                       TLIST[QUADRUPLE (DLYASSIGNMENT, ID regout, EMPTY, ID dat)])])]) when
-            (is_member regout arg.reglst) && (is_member dat arg.ipinlst) ->
-            arg.seq <- DOUBLE(POSEDGE,IF); arg.clk <- clk; arg.dat <- dat; arg.en <- en
-        | DOUBLE(ALWAYS, TLIST[DOUBLE(DOUBLE (AT, TLIST [ID gsr; ID clr]), 
-				      TLIST[QUADRUPLE(IF, ID gsr2, init,
-						      TLIST[QUADRUPLE(IF, ID clr2,
-								      TLIST[QUADRUPLE (ASSIGN, ID regout, EMPTY, INT 0)], else_clause)])])]) when
-            (clr=clr2 && gsr=gsr2 && (is_member regout arg.reglst)) -> arg.clr <- clr
-        | DOUBLE(ALWAYS, TLIST[DOUBLE(DOUBLE (AT, TLIST [ID gsr]), TLIST[QUADRUPLE(IF, ID gsr2, init, else_clause)])]) -> ()
-        | DOUBLE(ALWAYS, TLIST[DOUBLE(DOUBLE (AT, TLIST [ID lo; ID hi; ID sel]),
-                                TLIST[QUADRUPLE(IF, ID sel2, TLIST[QUADRUPLE (ASSIGNMENT, ID out, EMPTY, ID hi2)],
-                                          TLIST[QUADRUPLE (ASSIGNMENT, ID out2, EMPTY, ID lo2)])])]) when
-            sel=sel2 && (is_member lo arg.ipinlst) && (is_member hi arg.ipinlst) && (is_member sel arg.ipinlst)
-            && (lo=lo2) && (hi=hi2) && (out=out2) && (is_member out arg.opinlst) ->
-            arg.func <- QUERY; arg.prop <- Por (Pand (Pnot (Pvar (ID sel)), Pvar (ID lo)), Pand (Pvar (ID sel), Pvar (ID hi)))
-        | TRIPLE(kind, dly, TLIST [QUADRUPLE (ID nam, SCALAR, ID out2, lst)]) when
-            (is_member out2 arg.opinlst) && 
-              (function EMPTY -> true | DOUBLE(HASH, FLOATNUM _) -> true | _ ->false) dly &&
-              (function TLIST inlst -> (List.for_all (function ID itm -> is_member itm arg.ipinlst || is_member itm arg.wirlst | _ -> false) inlst) | ID in2 -> true | _ -> false) lst ->
-            arg.bnam <- nam; arg.func <- kind; arg.prop <- genfunc' kind ((function TLIST inlst -> inlst | ID in2 -> [ID in2] | _ -> []) lst)
-        | TRIPLE(kind, dly, TLIST [QUADRUPLE (ID nam, SCALAR, ID out2, ID in1)]) when
-            (is_member out2 arg.wirlst) && 
-              (function EMPTY -> true | DOUBLE(HASH, FLOATNUM _) -> true | _ ->false) dly &&
-              (is_member in1 arg.ipinlst) ->
-            Hashtbl.replace wires out2 (genfunc' kind [ID in1])
-        | TRIPLE(ASSIGN, EMPTY, TLIST [TRIPLE (ASSIGNMENT, ID out3, kind)]) when (is_member out3 arg.opinlst) ->
-            (match kind with
-              | ID reg when is_member reg arg.reglst -> arg.func <- MEMORY; arg.qout <- out3; arg.prop <- genfunc' kind [kind]
-              | TRIPLE(P_ANDAND, arg1, arg2) -> arg.func <- AND; arg.prop <- Pand(reduce arg1, reduce arg2)
-              | TRIPLE(P_OROR, arg1, arg2) -> arg.func <- OR; arg.prop <- Por(reduce arg1, reduce arg2)
-              | _ -> arg.func <- kind; arg.prop <- genfunc' kind [kind])
-        | other -> arg.tlst <- other :: arg.tlst) (snd thash);
+*)
+        | (id, "input") -> arg.ipinlst <- {idpin=enterid id;rngpin=EMPTY} :: arg.ipinlst
+        | (id, ("primary_power"|"primary_ground")) -> arg.wirlst <- {idpin=enterid id;rngpin=EMPTY} :: arg.ipinlst
+        | (id, other) -> arg.tlst <- ID (enterid id) :: arg.tlst) iolst';
+      arg.iolst <- List.map (function {idpin = idpin; rngpin = EMPTY} -> ID idpin | _ -> EMPTY) (arg.opinlst @ arg.ipinlst);
+      arg.len <- List.length arg.iolst;
+      List.iter (function
+        | ("Q", "IQ") -> arg.func <- MEMORY;
+             arg.seq <- (if arg.len = 7 then DOUBLE(POSEDGE,IF) else POSEDGE);
+             arg.clk <- {id="CK"}; arg.dat <- {id="D"};
+        | (id, funcstr) -> let (func, prop) = cnv arg.len funcstr in arg.func <- func; arg.prop <- prop
+        ) fnlst';
       arg.prop <- subst (function
         | ID str when Hashtbl.mem wires str -> Hashtbl.find wires str
-        | other -> Pvar other) arg.prop;
-      arg.len <- List.length iolst
-  | QUINTUPLE(PRIMITIVE,ID arg1, EMPTY, TLIST primargs, TLIST arg4) -> ()
-  | SEPTUPLE(TASK, EMPTY, ID taskname, EMPTY, TLIST args, stmts, EMPTY) -> ()
-  | OCTUPLE(FUNCTION, EMPTY, range, ID funcname, EMPTY, TLIST args, stmts, EMPTY) -> ()
-  | _ -> ()
+        | other -> Pvar other) arg.prop
     
 let find_buffer' rslt =
   if rslt.func=BUF && rslt.len = 2 && rslt.tlst = [] then (rslt.instid <- enterid "buf"; [rslt]) else []
@@ -268,7 +218,7 @@ let find_flipflop_c' rslt =
   if rslt.func = MEMORY && rslt.len = 4 && rslt.seq = POSEDGE then (rslt.instid <- enterid "ffc"; [rslt]) else []
 
 let find_flipflop_ce' rslt =
-  if rslt.func = MEMORY && rslt.len = 5 && rslt.seq = DOUBLE(POSEDGE,IF) then (rslt.instid <- enterid "ffce"; [rslt]) else []
+  if rslt.func = MEMORY && (rslt.len = 5 || rslt.len = 7) && rslt.seq = DOUBLE(POSEDGE,IF) then (rslt.instid <- enterid "ffce"; [rslt]) else []
 
 let find_logand' rslt =
   if rslt.func = AND && rslt.len = 3 && rslt.tlst = [] && List.length rslt.ipinlst = 2 then (rslt.instid <- enterid "and"; [rslt]) else []
@@ -290,7 +240,7 @@ let restore_itm fn descr =
   Hashtbl.iter (fun k x -> buflst := fn x @ !buflst) libhash;
   if !verbose then printf "%d %s detected\n" (List.length !buflst) descr;
   if List.length !buflst = 0 then failwith ("list of "^descr^" is empty");
-  let entry = List.hd (List.sort compare !buflst) in
+  let entry = List.hd (List.sort Pervasives.compare !buflst) in
   if !verbose then printf "Using library %s %s %s(.%s(out),.%s(in));\n"
     descr entry.nam.Idhash.id entry.bnam.Idhash.id (List.hd entry.opinlst).idpin.Idhash.id (List.hd entry.ipinlst).idpin.Idhash.id;
   entry
@@ -316,10 +266,11 @@ let restore_lib' () =
   with
       Failure "head" -> printf "Insufficient suitable cells detected\n"
         
-let read_lib () =
+let read_lib liberty =
+  let rw,cellhash = File_rewrite.rewrite liberty in
   Hashtbl.iter (fun (nam:string) pattern ->
-    let rslt = nulbuf nam pattern.tree in classify_cell rslt pattern.tree; Hashtbl.replace libhash nam rslt
-  ) modprims;
+    let rslt = nulbuf nam EMPTY in classify_cell rslt pattern; Hashtbl.replace libhash nam rslt
+  ) cellhash;
   restore_lib'()
     
 let lib_write arg lst =
@@ -367,30 +318,8 @@ let restore_module arg =
   List.iter (fun (k,x) -> Hashtbl.replace modprims k x) lst;
   fprintf stderr "%d modules restored\n" (List.length lst)
 
-let invalidsrc = ref [ ]
-
-let env = ref ""
-
-let prescan' oc arch decl nam =
-  let rslt = nulbuf nam decl in classify_cell rslt decl; Hashtbl.replace libhash nam rslt
-
 let scan_lib skip =
   let skipsrc = Hashtbl.create 256 in
-  (try
-      let oc = Vparse.my_openin skip in
-      try
-        while true do Hashtbl.replace skipsrc (input_line oc) () done
-      with End_of_file -> close_in_noerr oc;
-  with err -> failwith ("failed to read skip list"));
-  let scanned = Sys.readdir (!env) in Array.iter (
-    fun itm ->
-      if not (Hashtbl.mem skipsrc (String.sub itm 0 (String.index itm '.'))) then
-        Vparse.parse' (ref true) prescan' (!env^itm)
-      else invalidsrc := (!env ^ itm) :: !invalidsrc) scanned;
- Printf.printf "Library files scanned %d, skipped %d, report %s\n"
-   (Array.length scanned)
-   (List.length !invalidsrc)
-   (Semantics.endscan());
  Globals.unresolved_list := [];
  Dump.unhand_list := []
 

@@ -20,7 +20,7 @@ open Meson
 open Skolems
 open Equal
 open Cong
-open Rewrite
+open Trewrite
 open Order
 open Completion
 open Eqelim

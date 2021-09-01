@@ -61,7 +61,7 @@ let use_string ppf cmdbuf =
     let lb = Lexing.from_string cmdbuf in
     Location.init lb cmdbuf;
     (* Skip initial #! line if any *)
-    Lexer.skip_sharp_bang lb;
+    Lexer.skip_hash_bang lb;
     let success =
       protect Location.input_name cmdbuf (fun () ->
         try

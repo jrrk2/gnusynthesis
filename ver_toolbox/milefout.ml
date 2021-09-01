@@ -69,7 +69,7 @@ let milefname id =
     | '_' when !i > 0 -> valid.[!i] <- '_'
     | _ -> valid.[!i] <- (if !i > 0 then '.' else 'q')); incr i
   done;
-  valid
+  Bytes.to_string valid
 
 let typdump num = function
     | GATE_UNKNOWN -> "Unknown"

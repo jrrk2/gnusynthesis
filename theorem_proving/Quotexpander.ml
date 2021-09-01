@@ -4,4 +4,6 @@ let quotexpander s =
     (String.escaped (String.sub s 1 (String.length s - 2)))^"\""
   else "default_parser \""^(String.escaped s)^"\"";;
 
+(*
 Quotation.add "" (Quotation.ExStr (fun x -> quotexpander));;
+*)

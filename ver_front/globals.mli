@@ -89,7 +89,7 @@ val modprims: (string, modtree) Hashtbl.t
 val pending: (string, modtree) Hashtbl.t
 val black_box: (string, Idhash.idhash) Hashtbl.t
 val libhash : (string, mybuft) Hashtbl.t
-val tsymbols : (string, Vparser.token) Hashtbl.t
+val tsymbols : (bytes, Vparser.token) Hashtbl.t
 
 val get_table : Idhash.idhash -> modtree
 

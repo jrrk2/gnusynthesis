@@ -55,7 +55,7 @@ let v = String.create l in for i = 0 to l-1 do match s.[i] with
 | ' ' -> if i == l-1 then truncate := true else v.[i] <- '_';
 | _ -> v.[i] <- '_';
 done;
-uniq s (if !truncate then String.sub v 0 (l-1) else v)
+uniq s (Bytes.to_string (if !truncate then Bytes.sub v 0 (l-1) else v))
 
 let uniq_tab () = Hashtbl.clear namtab;
 List.iter (fun e -> Hashtbl.replace namtab e ("v"^e); Hashtbl.replace namtab ("v"^e) e)

@@ -14,7 +14,7 @@ open Herbrand
 open Tableaux
 open Prolog
 open Equal
-open Rewrite
+open Trewrite
 open Order
 open Meson
 (* ========================================================================= *)

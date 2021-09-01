@@ -1,7 +1,7 @@
 .SUFFIXES:
 .SUFFIXES: .cmi .cmo
 
-SRC = Quotexpander.ml initialization.ml lib.ml intro.ml formulas.ml prop.ml propexamples.ml defcnf.ml dp.ml stal.ml bdd.ml fol.ml skolem.ml herbrand.ml unif.ml tableaux.ml resolution.ml prolog.ml meson.ml skolems.ml equal.ml cong.ml rewrite.ml order.ml completion.ml eqelim.ml paramodulation.ml decidable.ml qelim.ml cooper.ml complexelim.ml real.ml grobner.ml geom.ml interpolation.ml combining.ml lcf.ml lcfprop.ml folderived.ml lcffol.ml tactics.ml limitations.ml
+SRC = Quotexpander.ml initialization.ml lib.ml intro.ml formulas.ml prop.ml propexamples.ml defcnf.ml dp.ml stal.ml bdd.ml fol.ml skolem.ml herbrand.ml unif.ml tableaux.ml resolution.ml prolog.ml meson.ml skolems.ml equal.ml cong.ml trewrite.ml order.ml completion.ml eqelim.ml paramodulation.ml decidable.ml qelim.ml cooper.ml complexelim.ml real.ml grobner.ml geom.ml interpolation.ml combining.ml lcf.ml lcfprop.ml folderived.ml lcffol.ml tactics.ml limitations.ml
 
 BASE:=$(shell ocamlc -where)
 INT = $(subst .ml,.mli,$(SRC))
@@ -12,7 +12,10 @@ P5 = -I +camlp5 -I $(BASE)/../camlp5
 
 .PRECIOUS: $(INT) $(CINT)
 
-all: target native theorem_proving.cma theorem_proving.cmxa
+dummy: $(OBJ)  theorem_proving.cma theorem_proving.cmxa
+	true
+
+all: target native
 
 target: $(OBJ) $(INT)
 	ocamlmktop -o $@ $(P5) camlp5o.cma nums.cma $(OBJ)
@@ -21,7 +24,7 @@ native: $(NAT) $(INT)
 	ocamlopt.opt -o $@ $(P5) camlp5.cmxa nums.cmxa $(NAT)
 
 theorem_proving.cma: $(OBJ) $(INT)
-	ocamlc.opt -o $@ -a $(P5) camlp5o.cma $(OBJ)
+	ocamlc.opt -o $@ -a $(OBJ)
 
 theorem_proving.cmxa: $(NAT) $(INT)
 	ocamlopt.opt -o $@ -a -I $(NAT)

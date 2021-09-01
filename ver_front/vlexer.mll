@@ -455,9 +455,9 @@ if Hashtbl.mem ksymbols word then let kw = Hashtbl.find ksymbols word in hlog le
 | digit+ as inum { hlog lexbuf (INTNUM inum ) }
 | '\"'anything_but_quote*'\"' as asciinum { hlog lexbuf (ASCNUM asciinum ) }
 | "`timescale" anything_but_newline+ as preproc { hlog lexbuf (P_TIMESCALE preproc) }
-| '`'ident ident_num* as presym {
+| '`'ident ident_num* as presym' { let presym = Bytes.of_string presym' in
   if Hashtbl.mem Globals.tsymbols presym then hlog lexbuf (Hashtbl.find Globals.tsymbols presym)
-  else hlog lexbuf (PREPROC presym)
+  else hlog lexbuf (PREPROC presym')
 }
 | ident ident_num* as word {
 if Hashtbl.mem ksymbols word then hlog lexbuf (Hashtbl.find ksymbols word) else hlog lexbuf (IDSTR word)

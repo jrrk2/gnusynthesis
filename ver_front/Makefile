@@ -34,8 +34,8 @@ ocamlyacc:
 
 CMO = ord.cmo globals.cmo vparser.cmo setup.cmo vlexer.cmo dump.cmo const.cmo check.cmo semantics.cmo vparse.cmo
 CMX = ord.cmx globals.cmx vparser.cmx setup.cmx vlexer.cmx dump.cmx const.cmx check.cmx semantics.cmx vparse.cmx
-CML = str.cma unix.cma nums.cma
-CMLX = str.cmxa unix.cmxa nums.cmxa
+CML = str.cma unix.cma
+CMLX = str.cmxa unix.cmxa
 INC = -I $(PARSERINC)
 
 all: ver_front.cma ver_front.cmxa vtop
@@ -47,7 +47,7 @@ ver_front.cma: $(CMO)
 	ocamlc.opt -a -g -o $@ $(CMO)
 
 ver_front.cmxa: $(CMX)
-	ocamlopt.opt -a -g -p -o $@ $(CMX)
+	ocamlopt.opt -a -g -o $@ $(CMX)
 
 vparser.mli vparser.ml: idhash.cmi grammar.mly
 	rm -f vparser.mli
@@ -59,7 +59,7 @@ vparser.cmo: vparser.ml
 	ocamlc.opt $(INC) -g -c $<
 
 vparser.cmx: vparser.ml
-	ocamlopt.opt $(INC) -g -p -c $<
+	ocamlopt.opt $(INC) -g -c $<
 
 depend: vparser.ml vlexer.ml
 	ocamldep *.ml *.mli *.mll *.mly > .depend
@@ -83,7 +83,7 @@ clean:
 	ocamllex.opt $(LEXOPTS) $<
 
 .ml.cmx:
-	ocamlopt.opt $(INC) -g -p -c $<
+	ocamlopt.opt $(INC) -g -c $<
 
 ord.ml: ord.sh vparser.cmi
 	sh ord.sh

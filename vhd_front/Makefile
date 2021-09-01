@@ -19,8 +19,8 @@
 
 export PARSER=`ocamlc -where`/../../bin/menhir --table --base VhdlParser # --trace
 export PARSERINC=`ocamlc -where`/../menhirLib
-export PARSERLIB=`ocamlc -where`/../menhirLib/menhirLib.cmo
-export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmx
+export PARSERLIB=`ocamlc -where`/../menhirLib/menhirLib.cma
+export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmxa
 
 INCLUDE = -I $(PARSERINC) -I ../ver_front
 COMBINED = # combined.cmo vconvert.cmo 

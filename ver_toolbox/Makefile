@@ -40,11 +40,11 @@ OS:=$(shell uname -s)
 BASE:=$(shell ocamlc -where)
 
 CAMLIDL = $(BASE)/../camlidl
-PARSERLIB= $(BASE)/../menhirLib/menhirLib.cmo
-PARSERLIBX= $(BASE)/../menhirLib/menhirLib.cmx
-INCLUDES = -I $(PARSERINC) -I ../ver_front -I ../vhd_front -I ../bdd-0.3 -I ../edif_parser -I ../theorem_proving -I $(BASE)/../zip -I $(BASE)/caml -I $(BASE)/threads -I $(BASE)/../xmlm
-CMO = ../ver_front/ver_front.cma ../bdd-0.3/decision.cma ../vhd_front/vhd_front.cma $(BASE)/../xmlm/xmlm.cma $(BASE)/../zip/zip.cma ../edif_parser/edif2.cma ../theorem_proving/theorem_proving.cma
-CMX = ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xmlm/xmlm.cmxa $(BASE)/../zip/zip.cmxa ../edif_parser/edif2.cmxa ../theorem_proving/theorem_proving.cmxa
+PARSERLIB= $(BASE)/../menhirLib/menhirLib.cma
+PARSERLIBX= $(BASE)/../menhirLib/menhirLib.cmxa
+INCLUDES = -I $(PARSERINC) -I ../ver_front -I ../vhd_front -I ../bdd-0.3 -I ../edif_parser -I ../theorem_proving -I ../liberty -I $(BASE)/caml -I $(BASE)/threads -I $(BASE)/../xmlm # -I $(BASE)/../zip
+CMO = ../ver_front/ver_front.cma ../bdd-0.3/decision.cma ../vhd_front/vhd_front.cma $(BASE)/../xmlm/xmlm.cma ../edif_parser/edif2.cma ../theorem_proving/theorem_proving.cma ../liberty/File.cma ../liberty/Formula.cma # $(BASE)/../zip/zip.cma
+CMX = ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xmlm/xmlm.cmxa ../edif_parser/edif2.cmxa ../theorem_proving/theorem_proving.cmxa ../liberty/File.cmxa ../liberty/File.cmxa # $(BASE)/../zip/zip.cmxa
 SRC = shortlist.ml xmlio.ml read_library.ml count.ml erc.ml minimap.ml aigerin.ml aigerout.ml flatten.ml verilogout.ml write_blif.ml milefout.ml extractregs.ml rtl2rtl.ml miter.ml tolerate.ml sop.ml mapping.ml hls.ml elaborate.ml read_blif.ml edifout.ml license.ml gencnf.ml smvout.ml # xmlout.ml
 FLATTENO = $(subst .ml,.cmo,$(SRC))
 FLATTENX = $(subst .ml,.cmx,$(SRC))
@@ -53,31 +53,34 @@ SCRIPTO = $(FLATTENO) main.cmo
 SCRIPTX = $(FLATTENX) main.cmx
 CML =  str.cma unix.cma threads.cma nums.cma #toplevellib.cma
 CMLX = str.cmxa unix.cmxa threads.cmxa nums.cmxa # wrapper.cmxa
-LDFLAGO = -cclib -lstdc++ -cclib -lreadline -cclib -L$(BASE)/../zip/ -cclib -lcamlidl -cclib -lstdc++ -cclib -L$(CAMLIDL)
+LDFLAGO = -cclib -lstdc++ -cclib -lreadline -cclib -lcamlidl -cclib -lstdc++ -cclib -L$(CAMLIDL)  # -cclib -L$(BASE)/../zip/
 LDFLAGX = -lstdc++ -lreadline -L$(BASE)/../zip/ -lcamlzip -lm -lz -L$(CAMLIDL) -lcamlidl -lstdc++
 
 all: libs vhier vscr.opt vtop vscr vflatten.cmxa vflatten
 
-libs: ../ver_front/ver_front.cma ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cma ../bdd-0.3/decision.cmxa
+libs: ../ver_front/ver_front.cma ../ver_front/ver_front.cmxa ../bdd-0.3/decision.cma ../bdd-0.3/decision.cmxa ../vhd_front/vhd_front.cmxa ../liberty/File.cmxa ../liberty/Formula.cmxa
 	make -C ../edif_parser
 
 vflatten: $(CMX) $(FLATTENX) vflatten.cmx
 	$(OCAMLOPT) -o $@ $(INCLUDES) unix.cmxa nums.cmxa $(PARSERLIBX) $(CMX) $(FLATTENX) vflatten.cmx $(LDFLAGO)
 
 vhier: ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa shortlist.cmx xmlio.cmx read_library.cmx count.cmx vhier.cmx
-	$(OCAMLOPT) -o $@ $(INCLUDES) unix.cmxa nums.cmxa $(PARSERLIBX) ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa $(BASE)/../xmlm/xmlm.cmxa shortlist.cmx xmlio.cmx read_library.cmx count.cmx vhier.cmx
+	$(OCAMLOPT) -o $@ $(INCLUDES) unix.cmxa nums.cmxa $(PARSERLIBX) ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa ../liberty/File.cmxa ../liberty/Formula.cmxa $(BASE)/../xmlm/xmlm.cmxa shortlist.cmx xmlio.cmx read_library.cmx count.cmx vhier.cmx
 
 vtop: $(CMO) $(SCRIPTO) $(TOPLOOP).cmi $(TOPLOOP).cmo
-	ocamlmktop -g -custom -o $@ $(INCLUDES) $(PARSERLIB) $(CML) $(CMO) $(TOPLOOP).cmo $(SCRIPTO) $(LDFLAGO)
+	ocamlmktop -g -o $@ $(INCLUDES) $(PARSERLIB) $(CML) $(CMO) $(TOPLOOP).cmo $(SCRIPTO) $(LDFLAGO)
 
 vscr: $(CMO) $(SCRIPTO)
-	$(OCAMLC) -g -custom -o $@ $(INCLUDES) $(PARSERLIB) $(CML) $(CMO) $(SCRIPTO) $(LDFLAGO)
+	$(OCAMLC) -g -o $@ $(INCLUDES) $(PARSERLIB) $(CML) $(CMO) $(SCRIPTO) $(LDFLAGO)
 
 vscr.opt: ../ver_front/ver_front.cmxa ../vhd_front/vhd_front.cmxa $(PARSERLIBX) $(FLATTENX) main.cmx
 	$(OCAMLOPT) -o $@ $(INCLUDES) $(PARSERLIBX) $(CMLX) $(CMX) $(FLATTENX) $(LDFLAGO) main.cmx
 
 vflatten.cmxa: $(CMX) $(FLATTENX)
-	$(OCAMLOPT) -a -g -p -o $@ $(FLATTENX)
+	$(OCAMLOPT) -a -g -o $@ $(FLATTENX)
+
+../liberty/File.cmxa ../liberty/Formula.cmxa ../liberty/File.cma ../liberty/Formula.cma:
+	make -C ../liberty
 
 depend:
 	ocamldep *.ml *.mli > .depend

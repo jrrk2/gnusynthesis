@@ -21,9 +21,9 @@ val parse': bool ref -> (out_channel -> string -> Vparser.token -> string -> uni
 val myflush : Setup.logt ref -> unit
 val my_openin : string -> in_channel
 val includes : (string*in_channel) Stack.t
-val from_func : out_channel -> string -> int -> int
-val from_special1 : out_channel -> string -> string
-val from_special2 : out_channel -> string -> string
-val from_blit : out_channel -> string -> string -> int -> int
-val paste : out_channel -> string -> string -> int -> int
+val from_func : out_channel -> bytes -> int -> int
+val from_special1 : out_channel -> bytes -> string
+val from_special2 : out_channel -> bytes -> string
+val from_blit : out_channel -> string -> bytes -> int -> int
+val paste : out_channel -> string -> bytes -> int -> int
 val ifdef_stk : bool Stack.t

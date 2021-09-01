@@ -166,10 +166,9 @@ and main_info quit len cnt atok =
 
 and main_license quit len cnt atok =
   License.license atok.(!cnt-1)
-
+(* 
 and main_library_env quit len cnt atok =
   Read_library.env := atok.(!cnt-1)
-(*
 and main_write_xml_arch quit len cnt atok =
   Xmlout.write_xml_arch atok.(!cnt-2) atok.(!cnt-1)
 *)
@@ -330,7 +329,7 @@ and main_compare quit len cnt atok =
   flush_all()
 
 and main_read_lib quit len cnt atok =
-  Read_library.read_lib();
+  Read_library.read_lib atok.(!cnt-1);
   Dump.unhand_list := [];
   Globals.fatal := true
 
@@ -413,14 +412,16 @@ let _ = List.iter (fun (str,help,key,args) -> Hashtbl.replace Setup.main_cmds st
                 ( "gen_sop_arch", "convert design to sum of products form",main_gen_sop_arch, 3);
                 ( "help", "show this help", main_info, 1);
                 ( "info", "show this help", main_info, 1);
-                ( "library_env", "define path to library cells",main_library_env, 2);
+		(*
+                 ( "library_env", "define path to library cells",main_library_env, 2);
+		 *)
                 ( "modsuffix_env", "define name suffix for generated modules", main_modsuffix_env, 1);
                 ( "mods", "display available modules", main_mods, 1);
                 ( "time", "time the program", main_time, 1);
                 ( "bye", "leave the program", main_bye, 1);
                 ( "read_aiger","invoke the ASCII aiger reader", main_read_aiger, 2); 
                 ( "read_blif","invoke the blif reader", main_read_blif, 2); 
-                ( "read_lib", "read library cells from a directory", main_read_lib, 1);
+                ( "read_lib", "read library cells from a directory", main_read_lib, 2);
                 ( "dump_lib", "dump library cells to a dumpfile", main_dump_lib, 2);
                 ( "restore_lib", "restore library cells from a dumpfile", main_restore_lib, 2);
                 ( "dump_module", "dump module(s) to a dumpfile", main_dump_module, 4);

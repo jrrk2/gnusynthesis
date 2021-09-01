@@ -103,7 +103,7 @@ let (implicit_wires:Idhash.idhash list ref) = ref []
 let get_table (m:Idhash.idhash) = Hashtbl.find modprims m.id
 let get_syms (r:modtree) = r.symbols;;
 
-let (tsymbols : (string, Vparser.token) Hashtbl.t) = Hashtbl.create 256
+let (tsymbols : (bytes, Vparser.token) Hashtbl.t) = Hashtbl.create 256
 
 let mygetenv str = if Hashtbl.mem env_cache str then Hashtbl.find env_cache str else
         try let env = Sys.getenv str in Hashtbl.add env_cache str env; env; with Not_found -> (); ""

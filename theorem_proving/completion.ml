@@ -14,7 +14,7 @@ open Herbrand
 open Tableaux
 open Prolog
 open Equal
-open Rewrite
+open Trewrite
 open Order
 (* ========================================================================= *)
 (* Knuth-Bendix completion.                                                  *)
@@ -30,7 +30,7 @@ let renamepair (fm1,fm2) =
   subst (fpf fvs1 nms1) fm1,subst (fpf fvs2 nms2) fm2;;
 
 (* ------------------------------------------------------------------------- *)
-(* Rewrite (using unification) with l = r inside tm to give a critical pair. *)
+(* Trewrite (using unification) with l = r inside tm to give a critical pair. *)
 (* ------------------------------------------------------------------------- *)
 
 let rec listcases fn rfn lis acc =

@@ -28,7 +28,7 @@ open VhdlTree
 open Read_library
 open Mapselect
   
-let verbose = ref false
+let verbose = ref true
 
 type tfn = Vparser.token -> Vparser.token -> Vparser.token list
 (*

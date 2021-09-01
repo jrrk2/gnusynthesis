@@ -1,0 +1,9 @@
+#directory "../ver_front";;
+
+open Formula
+open Formula_rewrite
+open Globals
+open Vparser
+
+let form = "!(((C1 | C2) & A) & (B1 | B2))";;
+let rslt = rewrite form;;

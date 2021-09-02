@@ -156,6 +156,7 @@ let rec elwidth syms = function
       | TRIPLE(P_OROR, _, _) -> 1
       | TRIPLE(P_ANDAND, _, _) -> 1
       | TRIPLE(BITSEL, DOUBLE(CONCAT, _), idx) -> 1
+      | HEXNUM num -> fst (Const.widthnum stderr 16 num)
       | oth -> Dump.unhandled stderr 200 oth; 1
 
 and cwidth syms lst = let w = ref 0 in List.iter (fun itm -> w := !w + elwidth syms itm) lst; !w

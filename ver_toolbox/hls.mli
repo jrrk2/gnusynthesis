@@ -58,3 +58,6 @@ val always_body1 :
            Vparser.token ->
            Vparser.token option * Vparser.token * Vparser.token *
            Vparser.token
+
+val dvlhash: (string, Vparser.token list) Hashtbl.t
+

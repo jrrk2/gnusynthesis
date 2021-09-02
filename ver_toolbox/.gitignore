@@ -1,0 +1,11 @@
+report*
+*.verilog*
+a.out
+*.dmp
+*.xml
+*~
+vflatten
+vhier
+vscr
+vscr.opt
+vtop

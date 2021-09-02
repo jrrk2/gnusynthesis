@@ -59,7 +59,7 @@ type mybuft =
     {
     nlen: int;
     nam: Idhash.idhash;
-    decl: Vparser.token;
+    mutable decl: Vparser.token;
     mutable len: int;
     mutable seq: Vparser.token;
     mutable func: Vparser.token;

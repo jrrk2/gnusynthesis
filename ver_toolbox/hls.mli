@@ -35,4 +35,26 @@ val gen_hls_arch : string -> string -> unit
 val gen_struct_arch : string -> string -> unit
 val gen_map_arch : string -> string -> unit
 val verbose : bool ref
-    
+
+val debug_synth: Vparser.token option ref
+
+val evoth : Vparser.token option ref
+val evoth'  : ( ( Vparser.token option * Vparser.token * Vparser.token * Vparser.token) ) option ref
+val evoth'' : ( ( Vparser.token option * Vparser.token * Vparser.token * Vparser.token) *
+                ( Vparser.token option * Vparser.token * Vparser.token * Vparser.token) ) option ref
+val evdbg : (Vparser.token * Vparser.token * Vparser.token * Vparser.token *
+             Vparser.token option * Vparser.token * Vparser.token *
+             Vparser.token * Vparser.token)
+           option ref
+
+val always_ev :
+           Vparser.token ->
+           Vparser.token * Vparser.token * Vparser.token * Vparser.token *
+           Vparser.token option * Vparser.token * Vparser.token *
+           Vparser.token
+val always_body :
+           Vparser.token -> Vparser.token * Vparser.token * Vparser.token
+val always_body1 :
+           Vparser.token ->
+           Vparser.token option * Vparser.token * Vparser.token *
+           Vparser.token

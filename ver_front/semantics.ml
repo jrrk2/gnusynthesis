@@ -808,6 +808,7 @@ and conmodinst out_chan syms kind params instances tree is_input =
                        output_char out_chan '\n';
                      end
                end)
+            | EMPTY -> Printf.fprintf out_chan "Tree %s is empty\n" kind.id
             | _ -> unhandled out_chan 762 tree)
         | _ -> unhandled out_chan 763 inst) instances;
       match params with

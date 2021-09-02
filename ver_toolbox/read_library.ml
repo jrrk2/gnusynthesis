@@ -194,8 +194,12 @@ let rec classify_cell arg (iolst',fnlst') =
         ) fnlst';
       arg.prop <- subst (function
         | ID str when Hashtbl.mem wires str -> Hashtbl.find wires str
-        | other -> Pvar other) arg.prop
-    
+        | other -> Pvar other) arg.prop;
+      let hash1 = Hashtbl.create 255 and hash2 = Hashtbl.create 255 in
+      let dir' dir = match dir with "input" -> INPUT | "output" -> OUTPUT | _ -> INOUT in
+      let pinmap = List.map (fun (id, dir) -> QUINTUPLE (dir' dir, EMPTY, EMPTY, EMPTY, DOUBLE (ID {id = id}, EMPTY))) iolst' in
+      arg.decl <- QUINTUPLE(MODULE, ID arg.nam, TLIST [], TLIST pinmap, THASH(hash1, hash2))
+
 let find_buffer' rslt =
   if rslt.func=BUF && rslt.len = 2 && rslt.tlst = [] then (rslt.instid <- enterid "buf"; [rslt]) else []
 

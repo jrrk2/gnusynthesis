@@ -16,4 +16,16 @@ open VhdlTree
 open VhdlMain
 open VhdlTypes
 open Big_int
+open Hls
 
+(*
+let QUINTUPLE (MODULE, ID id, TLIST [], TLIST ports, THASH(hash1, hash2)) = match !debug_synth with Some x->x;;
+let decls = ref [];;
+let stmts = ref [];;
+Hashtbl.iter (fun k () -> decls := k :: !decls) hash1;;
+Hashtbl.iter (fun k () -> stmts := k :: !stmts) hash2;;
+*)
+
+let  (clr1, dly, dest, clrval, clken, dly1, dest1, ev_stmts, itm) = match !evdbg with Some  (clr1, dly, dest, clrval, clken, dly1, dest1, ev_stmts, itm) ->  (clr1, dly, dest, clrval, clken, dly1, dest1, ev_stmts, itm);;
+
+let x = always_ev ev_stmts;;

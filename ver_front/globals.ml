@@ -62,7 +62,7 @@ type mybuft =
     {
     nlen: int;
     nam: Idhash.idhash;
-    decl: token;
+    mutable decl: token;
     mutable len: int;
     mutable seq: token;
     mutable func: token;

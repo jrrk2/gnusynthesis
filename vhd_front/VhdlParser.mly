@@ -366,7 +366,7 @@ let rec position_of_name (name: vhdl_name) =
     if id2 = empty_identifier then
       true
     else
-      (String.uppercase (fst id1)) = (String.uppercase (fst id2));;
+      (String.uppercase_ascii (fst id1)) = (String.uppercase_ascii (fst id2));;
 
   (* this function compares two identifiers and returns one of them if equals, otherwise it raises an exception *)
   let check_identifiers id1 id2 =
@@ -614,27 +614,27 @@ let rec position_of_name (name: vhdl_name) =
 
 identifier:
   | Lword
-      { $1 };
+      { $1 }
 
 identifier_list:
   | identifier
-      { [$1] };
+      { [$1] }
   | identifier_list Lcomma identifier
-      { $1 @ [$3] };
+      { $1 @ [$3] }
 
 /*
 (* label ::= identifier *)
 */
 label:
   | identifier
-      { $1 };
+      { $1 }
 
 /*
 (* simple_name ::= identifier *)
 */
 simple_name:
   | identifier
-      { $1 };
+      { $1 }
 
 /*
 (* character_literal ::=   *)
@@ -642,7 +642,7 @@ simple_name:
 */
 character_literal:
   | Lchar
-      { $1 };
+      { $1 }
 
 /*
 (* attribute_designator ::= attribute_simple_name *)
@@ -650,11 +650,11 @@ character_literal:
 */
 attribute_designator:
   | simple_name
-      { $1 };
+      { $1 }
   | Lrange
-      { ("range",-1) };
+      { ("range",-1) }
   | Lacross
-      { ("across",-1) };
+      { ("across",-1) }
 
 /*
 (* suffix ::=                      *)
@@ -665,13 +665,13 @@ attribute_designator:
 */
 suffix:
   | character_literal
-      { SuffixCharLiteral $1 };
+      { SuffixCharLiteral $1 }
   | Lstring
-      { SuffixOpSymbol $1 };
+      { SuffixOpSymbol $1 }
   | Lall
-      { SuffixAll };
+      { SuffixAll }
   | simple_name
-      { SuffixSimpleName (SimpleName $1) };
+      { SuffixSimpleName (SimpleName $1) }
 
 /*
 (* prefix ::=                      *)
@@ -680,22 +680,22 @@ suffix:
 */
 prefix:
   | name
-      { SuffixSimpleName $1 };
+      { SuffixSimpleName $1 }
 
 /*
 (* selected_name ::= prefix.suffix *)
 */
 selected_name:
   | prefix Ldot suffix
-      { $3 :: [$1] };
+      { $3 :: [$1] }
   | selected_name Ldot suffix
-      { $3 :: $1 };
+      { $3 :: $1 }
 
 selected_name_list:
   | selected_name
-      { [ $1 ] };
+      { [ $1 ] }
   | selected_name_list Lcomma selected_name
-      { $1 @ [ $3 ] };
+      { $1 @ [ $3 ] }
 
 /*
 (* name ::=           *)
@@ -708,13 +708,13 @@ selected_name_list:
 */
 name:
   | simple_name
-      { SimpleName $1 };
+      { SimpleName $1 }
   | selected_name
-      { SelectedName $1 };
+      { SelectedName $1 }
   | Lstring
-      { OperatorString $1 };
+      { OperatorString $1 }
   | attribute_name
-      { AttributeName $1 };
+      { AttributeName $1 }
 
 /*
 (* type_mark ::=   *)
@@ -723,50 +723,50 @@ name:
 */
 type_mark:
   | name
-      { $1 };
+      { $1 }
 
 type_mark_list:
   | type_mark
-      { [$1] };
+      { [$1] }
   | type_mark_list Lcomma type_mark
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
 
 /*
 (* logical_name ::= identifier                         *)
 */
 logical_name:
   | identifier
-      { $1 };
+      { $1 }
 
 /*
 (* logical_name_list ::= logical_name {, logical_name} *)
 */
 logical_name_list:
   | logical_name
-      { [$1] };
+      { [$1] }
   | logical_name_list Lcomma logical_name
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
 
 /*
 (* library_clause ::= library logical_name_list ;      *)
 */
 library_clause:
   | Llibrary logical_name_list Lsemicolon
-      { $2 };
+      { $2 }
 
 /*
 (*condition ::= expression *)
 */
 condition:
   | expression
-      { Condition $1 };
+      { Condition $1 }
 
 /*
 (* selector has special restrictions *)
 */
 selector:
   | expression
-      { Selector $1 };
+      { Selector $1 }
 
 /*
 (* expression ::=                                    *)
@@ -775,15 +775,15 @@ selector:
 */
 expression:
   | logical_expression
-      { AtomExpression $1 };
+      { AtomExpression $1 }
   | Lquestionmark Lquestionmark primary
-      { ConditionExpression $3 };
+      { ConditionExpression $3 }
 
 expression_list:
   | expression
-      { [$1] };
+      { [$1] }
   | expression_list Lcomma expression
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
 
 /*
 (* logical_expression ::=                            *)
@@ -796,31 +796,31 @@ expression_list:
 */
 logical_expression:
   | relation
-      { AtomLogicalExpression $1 };
+      { AtomLogicalExpression $1 }
   | logical_expression Land relation
       { match $1 with
          | AtomLogicalExpression a
              -> AndLogicalExpression (a,$3);
-         | _ -> AndLogicalExpression (relation_of_logical_expression $1,$3); };
+         | _ -> AndLogicalExpression (relation_of_logical_expression $1,$3); }
   | logical_expression Lor relation
       { match $1 with
         | AtomLogicalExpression a
             -> OrLogicalExpression (a,$3);
-        | _ -> OrLogicalExpression (relation_of_logical_expression $1,$3); };
+        | _ -> OrLogicalExpression (relation_of_logical_expression $1,$3); }
   | logical_expression Lxor relation
       { match $1 with
         | AtomLogicalExpression a
             -> XorLogicalExpression (a,$3);
-        | _ -> XorLogicalExpression (relation_of_logical_expression $1,$3); };
+        | _ -> XorLogicalExpression (relation_of_logical_expression $1,$3); }
   | relation Lnand relation
-      { NandLogicalExpression ($1,$3) };
+      { NandLogicalExpression ($1,$3) }
   | relation Lnor relation
-      { NorLogicalExpression ($1,$3) };
+      { NorLogicalExpression ($1,$3) }
   | logical_expression Lxnor relation
       { match $1 with
         | AtomLogicalExpression a
             -> XnorLogicalExpression (a,$3);
-        | _ -> XnorLogicalExpression (relation_of_logical_expression $1,$3); };
+        | _ -> XnorLogicalExpression (relation_of_logical_expression $1,$3); }
 
 /*
 (* relation ::=                                      *)
@@ -829,31 +829,31 @@ logical_expression:
 */
 relation:
   | shift_expression Lequal shift_expression
-      { EqualRelation ($1,$3) };
+      { EqualRelation ($1,$3) }
   | shift_expression Lnotequal shift_expression
-      { NotEqualRelation ($1,$3) };
+      { NotEqualRelation ($1,$3) }
   | shift_expression Lless shift_expression
-      { LessRelation ($1,$3) };
+      { LessRelation ($1,$3) }
   | shift_expression Lless Lequal shift_expression
-      { LessOrEqualRelation ($1,$4) };
+      { LessOrEqualRelation ($1,$4) }
   | shift_expression Lgreater shift_expression
-      { GreaterRelation ($1,$3) };
+      { GreaterRelation ($1,$3) }
   | shift_expression Lgreater Lequal shift_expression
-      { GreaterOrEqualRelation ($1,$4) };
+      { GreaterOrEqualRelation ($1,$4) }
   | shift_expression Lmatchingequal shift_expression
-      { MatchingEqualRelation ($1,$3) };
+      { MatchingEqualRelation ($1,$3) }
   | shift_expression Lmatchingnotequal shift_expression
-      { MatchingNotEqualRelation ($1,$3) };
+      { MatchingNotEqualRelation ($1,$3) }
   | shift_expression Lmatchingless shift_expression
-      { MatchingLessRelation ($1,$3) };
+      { MatchingLessRelation ($1,$3) }
   | shift_expression Lmatchinglessequal shift_expression
-      { MatchingLessOrEqualRelation ($1,$3) };
+      { MatchingLessOrEqualRelation ($1,$3) }
   | shift_expression Lmatchinggreater shift_expression
-      { MatchingGreaterRelation ($1,$3) };
+      { MatchingGreaterRelation ($1,$3) }
   | shift_expression Lmatchinggreaterequal shift_expression
-      { MatchingGreaterOrEqualRelation ($1,$3) };
+      { MatchingGreaterOrEqualRelation ($1,$3) }
   | shift_expression
-      { AtomRelation $1 };
+      { AtomRelation $1 }
 
 /*
 (* shift_expression ::=                              *)
@@ -862,19 +862,19 @@ relation:
 */
 shift_expression:
   | simple_expression Lsll simple_expression
-      { ShiftLeftLogicalExpression ($1,$3) };
+      { ShiftLeftLogicalExpression ($1,$3) }
   | simple_expression Lsrl simple_expression
-      { ShiftRightLogicalExpression ($1,$3) };
+      { ShiftRightLogicalExpression ($1,$3) }
   | simple_expression Lsla simple_expression
-      { ShiftLeftArithmeticExpression ($1,$3) };
+      { ShiftLeftArithmeticExpression ($1,$3) }
   | simple_expression Lsra simple_expression
-      { ShiftRightArithmeticExpression ($1,$3) };
+      { ShiftRightArithmeticExpression ($1,$3) }
   | simple_expression Lrol simple_expression
-      { RotateLeftExpression ($1,$3) };
+      { RotateLeftExpression ($1,$3) }
   | simple_expression Lror simple_expression
-      { RotateRightExpression ($1,$3) };
+      { RotateRightExpression ($1,$3) }
   | simple_expression
-      { AtomShiftExpression $1 };
+      { AtomShiftExpression $1 }
 
 /*
 (* simple_expression ::=                             *)
@@ -884,22 +884,22 @@ simple_expression:
   | simple_expression Lplus term
       { match $1 with
          | AtomSimpleExpression a -> AddSimpleExpression (a,$3);
-         | _                      -> AddSimpleExpression (term_of_simple_expression $1,$3); };
+         | _                      -> AddSimpleExpression (term_of_simple_expression $1,$3); }
   | simple_expression Lminus term
       { match $1 with
          | AtomSimpleExpression a -> SubSimpleExpression (a,$3);
-         | _                      -> SubSimpleExpression (term_of_simple_expression $1,$3); };
+         | _                      -> SubSimpleExpression (term_of_simple_expression $1,$3); }
   | simple_expression Lampersand term
       { match $1 with
          | ConcatSimpleExpression l -> ConcatSimpleExpression (l @ [$3]);
          | AtomSimpleExpression a   -> ConcatSimpleExpression [a;$3];
-         | _                        -> ConcatSimpleExpression [term_of_simple_expression $1;$3]; };
+         | _                        -> ConcatSimpleExpression [term_of_simple_expression $1;$3]; }
   | Lplus term
-      { AtomSimpleExpression $2 };
+      { AtomSimpleExpression $2 }
   | Lminus term
-      { NegSimpleExpression $2 };
+      { NegSimpleExpression $2 }
   | term
-      { AtomSimpleExpression $1 };
+      { AtomSimpleExpression $1 }
 
 
 /*
@@ -911,21 +911,21 @@ term:
   | term Lmultiply factor
       { match $1 with
          | AtomTerm a -> MultTerm (a,$3);
-         | _          -> MultTerm (factor_of_term $1,$3); };
+         | _          -> MultTerm (factor_of_term $1,$3); }
   | term Lslash factor
       { match $1 with
          | AtomTerm a    -> DivTerm (a,$3);
-         | _             -> DivTerm (factor_of_term $1,$3); };
+         | _             -> DivTerm (factor_of_term $1,$3); }
   | term Lmod factor
       { match $1 with
          | AtomTerm a    -> ModTerm (a,$3);
-         | _             -> ModTerm (factor_of_term $1,$3); };
+         | _             -> ModTerm (factor_of_term $1,$3); }
   | term Lrem factor
       { match $1 with
          | AtomTerm a    -> RemTerm (a,$3);
-         | _             -> RemTerm (factor_of_term $1,$3); };
+         | _             -> RemTerm (factor_of_term $1,$3); }
   | factor
-      { AtomTerm $1; };
+      { AtomTerm $1; }
 
 
 /*
@@ -938,33 +938,33 @@ term:
 
 factor:
   | dotted Lexponential dotted
-      { ExpFactor ($1,$3); };
+      { ExpFactor ($1,$3); }
   | Labs dotted
-      { AbsFactor $2; };
+      { AbsFactor $2; }
   | Lnot dotted
-      { NotFactor $2; };
+      { NotFactor $2; }
   | Land dotted
-      { AndFactor $2; };
+      { AndFactor $2; }
   | Lor dotted
-      { OrFactor $2; };
+      { OrFactor $2; }
   | Lxor dotted
-      { XorFactor $2; };
+      { XorFactor $2; }
   | Lxnor dotted
-      { XnorFactor $2; };
+      { XnorFactor $2; }
   | Lnand dotted
-      { NandFactor $2; };
+      { NandFactor $2; }
   | Lnor dotted
-      { NorFactor $2; };
+      { NorFactor $2; }
   | Lnew dotted
-      { NewFactor $2; };
+      { NewFactor $2; }
   | dotted
-      { AtomFactor $1; };
+      { AtomFactor $1; }
 
 dotted:
   | primary Ldot primary
-      { Ldotted ($1,$3); };
+      { Ldotted ($1,$3); }
   | primary
-      { AtomDotted $1 };
+      { AtomDotted $1 }
 
 /*
 (* primary ::=                                       *)
@@ -982,32 +982,32 @@ string literals are reported as names (OperatorString)
 
 primary:
   | Lnull
-      { VhdSequentialNull };
+      { VhdSequentialNull }
   | name parameters
-      { NameParametersPrimary ($1,$2) };
+      { NameParametersPrimary ($1,$2) }
   | integer_literal
-      { IntPrimary $1 };
+      { IntPrimary $1 }
   | float_literal
-      { FloatPrimary $1 };
+      { FloatPrimary $1 }
   | character_literal
-      { CharPrimary $1 };
+      { CharPrimary $1 }
   | physical_literal
-      { PhysicalPrimary $1 };
+      { PhysicalPrimary $1 }
   | aggregate
       /* aggregate primary or parenthesed primary */
       { match $1 with
         | [{elemassocchoices=[];elemassocexpression=expression}]
             -> ParenthesedPrimary expression
-        | _ -> AggregatePrimary $1 };
+        | _ -> AggregatePrimary $1 }
   | qualified_expression
-      { QualifiedExpressionPrimary $1 };
+      { QualifiedExpressionPrimary $1 }
   | name
-      { NamePrimary $1 };
+      { NamePrimary $1 }
   | name Lstring
       { match $1 with
         | SimpleName (base,pos)
             -> begin
-                 match String.uppercase base with
+                 match String.uppercase_ascii base with
                  | "D"
                      -> NamePrimary (OperatorString (convert_dec_string (strRemoveUnderscore (fst $2)),pos))
                  | "B"
@@ -1024,7 +1024,7 @@ primary:
                      -> NamePrimary (OperatorString (convert_hex_string (strRemoveUnderscore (fst $2)),pos))
                  | _ -> raise Parsing.Parse_error;
                end;
-        | _ -> raise Parsing.Parse_error; };
+        | _ -> raise Parsing.Parse_error; }
   | integer_literal name Lstring
       { let expanded_bit_string,pos,unsigned =
           match $2 with
@@ -1066,17 +1066,17 @@ primary:
           if unsigned then
             NamePrimary (OperatorString (fix_unsigned_bit_string_length expanded_bit_string (Big_int.int_of_big_int digit_count),pos))
           else
-            NamePrimary (OperatorString (fix_signed_bit_string_length expanded_bit_string (Big_int.int_of_big_int digit_count),pos)); };
+            NamePrimary (OperatorString (fix_signed_bit_string_length expanded_bit_string (Big_int.int_of_big_int digit_count),pos)); }
 
 parameters:
   | parameter
-      { [$1] };
+      { [$1] }
   | parameters parameter
-      { $1 @ [$2] };
+      { $1 @ [$2] }
 
 parameter:
   | Lleftparenthesis association_list Lrightparenthesis
-      { $2 };
+      { $2 }
 
 /*
 (* aggregate ::=                                     *)
@@ -1084,7 +1084,7 @@ parameter:
 */
 aggregate:
   | Lleftparenthesis element_association_list Lrightparenthesis
-      { $2 };
+      { $2 }
 
 /*
 (* element_association ::=                           *)
@@ -1093,27 +1093,27 @@ aggregate:
 element_association:
   | expression
       { {elemassocchoices=[];
-         elemassocexpression=$1} };
+         elemassocexpression=$1} }
   | choices Lassociation expression
       { {elemassocchoices=$1;
-         elemassocexpression=$3} };
+         elemassocexpression=$3} }
 
 element_association_list:
   | element_association
-      { [$1] };
+      { [$1] }
   | element_association_list Lcomma element_association
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
 
 /*
 (* choices ::= choice { | choice }                   *)
 */
 choices:
   | choice
-      { [$1] };
+      { [$1] }
   | choices Lverticalbar choice
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
   | choices Lexclamationmark choice
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
 
 /*
 (* choice ::=                                        *)
@@ -1126,11 +1126,11 @@ discrete range may be only to/downto expressions
 */
 choice:
   | simple_expression
-      { ChoiceSimpleExpression $1 };
+      { ChoiceSimpleExpression $1 }
   | discrete_range_without_attribute
-      { ChoiceDiscreteRange $1 };
+      { ChoiceDiscreteRange $1 }
   | Lothers
-      { ChoiceOthers };
+      { ChoiceOthers }
 
 /*
 (* actual_parameter_part ::=                         *)
@@ -1138,7 +1138,7 @@ choice:
 never used
 parameter_part:
   | association_list
-      { $1 };*/
+      { $1 }*/
 
 /*
 (* qualified_expression ::=                          *)
@@ -1152,14 +1152,14 @@ qualified_expression:
       { match $3 with
         | [{elemassocchoices=[];elemassocexpression=expression}]
             -> QualifiedExpression ($1,expression)
-        | _ -> QualifiedAggregate ($1,$3) };
+        | _ -> QualifiedAggregate ($1,$3) }
 
 /*
 (* range_constraint ::= range range                  *)
 */
 range_constraint:
   | Lrange range
-      { $2 };
+      { $2 }
 
 /*
 (* range ::=                                         *)
@@ -1169,15 +1169,15 @@ range_constraint:
 */
 range:
   | attribute_name
-      { AttrNameRange $1 };
+      { AttrNameRange $1 }
   | range_without_attribute
-      { $1 };
+      { $1 }
 
 range_without_attribute:
   | simple_expression Lto simple_expression
-      { IncreasingRange ($1,$3) };
+      { IncreasingRange ($1,$3) }
   | simple_expression Ldownto simple_expression
-      { DecreasingRange ($1,$3) };
+      { DecreasingRange ($1,$3) }
 
 /*
 (* discrete_range ::=             *)
@@ -1187,13 +1187,13 @@ attributes are reported as subtype_indication
 */
 discrete_range:
   | range_without_attribute
-      { Range $1 };
+      { Range $1 }
   | discrete_subtype_indication
-      { SubTypeRange $1 };
+      { SubTypeRange $1 }
 
 discrete_range_without_attribute:
   | range_without_attribute
-      { Range $1 };
+      { Range $1 }
 
 /*
 (* actual_designator ::=                             *)
@@ -1211,15 +1211,15 @@ actual_designator may contain an expression of type function call or type conver
 */
 actual_part:
   | Lopen
-      { ActualOpen };
+      { ActualOpen }
   | discrete_range_without_attribute
-      { ActualDiscreteRange $1 };
+      { ActualDiscreteRange $1 }
   | expression
-      { ActualExpression $1 };
+      { ActualExpression $1 }
   | type_mark range_constraint
-      { ActualDiscreteRange (SubTypeRange {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=RangeConstraint $2 }) };
+      { ActualDiscreteRange (SubTypeRange {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=RangeConstraint $2 }) }
   | name type_mark range_constraint
-      { ActualDiscreteRange (SubTypeRange {resolutionfunction=$1; basetypename=$2; subtypeconstraint=RangeConstraint $3 }) };
+      { ActualDiscreteRange (SubTypeRange {resolutionfunction=$1; basetypename=$2; subtypeconstraint=RangeConstraint $3 }) }
 
 /*
 (* formal_designator ::=                             *)
@@ -1234,7 +1234,7 @@ an expression may contain an identifier, a type conversion or a function call
 */
 formal_part:
   | expression
-      { FormalExpression $1 };
+      { FormalExpression $1 }
 
 /*
 (* association_element ::=                           *)
@@ -1242,9 +1242,9 @@ formal_part:
 */
 association_element:
   | actual_part
-      { { actual=$1; formal=FormalIndexed } };
+      { { actual=$1; formal=FormalIndexed } }
   | formal_part Lassociation actual_part
-      { { actual=$3; formal=$1 } };
+      { { actual=$3; formal=$1 } }
 
 /*
 (* association_list ::=                              *)
@@ -1252,9 +1252,9 @@ association_element:
 */
 association_list:
   | association_element
-      { [$1] };
+      { [$1] }
   | association_list Lcomma association_element
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
 
 /*
 (* attribute_name ::=                            *)
@@ -1264,7 +1264,7 @@ association_list:
 */
 attribute_name:
   | prefix Lquote attribute_designator
-      { {attributeprefix=$1; attribute=$3} };
+      { {attributeprefix=$1; attribute=$3} }
 
 /*
 (* signature ::= [ [ type_mark { , type_mark } ] [ return type_mark ] ] *)
@@ -1272,13 +1272,13 @@ attribute_name:
 signature:
   | Lleftbracket Lreturn type_mark Lrightbracket
       { {signatureparametertypes=[];
-         signaturereturntype=$3} };
+         signaturereturntype=$3} }
   | Lleftbracket type_mark_list Lrightbracket
       { {signatureparametertypes=$2;
-         signaturereturntype=empty_type_mark } };
+         signaturereturntype=empty_type_mark } }
   | Lleftbracket type_mark_list Lreturn type_mark Lrightbracket
       { {signatureparametertypes=$2;
-         signaturereturntype=$4 } };
+         signaturereturntype=$4 } }
 
 /*
 (* decimal_literal ::= integer [ . integer ] [ exponent ] *)
@@ -1305,7 +1305,7 @@ integer_literal:
                     and expvalue = big_int_of_string (strRemoveUnderscore exppart) in
                       (Big_int.mult_big_int intvalue (power_big_int radix expvalue),pos)
        with Failure s -> match $1 with (radixpart,intpart,exppart,pos)
-         -> Printf.fprintf stdout "int %s %s %s" radixpart intpart exppart; raise (Failure s) };
+         -> Printf.fprintf stdout "int %s %s %s" radixpart intpart exppart; raise (Failure s) }
 
 float_literal:
   | Lfloat
@@ -1329,13 +1329,13 @@ float_literal:
                       let fracvalue = big_int_of_string_radix fracstr radix in
                         ((((Big_int.float_of_big_int intvalue) +. (Big_int.float_of_big_int fracvalue) *. (power_float (Big_int.float_of_big_int radix) (Big_int.minus_big_int (Big_int.big_int_of_int (String.length fracstr))))) *. (power_float (Big_int.float_of_big_int radix) expvalue)),pos);
        with Failure s -> match $1 with (radixpart,intpart,fracpart,exppart,pos)
-         -> Printf.fprintf stdout "int %s %s %s %s" radixpart intpart fracpart exppart; raise (Failure s) };
+         -> Printf.fprintf stdout "int %s %s %s %s" radixpart intpart fracpart exppart; raise (Failure s) }
 
 physical_literal:
   | integer_literal identifier
-      { PhysicalInteger ($1, $2) };
+      { PhysicalInteger ($1, $2) }
   | float_literal identifier
-      { PhysicalFloat ($1, $2) };
+      { PhysicalFloat ($1, $2) }
 
 /*
 (* index_constraint ::=                                    *)
@@ -1343,7 +1343,7 @@ physical_literal:
 */
 index_constraint:
   | parameter
-     { $1 };
+     { $1 }
 
 /*
 (* subtype_declaration ::=                                 *)
@@ -1351,7 +1351,7 @@ index_constraint:
 */
 subtype_declaration:
   | Lsubtype identifier Lis subtype_indication Lsemicolon
-     { {subtypename=$2; subtypeindication=$4} };
+     { {subtypename=$2; subtypeindication=$4} }
 
 /*
 (* subtype_indication ::=                                  *)
@@ -1359,23 +1359,23 @@ subtype_declaration:
 */
 subtype_indication:
   | type_mark
-     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=NoConstraint } };
+     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=NoConstraint } }
   | type_mark constraint_
-     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=$2 } };
+     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=$2 } }
   | name type_mark
-     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=NoConstraint } };
+     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=NoConstraint } }
   | name type_mark constraint_
-     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=$3 } };
+     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=$3 } }
 
 discrete_subtype_indication:
   | type_mark
-     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=NoConstraint } };
+     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=NoConstraint } }
   | type_mark range_constraint
-     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=RangeConstraint $2 } };
+     { {resolutionfunction=empty_name; basetypename=$1; subtypeconstraint=RangeConstraint $2 } }
   | name type_mark
-     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=NoConstraint } };
+     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=NoConstraint } }
   | name type_mark range_constraint
-     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=RangeConstraint $3 } };
+     { {resolutionfunction=$1; basetypename=$2; subtypeconstraint=RangeConstraint $3 } }
 
 /*
 (* constraint ::=                                          *)
@@ -1385,9 +1385,9 @@ discrete_subtype_indication:
 */
 constraint_:
   | range_constraint
-     { RangeConstraint $1 };
+     { RangeConstraint $1 }
   | array_constraint
-     { ArrayConstraint $1 };
+     { ArrayConstraint $1 }
 
 /*
 (* array_constraint ::=                                            *)
@@ -1396,7 +1396,7 @@ constraint_:
 */
 array_constraint:
   | parameters
-      { $1 };
+      { $1 }
 
 /*
 (* enumeration_type_definition ::=                        *)
@@ -1404,36 +1404,36 @@ array_constraint:
 */
 enumeration_type_definition:
   | Lleftparenthesis enumeration_literal_list Lrightparenthesis
-     { $2 };
+     { $2 }
 
 /*
 (* enumeration_literal ::= identifier | character_literal *)
 */
 enumeration_literal:
   | identifier
-     { IdentifierEnumeration $1 };
+     { IdentifierEnumeration $1 }
   | character_literal
-     { CharLiteralEnumeration $1 };
+     { CharLiteralEnumeration $1 }
 
 enumeration_literal_list:
   | enumeration_literal
-     { [$1] };
+     { [$1] }
   | enumeration_literal_list Lcomma enumeration_literal
-     { ($1 @ [$3]) };
+     { ($1 @ [$3]) }
 
 /*
 (*   integer_type_definition ::= range_constraint *)
 never used
 integer_type_definition:
   | range_constraint
-     { $1 };
+     { $1 }
 */
 /*
 (* floating_type_definition ::= range_constraint (ignored ieee syn) *)
 never used
 floating_type_definition:
   | range_constraint
-     { $1 };
+     { $1 }
 */
 /*
 (* array_type_definition ::=                                           *)
@@ -1442,9 +1442,9 @@ floating_type_definition:
 */
 array_type_definition:
   | constrained_array_definition
-     { ConstrainedArray $1 };
+     { ConstrainedArray $1 }
   | unbounded_array_definition
-     { UnboundedArray $1 };
+     { UnboundedArray $1 }
 
 /*
 (* unbounded_array_definition ::=                                      *)
@@ -1453,7 +1453,7 @@ array_type_definition:
 */
 unbounded_array_definition:
   | Larray Lleftparenthesis index_subtype_definition_list Lrightparenthesis Lof subtype_indication
-     { {uarraydimensions=$3; uarrayelementtype=$6} };
+     { {uarraydimensions=$3; uarrayelementtype=$6} }
 
 /*
 (* constrained_array_definition ::=                                    *)
@@ -1461,20 +1461,20 @@ unbounded_array_definition:
 */
 constrained_array_definition:
   | Larray index_constraint Lof subtype_indication
-     { {carraydimensions=$2; carrayelementtype=$4} };
+     { {carraydimensions=$2; carrayelementtype=$4} }
 
 /*
 (* index_subtype_definition ::= type_mark range <>                     *)
 */
 index_subtype_definition:
   | type_mark Lrange Lless Lgreater
-     { $1 };
+     { $1 }
 
 index_subtype_definition_list:
   | index_subtype_definition
-     { [$1] };
+     { [$1] }
   | index_subtype_definition_list Lcomma index_subtype_definition
-     { ($1 @ [$3]) };
+     { ($1 @ [$3]) }
 
 /*
 (* record_type_definition ::=                        *)
@@ -1486,9 +1486,9 @@ index_subtype_definition_list:
 
 record_type_definition:
   | Lrecord element_declaration_list Lend Lrecord
-     { {recordelems=$2; recordname=empty_simple_name} };
+     { {recordelems=$2; recordname=empty_simple_name} }
   | Lrecord element_declaration_list Lend Lrecord simple_name
-     { {recordelems=$2; recordname=$5} };
+     { {recordelems=$2; recordname=$5} }
 
 /*
 (* element_declaration ::=                           *)
@@ -1496,27 +1496,27 @@ record_type_definition:
 */
 element_declaration:
   | identifier_list Lcolon element_subtype_definition Lsemicolon
-     { {elementnames=$1; elementsubtype=$3} };
+     { {elementnames=$1; elementsubtype=$3} }
 
 element_declaration_list:
   | element_declaration
-     { [$1] };
+     { [$1] }
   | element_declaration_list element_declaration
-     { ($1 @ [$2]) };
+     { ($1 @ [$2]) }
 
 /*
 (* element_subtype_definition ::= subtype_indication *)
 */
 element_subtype_definition:
   | subtype_indication
-     { $1 };
+     { $1 }
 
 /*
 (* file_type_definition ::= file of type_mark *)
 */
 file_type_definition:
   | Lfile Lof type_mark
-     { $3 };
+     { $3 }
 
 /*
 (* access_type_definition ::= access subtype_indication *)
@@ -1524,7 +1524,7 @@ file_type_definition:
 */
 access_type_definition:
   | Laccess subtype_indication
-     { $2 };
+     { $2 }
 
 /*
 (* physical_type_definition ::=                                  *)
@@ -1536,9 +1536,9 @@ access_type_definition:
 */
 physical_type_definition:
   | range_constraint Lunits physical_unit_declaration Lend Lunits
-      { {physicalconstraint=$1; physicalunits=$3; physicalname=empty_simple_name} };
+      { {physicalconstraint=$1; physicalunits=$3; physicalname=empty_simple_name} }
   | range_constraint Lunits physical_unit_declaration Lend Lunits simple_name
-      { {physicalconstraint=$1; physicalunits=$3; physicalname=$6} };
+      { {physicalconstraint=$1; physicalunits=$3; physicalname=$6} }
 
 /*
 (* primary_unit_declaration ::= identifier ;                     *)
@@ -1546,9 +1546,9 @@ physical_type_definition:
 */
 physical_unit_declaration:
   | identifier Lsemicolon
-      { [$1, PhysicalEmpty (position_of_identifier $1)] };
+      { [$1, PhysicalEmpty (position_of_identifier $1)] }
   | physical_unit_declaration identifier Lequal physical_literal Lsemicolon
-      { ($1 @ [($2,$4)]) };
+      { ($1 @ [($2,$4)]) }
 
 /*
 (* scalar_type_definition ::=                           *)
@@ -1562,19 +1562,19 @@ physical_unit_declaration:
 */
 type_definition:
   | enumeration_type_definition
-     { EnumerationTypeDefinition $1 };
+     { EnumerationTypeDefinition $1 }
   | range_constraint
-     { RangeTypeDefinition $1 };
+     { RangeTypeDefinition $1 }
   | physical_type_definition
-     { PhysicalTypeDefinition $1 };
+     { PhysicalTypeDefinition $1 }
   | array_type_definition
-     { ArrayTypeDefinition $1 };
+     { ArrayTypeDefinition $1 }
   | record_type_definition
-     { RecordTypeDefinition $1 };
+     { RecordTypeDefinition $1 }
   | file_type_definition
-     { FileTypeDefinition $1 };
+     { FileTypeDefinition $1 }
   | access_type_definition
-     { AccessTypeDefinition $1 };
+     { AccessTypeDefinition $1 }
 
 /*
 (* full_type_declaration ::=                            *)
@@ -1585,11 +1585,11 @@ full_type_declaration:
      { match $4 with
          | PhysicalTypeDefinition t when not (identifiers_equal $2 t.physicalname) -> raise Parsing.Parse_error
          | RecordTypeDefinition t when not (identifiers_equal $2 t.recordname) -> raise Parsing.Parse_error
-         | _ -> {typename=$2; typedefinition=$4} };
+         | _ -> {typename=$2; typedefinition=$4} }
 
 incomplete_type_declaration:
   | Ltype identifier Lsemicolon
-     { {incompletetypename=$2} };
+     { {incompletetypename=$2} }
 
 /*
 (* type_declaration ::=                                 *)
@@ -1598,9 +1598,9 @@ incomplete_type_declaration:
 */
 type_declaration:
   | full_type_declaration
-     { FullType $1 };
+     { FullType $1 }
   | incomplete_type_declaration
-     { IncompleteType $1 };
+     { IncompleteType $1 }
 
 /*
 (* constant_declaration ::=                                           *)
@@ -1609,9 +1609,9 @@ type_declaration:
 
 constant_declaration:
   | Lconstant identifier_list Lcolon subtype_indication Lsemicolon
-     { {constantnames=$2; constantsubtype=$4; constantexpression=empty_expression} };
+     { {constantnames=$2; constantsubtype=$4; constantexpression=empty_expression} }
   | Lconstant identifier_list Lcolon subtype_indication Limmediate expression Lsemicolon
-     { {constantnames=$2; constantsubtype=$4; constantexpression=$6 } };
+     { {constantnames=$2; constantsubtype=$4; constantexpression=$6 } }
 
 /*
 (* signal_declaration ::=                                  *)
@@ -1621,22 +1621,22 @@ constant_declaration:
 */
 signal_declaration:
   | Lsignal identifier_list Lcolon subtype_indication Lsemicolon
-     { {signalnames=$2; signalsubtype=$4; signalkind=SignalKindDefault; signalexpression=empty_expression} };
+     { {signalnames=$2; signalsubtype=$4; signalkind=SignalKindDefault; signalexpression=empty_expression} }
   | Lsignal identifier_list Lcolon subtype_indication signal_kind Lsemicolon
-     { {signalnames=$2; signalsubtype=$4; signalkind=$5; signalexpression=empty_expression} };
+     { {signalnames=$2; signalsubtype=$4; signalkind=$5; signalexpression=empty_expression} }
   | Lsignal identifier_list Lcolon subtype_indication Limmediate expression Lsemicolon
-     { {signalnames=$2; signalsubtype=$4; signalkind=SignalKindDefault; signalexpression=$6} };
+     { {signalnames=$2; signalsubtype=$4; signalkind=SignalKindDefault; signalexpression=$6} }
   | Lsignal identifier_list Lcolon subtype_indication signal_kind Limmediate expression Lsemicolon
-     { {signalnames=$2; signalsubtype=$4; signalkind=$5; signalexpression=$7} };
+     { {signalnames=$2; signalsubtype=$4; signalkind=$5; signalexpression=$7} }
 
 /*
 (*   signal_kind ::= register | bus                        *)
 */
 signal_kind:
   | Lregister
-     { SignalKindRegister };
+     { SignalKindRegister }
   | Lbus
-     { SignalKindBus };
+     { SignalKindBus }
 
 /*
 (* variable_declaration ::=               *)
@@ -1647,13 +1647,13 @@ signal_kind:
 */
 variable_declaration:
   | Lvariable identifier_list Lcolon subtype_indication Lsemicolon
-     { {variableshared=false; variablenames=$2; variablesubtype=$4; variableexpression=empty_expression} };
+     { {variableshared=false; variablenames=$2; variablesubtype=$4; variableexpression=empty_expression} }
   | Lvariable identifier_list Lcolon subtype_indication Limmediate expression Lsemicolon
-     { {variableshared=false; variablenames=$2; variablesubtype=$4; variableexpression=$6} };
+     { {variableshared=false; variablenames=$2; variablesubtype=$4; variableexpression=$6} }
   | Lshared Lvariable identifier_list Lcolon subtype_indication Lsemicolon
-     { {variableshared=true; variablenames=$3; variablesubtype=$5; variableexpression=empty_expression} };
+     { {variableshared=true; variablenames=$3; variablesubtype=$5; variableexpression=empty_expression} }
   | Lshared Lvariable identifier_list Lcolon subtype_indication Limmediate expression Lsemicolon
-     { {variableshared=true; variablenames=$3; variablesubtype=$5; variableexpression=$7} };
+     { {variableshared=true; variablenames=$3; variablesubtype=$5; variableexpression=$7} }
 
 /*
 (* file_declaration ::= (ignored ieee syn)                    *)
@@ -1665,11 +1665,11 @@ variable_declaration:
 */
 file_declaration:
   | Lfile identifier_list Lcolon subtype_indication Lsemicolon
-     { {filenames=$2; filesubtype=$4; fileopenkind=empty_expression; filelogicalname=empty_expression} };
+     { {filenames=$2; filesubtype=$4; fileopenkind=empty_expression; filelogicalname=empty_expression} }
   | Lfile identifier_list Lcolon subtype_indication Lis expression Lsemicolon
-     { {filenames=$2; filesubtype=$4; fileopenkind=empty_expression; filelogicalname=$6} };
+     { {filenames=$2; filesubtype=$4; fileopenkind=empty_expression; filelogicalname=$6} }
   | Lfile identifier_list Lcolon subtype_indication Lopen expression Lis expression Lsemicolon
-     { {filenames=$2; filesubtype=$4; fileopenkind=$6; filelogicalname=$8} };
+     { {filenames=$2; filesubtype=$4; fileopenkind=$6; filelogicalname=$8} }
 
 /*
 (* object_declaration ::=                  *)
@@ -1680,13 +1680,13 @@ file_declaration:
 never used
 object_declaration:
   | constant_declaration
-     { ConstantDeclaration $1 };
+     { ConstantDeclaration $1 }
   | signal_declaration
-     { SignalDeclaration $1 };
+     { SignalDeclaration $1 }
   | variable_declaration
-     { VariableDeclaration $1 };
+     { VariableDeclaration $1 }
   | file_declaration
-     { FileDeclaration $1 };
+     { FileDeclaration $1 }
 */
 
 /*
@@ -1695,7 +1695,7 @@ object_declaration:
 */
 interface_type_declaration:
   | interface_incomplete_type_declaration
-      { InterfaceIncompleteTypeDeclaration $1 };
+      { InterfaceIncompleteTypeDeclaration $1 }
 
 /*
 (* interface_incomplete_type_declaration ::=   *)
@@ -1703,7 +1703,7 @@ interface_type_declaration:
 */
 interface_incomplete_type_declaration:
   | Ltype identifier
-      { $2 };
+      { $2 }
 
 /*
 (* interface_declaration ::=                   *)
@@ -1714,9 +1714,9 @@ interface_incomplete_type_declaration:
 */
 interface_declaration:
   | interface_object_declaration
-      { InterfaceObjectDeclaration $1 };
+      { InterfaceObjectDeclaration $1 }
   | interface_type_declaration
-      { InterfaceTypeDeclaration $1 };
+      { InterfaceTypeDeclaration $1 }
 
 /*
 (* interface_object_declaration ::=                             *)
@@ -1727,15 +1727,15 @@ interface_declaration:
 */
 interface_object_declaration:
   | interface_constant_declaration
-      { InterfaceConstantDeclaration $1 };
+      { InterfaceConstantDeclaration $1 }
   | interface_signal_declaration
-      { InterfaceSignalDeclaration $1 };
+      { InterfaceSignalDeclaration $1 }
   | interface_variable_declaration
-      { InterfaceVariableDeclaration $1 };
+      { InterfaceVariableDeclaration $1 }
   | interface_file_declaration
-      { InterfaceFileDeclaration $1 };
+      { InterfaceFileDeclaration $1 }
   | interface_default_declaration
-      { InterfaceDefaultDeclaration $1 };
+      { InterfaceDefaultDeclaration $1 }
 
 /*
 (* interface_constant_declaration ::=                           *)
@@ -1745,13 +1745,13 @@ interface_object_declaration:
 */
 interface_constant_declaration:
   | Lconstant identifier_list Lcolon subtype_indication
-      { {interfaceconstantnames=$2; interfaceconstantsubtype=$4; interfaceconstantexpression=empty_expression} };
+      { {interfaceconstantnames=$2; interfaceconstantsubtype=$4; interfaceconstantexpression=empty_expression} }
   | Lconstant identifier_list Lcolon Lin subtype_indication
-      { {interfaceconstantnames=$2; interfaceconstantsubtype=$5; interfaceconstantexpression=empty_expression} };
+      { {interfaceconstantnames=$2; interfaceconstantsubtype=$5; interfaceconstantexpression=empty_expression} }
   | Lconstant identifier_list Lcolon subtype_indication Limmediate expression
-      { {interfaceconstantnames=$2; interfaceconstantsubtype=$4; interfaceconstantexpression=$6} };
+      { {interfaceconstantnames=$2; interfaceconstantsubtype=$4; interfaceconstantexpression=$6} }
   | Lconstant identifier_list Lcolon Lin subtype_indication Limmediate expression
-      { {interfaceconstantnames=$2; interfaceconstantsubtype=$5; interfaceconstantexpression=$7} };
+      { {interfaceconstantnames=$2; interfaceconstantsubtype=$5; interfaceconstantexpression=$7} }
 
 /*
 (* interface_signal_declaration ::=                             *)
@@ -1760,21 +1760,21 @@ interface_constant_declaration:
 */
 interface_signal_declaration:
   | Lsignal identifier_list Lcolon subtype_indication
-      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindDefault; interfacesignalexpression=empty_expression} };
+      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindDefault; interfacesignalexpression=empty_expression} }
   | Lsignal identifier_list Lcolon mode subtype_indication
-      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindDefault; interfacesignalexpression=empty_expression} };
+      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindDefault; interfacesignalexpression=empty_expression} }
   | Lsignal identifier_list Lcolon subtype_indication Lbus
-      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindBus; interfacesignalexpression=empty_expression} };
+      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindBus; interfacesignalexpression=empty_expression} }
   | Lsignal identifier_list Lcolon mode subtype_indication Lbus
-      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindBus; interfacesignalexpression=empty_expression} };
+      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindBus; interfacesignalexpression=empty_expression} }
   | Lsignal identifier_list Lcolon subtype_indication Limmediate expression
-      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindDefault; interfacesignalexpression=$6} };
+      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindDefault; interfacesignalexpression=$6} }
   | Lsignal identifier_list Lcolon mode subtype_indication Limmediate expression
-      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindDefault; interfacesignalexpression=$7} };
+      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindDefault; interfacesignalexpression=$7} }
   | Lsignal identifier_list Lcolon subtype_indication Lbus Limmediate expression
-      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindBus; interfacesignalexpression=$7} };
+      { {interfacesignalnames=$2; interfacesignalmode=InterfaceModeIn; interfacesignalsubtype=$4; interfacesignalkind=SignalKindBus; interfacesignalexpression=$7} }
   | Lsignal identifier_list Lcolon mode subtype_indication Lbus Limmediate expression
-      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindBus; interfacesignalexpression=$8} };
+      { {interfacesignalnames=$2; interfacesignalmode=$4; interfacesignalsubtype=$5; interfacesignalkind=SignalKindBus; interfacesignalexpression=$8} }
 
 /*
 (* interface_default_declaration ::=                             *)
@@ -1783,21 +1783,21 @@ interface_signal_declaration:
 */
 interface_default_declaration:
   | identifier_list Lcolon subtype_indication
-      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=empty_expression} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=empty_expression} }
   | identifier_list Lcolon mode subtype_indication
-      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=empty_expression} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=empty_expression} }
   | identifier_list Lcolon subtype_indication Lbus
-      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=empty_expression} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=empty_expression} }
   | identifier_list Lcolon mode subtype_indication Lbus
-      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=empty_expression} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=empty_expression} }
   | identifier_list Lcolon subtype_indication Limmediate expression
-      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=$5} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=$5} }
   | identifier_list Lcolon mode subtype_indication Limmediate expression
-      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=$6} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindDefault; interfacedefaultexpression=$6} }
   | identifier_list Lcolon subtype_indication Lbus Limmediate expression
-      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=$6} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=InterfaceModeIn; interfacedefaultsubtype=$3; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=$6} }
   | identifier_list Lcolon mode subtype_indication Lbus Limmediate expression
-      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=$7} };
+      { {interfacedefaultnames=$1; interfacedefaultmode=$3; interfacedefaultsubtype=$4; interfacedefaultkind=SignalKindBus; interfacedefaultexpression=$7} }
 
 /*
 (* interface_variable_declaration ::=                           *)
@@ -1806,13 +1806,13 @@ interface_default_declaration:
 */
 interface_variable_declaration:
   | Lvariable identifier_list Lcolon subtype_indication
-      { {interfacevariablenames=$2; interfacevariablemode=InterfaceModeIn; interfacevariablesubtype=$4; interfacevariableexpression=empty_expression} };
+      { {interfacevariablenames=$2; interfacevariablemode=InterfaceModeIn; interfacevariablesubtype=$4; interfacevariableexpression=empty_expression} }
   | Lvariable identifier_list Lcolon mode subtype_indication
-      { {interfacevariablenames=$2; interfacevariablemode=$4; interfacevariablesubtype=$5; interfacevariableexpression=empty_expression} };
+      { {interfacevariablenames=$2; interfacevariablemode=$4; interfacevariablesubtype=$5; interfacevariableexpression=empty_expression} }
   | Lvariable identifier_list Lcolon subtype_indication Limmediate expression
-      { {interfacevariablenames=$2; interfacevariablemode=InterfaceModeIn; interfacevariablesubtype=$4; interfacevariableexpression=$6} };
+      { {interfacevariablenames=$2; interfacevariablemode=InterfaceModeIn; interfacevariablesubtype=$4; interfacevariableexpression=$6} }
   | Lvariable identifier_list Lcolon mode subtype_indication Limmediate expression
-      { {interfacevariablenames=$2; interfacevariablemode=$4; interfacevariablesubtype=$5; interfacevariableexpression=$7} };
+      { {interfacevariablenames=$2; interfacevariablemode=$4; interfacevariablesubtype=$5; interfacevariableexpression=$7} }
 
 /*
 (* interface_file_declaration ::= (ieee syn not supported)      *)
@@ -1820,7 +1820,7 @@ interface_variable_declaration:
 */
 interface_file_declaration:
   | Lfile identifier_list Lcolon subtype_indication
-      { {interfacefilenames=$2; interfacefilesubtype=$4} };
+      { {interfacefilenames=$2; interfacefilesubtype=$4} }
 
 /*
 (* mode ::= in | out | inout | buffer | linkage                 *)
@@ -1828,13 +1828,13 @@ interface_file_declaration:
 */
 mode:
   | Lin
-      { InterfaceModeIn };
+      { InterfaceModeIn }
   | Lout
-      { InterfaceModeOut };
+      { InterfaceModeOut }
   | Linout
-      { InterfaceModeInOut };
+      { InterfaceModeInOut }
   | Lbuffer
-      { InterfaceModeBuffer };
+      { InterfaceModeBuffer }
 
 /*
 (* interface_list ::=                          *)
@@ -1842,16 +1842,16 @@ mode:
 */
 interface_list:
   | interface_element
-      { [$1] };
+      { [$1] }
   | interface_list Lsemicolon interface_element
-      { ($1 @ [$3]) };
+      { ($1 @ [$3]) }
 
 /*
 (* interface_element ::= interface_declaration *)
 */
 interface_element:
   | interface_declaration
-      { $1 };
+      { $1 }
 
 /*
 (* alias_declaration ::=                           *)
@@ -1860,13 +1860,13 @@ interface_element:
 */
 alias_declaration:
   | Lalias alias_designator Lis expression Lsemicolon
-      { {aliasdesignator=$2; aliassubtype=empty_subtype_indication; aliasexpression=$4; aliassignature=None} };
+      { {aliasdesignator=$2; aliassubtype=empty_subtype_indication; aliasexpression=$4; aliassignature=None} }
   | Lalias alias_designator Lcolon subtype_indication Lis expression Lsemicolon
-      { {aliasdesignator=$2; aliassubtype=$4; aliasexpression=$6; aliassignature=None} };
+      { {aliasdesignator=$2; aliassubtype=$4; aliasexpression=$6; aliassignature=None} }
   | Lalias alias_designator Lis expression signature Lsemicolon
-      { {aliasdesignator=$2; aliassubtype=empty_subtype_indication; aliasexpression=$4; aliassignature=Some $5} };
+      { {aliasdesignator=$2; aliassubtype=empty_subtype_indication; aliasexpression=$4; aliassignature=Some $5} }
   | Lalias alias_designator Lcolon subtype_indication Lis expression signature Lsemicolon
-      { {aliasdesignator=$2; aliassubtype=$4; aliasexpression=$6; aliassignature=Some $7} };
+      { {aliasdesignator=$2; aliassubtype=$4; aliasexpression=$6; aliassignature=Some $7} }
 
 /*
 (* alias_designator ::= identifier                 *)
@@ -1874,7 +1874,7 @@ alias_declaration:
 */
 alias_designator:
   | designator
-      { $1 };
+      { $1 }
 
 /*
 (* attribute_specification ::=                        *)
@@ -1883,7 +1883,7 @@ alias_designator:
 */
 attribute_specification:
   | Lattribute identifier Lof entity_specification Lis expression Lsemicolon
-      { {attributedesignator=$2; attributeentity=$4; attributeexpression=$6} };
+      { {attributedesignator=$2; attributeentity=$4; attributeexpression=$6} }
 
 /*
 (* attribute_declaration ::=             *)
@@ -1891,7 +1891,7 @@ attribute_specification:
 */
 attribute_declaration:
   | Lattribute identifier Lcolon type_mark Lsemicolon
-      { {attributename=$2; attributetypename=$4} };
+      { {attributename=$2; attributetypename=$4} }
 
 /*
 (* entity_specification ::=                           *)
@@ -1899,7 +1899,7 @@ attribute_declaration:
 */
 entity_specification:
   | entity_name_list Lcolon entity_class
-      { {entitynames=$1; entityclass=$3} };
+      { {entitynames=$1; entityclass=$3} }
 
 /*
 (* entity_class ::=                                   *)
@@ -1912,37 +1912,37 @@ entity_specification:
 */
 entity_class:
   | Lentity
-      { ClassEntity };
+      { ClassEntity }
   | Larchitecture
-      { ClassArchitecture };
+      { ClassArchitecture }
   | Lconfiguration
-      { ClassConfiguration };
+      { ClassConfiguration }
   | Lprocedure
-      { ClassProcedure };
+      { ClassProcedure }
   | Lfunction
-      { ClassFunction };
+      { ClassFunction }
   | Lpackage
-      { ClassPackage };
+      { ClassPackage }
   | Ltype
-      { ClassType };
+      { ClassType }
   | Lsubtype
-      { ClassSubType };
+      { ClassSubType }
   | Lconstant
-      { ClassConstant };
+      { ClassConstant }
   | Lsignal
-      { ClassSignal };
+      { ClassSignal }
   | Lvariable
-      { ClassVariable };
+      { ClassVariable }
   | Lcomponent
-      { ClassComponent };
+      { ClassComponent }
   | Llabel
-      { ClassLabel };
+      { ClassLabel }
   | Lliteral
-      { ClassLiteral };
+      { ClassLiteral }
   | Lunits
-      { ClassUnits };
+      { ClassUnits }
   | Lfile
-      { ClassFile };
+      { ClassFile }
 
 /*
 (* entity_name_list ::=                               *)
@@ -1952,24 +1952,24 @@ entity_class:
 */
 entity_name_list:
   | entity_designator
-      { EntityDesignator [$1] };
+      { EntityDesignator [$1] }
   | entity_name_list Lcomma entity_designator
       { match $1 with
           | EntityDesignator l -> EntityDesignator (l @ [$3]);
-          | _                  -> raise Parsing.Parse_error; };
+          | _                  -> raise Parsing.Parse_error; }
   | Lothers
-      { EntityOthers };
+      { EntityOthers }
   | Lall
-      { EntityAll };
+      { EntityAll }
 
 /*
 (* entity_designator ::= entity_tag [signature]       *)
 */
 entity_designator:
   | entity_tag
-      { {entitytag=$1; entitysignature=None} };
+      { {entitytag=$1; entitysignature=None} }
   | entity_tag signature
-      { {entitytag=$1; entitysignature=Some $2 } };
+      { {entitytag=$1; entitysignature=Some $2 } }
 
 /*
 (* entity_tag ::=                                     *)
@@ -1979,11 +1979,11 @@ entity_designator:
 */
 entity_tag:
   | simple_name
-      { EntityTagSimpleName $1 };
+      { EntityTagSimpleName $1 }
   | character_literal
-      { EntityTagCharacterLiteral $1 };
+      { EntityTagCharacterLiteral $1 }
   | Lstring
-      { EntityTagOperatorSymbol $1 };
+      { EntityTagOperatorSymbol $1 }
 
 /*
 (* wait_statement ::=                               *)
@@ -1992,44 +1992,44 @@ entity_tag:
 */
 wait_statement:
   | Lwait Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=empty_expression} };
+      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=empty_expression} }
   | label Lcolon Lwait Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=empty_expression} };
+      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=empty_expression} }
   | Lwait sensitivity_clause Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=empty_condition; waittimeout=empty_expression} };
+      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=empty_condition; waittimeout=empty_expression} }
   | label Lcolon Lwait sensitivity_clause Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=empty_condition; waittimeout=empty_expression} };
+      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=empty_condition; waittimeout=empty_expression} }
   | Lwait condition_clause Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=$2; waittimeout=empty_expression} };
+      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=$2; waittimeout=empty_expression} }
   | label Lcolon Lwait condition_clause Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=$4; waittimeout=empty_expression} };
+      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=$4; waittimeout=empty_expression} }
   | Lwait sensitivity_clause condition_clause Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=$3; waittimeout=empty_expression} };
+      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=$3; waittimeout=empty_expression} }
   | label Lcolon Lwait sensitivity_clause condition_clause Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=$5; waittimeout=empty_expression} };
+      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=$5; waittimeout=empty_expression} }
   | Lwait timeout_clause Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=$2} };
+      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=$2} }
   | label Lcolon Lwait timeout_clause Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=$4} };
+      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=empty_condition; waittimeout=$4} }
   | Lwait sensitivity_clause timeout_clause Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=empty_condition; waittimeout=$3} };
+      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=empty_condition; waittimeout=$3} }
   | label Lcolon Lwait sensitivity_clause timeout_clause Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=empty_condition; waittimeout=$5} };
+      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=empty_condition; waittimeout=$5} }
   | Lwait condition_clause timeout_clause Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=$2; waittimeout=$3} };
+      { {waitlabelname=empty_label; waitsensitivity=[]; waitcondition=$2; waittimeout=$3} }
   | label Lcolon Lwait condition_clause timeout_clause Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=$4; waittimeout=$5} };
+      { {waitlabelname=$1; waitsensitivity=[]; waitcondition=$4; waittimeout=$5} }
   | Lwait sensitivity_clause condition_clause timeout_clause Lsemicolon
-      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=$3; waittimeout=$4} };
+      { {waitlabelname=empty_label; waitsensitivity=$2; waitcondition=$3; waittimeout=$4} }
   | label Lcolon Lwait sensitivity_clause condition_clause timeout_clause Lsemicolon
-      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=$5; waittimeout=$6} };
+      { {waitlabelname=$1; waitsensitivity=$4; waitcondition=$5; waittimeout=$6} }
 
 /*
 (* sensitivity_clause ::= on sensitivity_list       *)
 */
 sensitivity_clause:
   | Lon sensitivity_list
-      { $2 };
+      { $2 }
 
 /*
 (* sensitivity_list ::= signal_name {, signal_name} *)
@@ -2037,7 +2037,7 @@ signals may be indexed or sliced
 */
 sensitivity_list:
   | expression_list
-      { $1 };
+      { $1 }
 
 /*
 (* condition_clause ::= until condition             *)
@@ -2045,23 +2045,23 @@ sensitivity_list:
 */
 condition_clause:
   | Luntil condition
-      { $2 };
+      { $2 }
 
 /*
 (* timeout_clause ::= for time_expression           *)
 */
 timeout_clause:
   | Lfor expression
-      { $2 };
+      { $2 }
 
 /*
 (* assertion_statement ::= [ label: ] assertion ; *)
 */
 assertion_statement:
   | assertion Lsemicolon
-      { {assertionlabelname=empty_label; assertion=$1} };
+      { {assertionlabelname=empty_label; assertion=$1} }
   | label Lcolon assertion Lsemicolon
-      { {assertionlabelname=$1; assertion=$3} };
+      { {assertionlabelname=$1; assertion=$3} }
 
 /*
 (* assertion ::=                                  *)
@@ -2071,13 +2071,13 @@ assertion_statement:
 */
 assertion:
   | Lassert condition
-      { {assertioncondition=$2; assertionreport=empty_expression; assertionseverity=empty_expression} };
+      { {assertioncondition=$2; assertionreport=empty_expression; assertionseverity=empty_expression} }
   | Lassert condition Lreport expression
-      { {assertioncondition=$2; assertionreport=$4; assertionseverity=empty_expression} };
+      { {assertioncondition=$2; assertionreport=$4; assertionseverity=empty_expression} }
   | Lassert condition Lseverity expression
-      { {assertioncondition=$2; assertionreport=empty_expression; assertionseverity=$4} };
+      { {assertioncondition=$2; assertionreport=empty_expression; assertionseverity=$4} }
   | Lassert condition Lreport expression Lseverity expression
-      { {assertioncondition=$2; assertionreport=$4; assertionseverity=$6} };
+      { {assertioncondition=$2; assertionreport=$4; assertionseverity=$6} }
 
 /*
 (* report_statement ::=            *)
@@ -2087,13 +2087,13 @@ assertion:
 */
 report_statement:
   | Lreport expression Lsemicolon
-      { {reportlabelname=empty_label; reportexpression=$2; reportseverity=empty_expression} };
+      { {reportlabelname=empty_label; reportexpression=$2; reportseverity=empty_expression} }
   | label Lcolon Lreport expression Lsemicolon
-      { {reportlabelname=$1; reportexpression=$4; reportseverity=empty_expression} };
+      { {reportlabelname=$1; reportexpression=$4; reportseverity=empty_expression} }
   | Lreport expression Lseverity expression Lsemicolon
-      { {reportlabelname=empty_label; reportexpression=$2; reportseverity=$4} };
+      { {reportlabelname=empty_label; reportexpression=$2; reportseverity=$4} }
   | label Lcolon Lreport expression Lseverity expression Lsemicolon
-      { {reportlabelname=$1; reportexpression=$4; reportseverity=$6} };
+      { {reportlabelname=$1; reportexpression=$4; reportseverity=$6} }
 
 /*
 (* signal_assignment_statement ::=                      *)
@@ -2103,11 +2103,11 @@ report_statement:
 */
 signal_assignment_statement:
   | simple_signal_assignment_statement
-      { SimpleSignalAssignment $1 };
+      { SimpleSignalAssignment $1 }
   | conditional_signal_assignment_statement
-      { ConditionalSignalAssignment $1 };
+      { ConditionalSignalAssignment $1 }
   | selected_signal_assignment_statement
-      { SelectedSignalAssignment $1 };
+      { SelectedSignalAssignment $1 }
 
 /*
 (* simple_signal_assignment ::=        *)
@@ -2117,7 +2117,7 @@ signal_assignment_statement:
 */
 simple_signal_assignment_statement:
   | simple_waveform_assignment_statement
-      { $1 };
+      { $1 }
 
 /*
 (* simple_waveform_assignment ::=            *)
@@ -2128,22 +2128,22 @@ simple_waveform_assignment_statement:
       { {simplesignalassignmentlabelname=empty_label;
          simplesignalassignmenttarget=$1;
          simplesignalassignmentdelay=DelayNone;
-         simplesignalassignmentwaveform=$4} };
+         simplesignalassignmentwaveform=$4} }
   | label Lcolon target Lless Lequal waveform Lsemicolon
       { {simplesignalassignmentlabelname=$1;
          simplesignalassignmenttarget=$3;
          simplesignalassignmentdelay=DelayNone;
-         simplesignalassignmentwaveform=$6} };
+         simplesignalassignmentwaveform=$6} }
   | target Lless Lequal delay_mechanism waveform Lsemicolon
       { {simplesignalassignmentlabelname=empty_label;
          simplesignalassignmenttarget=$1;
          simplesignalassignmentdelay=$4;
-         simplesignalassignmentwaveform=$5} };
+         simplesignalassignmentwaveform=$5} }
   | label Lcolon target Lless Lequal delay_mechanism waveform Lsemicolon
       { {simplesignalassignmentlabelname=$1;
          simplesignalassignmenttarget=$3;
          simplesignalassignmentdelay=$6;
-         simplesignalassignmentwaveform=$7} };
+         simplesignalassignmentwaveform=$7} }
 
 /*
 (* conditional_signal_assignment ::=                       *)
@@ -2152,7 +2152,7 @@ simple_waveform_assignment_statement:
 */
 conditional_signal_assignment_statement:
   | conditional_waveform_assignment_statement
-      { $1 };
+      { $1 }
 
 /*
 (* conditional_waveform_assignment ::=                     *)
@@ -2163,22 +2163,22 @@ conditional_waveform_assignment_statement:
       { {conditionalsignalassignmentlabelname=empty_label;
          conditionalsignalassignmenttarget=$1;
          conditionalsignalassignmentdelay=DelayNone;
-         conditionalsignalassignmentwaveforms=$4} };
+         conditionalsignalassignmentwaveforms=$4} }
   | label Lcolon target Lless Lequal conditional_waveforms Lsemicolon
       { {conditionalsignalassignmentlabelname=$1;
          conditionalsignalassignmenttarget=$3;
          conditionalsignalassignmentdelay=DelayNone;
-         conditionalsignalassignmentwaveforms=$6} };
+         conditionalsignalassignmentwaveforms=$6} }
   | target Lless Lequal delay_mechanism conditional_waveforms Lsemicolon
       { {conditionalsignalassignmentlabelname=empty_label;
          conditionalsignalassignmenttarget=$1;
          conditionalsignalassignmentdelay=$4;
-         conditionalsignalassignmentwaveforms=$5} };
+         conditionalsignalassignmentwaveforms=$5} }
   | label Lcolon target Lless Lequal delay_mechanism conditional_waveforms Lsemicolon
       { {conditionalsignalassignmentlabelname=$1;
          conditionalsignalassignmenttarget=$3;
          conditionalsignalassignmentdelay=$6;
-         conditionalsignalassignmentwaveforms=$7} };
+         conditionalsignalassignmentwaveforms=$7} }
 
 /*
 (* selected_signal_assignment ::=                         *)
@@ -2187,7 +2187,7 @@ conditional_waveform_assignment_statement:
 */
 selected_signal_assignment_statement:
   | selected_waveform_assignment_statement
-      { $1 };
+      { $1 }
 
 /*
 (* selected_waveform_assignment ::=                       *)
@@ -2201,56 +2201,56 @@ selected_waveform_assignment_statement:
          selectedsignalassignmentselector=$2;
          selectedsignalassignmentkind=OrdinarySelection;
          selectedsignalassignmentdelay=DelayNone;
-         selectedsignalassignmentwaveforms=$7} };
+         selectedsignalassignmentwaveforms=$7} }
   | label Lcolon Lwith selector Lselect target Lless Lequal selected_waveforms Lsemicolon
       { {selectedsignalassignmentlabelname=$1;
          selectedsignalassignmenttarget=$6;
          selectedsignalassignmentselector=$4;
          selectedsignalassignmentkind=OrdinarySelection;
          selectedsignalassignmentdelay=DelayNone;
-         selectedsignalassignmentwaveforms=$9} };
+         selectedsignalassignmentwaveforms=$9} }
   | Lwith selector Lselect target Lless Lequal delay_mechanism selected_waveforms Lsemicolon
       { {selectedsignalassignmentlabelname=empty_label;
          selectedsignalassignmenttarget=$4;
          selectedsignalassignmentselector=$2;
          selectedsignalassignmentkind=OrdinarySelection;
          selectedsignalassignmentdelay=$7;
-         selectedsignalassignmentwaveforms=$8} };
+         selectedsignalassignmentwaveforms=$8} }
   | label Lcolon Lwith selector Lselect target Lless Lequal delay_mechanism selected_waveforms Lsemicolon
       { {selectedsignalassignmentlabelname=$1;
          selectedsignalassignmenttarget=$6;
          selectedsignalassignmentselector=$4;
          selectedsignalassignmentkind=OrdinarySelection;
          selectedsignalassignmentdelay=$9;
-         selectedsignalassignmentwaveforms=$10} };
+         selectedsignalassignmentwaveforms=$10} }
   | Lwith selector Lselect Lquestionmark target Lless Lequal selected_waveforms Lsemicolon
       { {selectedsignalassignmentlabelname=empty_label;
          selectedsignalassignmenttarget=$5;
          selectedsignalassignmentselector=$2;
          selectedsignalassignmentkind=MatchingSelection;
          selectedsignalassignmentdelay=DelayNone;
-         selectedsignalassignmentwaveforms=$8} };
+         selectedsignalassignmentwaveforms=$8} }
   | label Lcolon Lwith selector Lselect Lquestionmark target Lless Lequal selected_waveforms Lsemicolon
       { {selectedsignalassignmentlabelname=$1;
          selectedsignalassignmenttarget=$7;
          selectedsignalassignmentselector=$4;
          selectedsignalassignmentkind=MatchingSelection;
          selectedsignalassignmentdelay=DelayNone;
-         selectedsignalassignmentwaveforms=$10} };
+         selectedsignalassignmentwaveforms=$10} }
   | Lwith selector Lselect Lquestionmark target Lless Lequal delay_mechanism selected_waveforms Lsemicolon
       { {selectedsignalassignmentlabelname=empty_label;
          selectedsignalassignmenttarget=$5;
          selectedsignalassignmentselector=$2;
          selectedsignalassignmentkind=MatchingSelection;
          selectedsignalassignmentdelay=$8;
-         selectedsignalassignmentwaveforms=$9} };
+         selectedsignalassignmentwaveforms=$9} }
   | label Lcolon Lwith selector Lselect Lquestionmark target Lless Lequal delay_mechanism selected_waveforms Lsemicolon
       { {selectedsignalassignmentlabelname=$1;
          selectedsignalassignmenttarget=$7;
          selectedsignalassignmentselector=$4;
          selectedsignalassignmentkind=MatchingSelection;
          selectedsignalassignmentdelay=$10;
-         selectedsignalassignmentwaveforms=$11} };
+         selectedsignalassignmentwaveforms=$11} }
 
 /*
 (* delay_mechanism ::= (ieee syn ignored)                *)
@@ -2259,11 +2259,11 @@ selected_waveform_assignment_statement:
 */
 delay_mechanism:
   | Ltransport
-      { DelayTransport };
+      { DelayTransport }
   | Linertial
-      { DelayInertial empty_expression };
+      { DelayInertial empty_expression }
   | Lreject expression Linertial
-      { DelayInertial $2 };
+      { DelayInertial $2 }
 
 /*
 (* target ::=                                            *)
@@ -2272,19 +2272,19 @@ delay_mechanism:
 */
 target:
   | name
-      { TargetName $1};
+      { TargetName $1}
   | dotted
-      { TargetDotted $1};
+      { TargetDotted $1}
   | name parameters
-      { TargetNameParameters ($1,$2) };
+      { TargetNameParameters ($1,$2) }
 /*
   | name Ldot suffix
-      { SelectTargetName ($1,$3) };
+      { SelectTargetName ($1,$3) }
   | name parameters Ldot suffix
-      { SelectTargetNameParameters ($1,$2,$4) };
+      { SelectTargetNameParameters ($1,$2,$4) }
 */
   | aggregate
-      { TargetAggregate $1};
+      { TargetAggregate $1}
 
 /*
 (* waveform ::=                                          *)
@@ -2294,13 +2294,13 @@ target:
 */
 waveform:
   | waveform_element
-      { WaveForms [$1] };
+      { WaveForms [$1] }
   | waveform Lcomma waveform_element
       { match $1 with
           | WaveForms l -> WaveForms (l @ [$3])
-          | _           -> raise Parsing.Parse_error};
+          | _           -> raise Parsing.Parse_error}
   | Lunaffected
-      { Unaffected };
+      { Unaffected }
 
 /*
 (* waveform_element ::=                                  *)
@@ -2309,13 +2309,13 @@ waveform:
 */
 waveform_element:
   | expression
-      { {valueexpression=$1; timeexpression=empty_expression} };
+      { {valueexpression=$1; timeexpression=empty_expression} }
   | expression Lafter expression
-      { {valueexpression=$1; timeexpression=$3} };
+      { {valueexpression=$1; timeexpression=$3} }
   | Lnull
-      { {valueexpression=empty_expression; timeexpression=empty_expression} };
+      { {valueexpression=empty_expression; timeexpression=empty_expression} }
   | Lnull Lafter expression
-      { {valueexpression=empty_expression; timeexpression=$3} };
+      { {valueexpression=empty_expression; timeexpression=$3} }
 
 /*
 (* variable_assignment_statement ::=               *)
@@ -2325,11 +2325,11 @@ waveform_element:
 */
 variable_assignment_statement:
   | simple_variable_assignment
-      { SimpleVariableAssignment $1 };
+      { SimpleVariableAssignment $1 }
   | conditional_variable_assignment
-      { ConditionalVariableAssignment $1 };
+      { ConditionalVariableAssignment $1 }
   | selected_variable_assignment
-      { SelectedVariableAssignment $1 };
+      { SelectedVariableAssignment $1 }
 
 /*
 (* simple_variable_assignment ::= *)
@@ -2339,11 +2339,11 @@ simple_variable_assignment:
   | target Limmediate expression Lsemicolon
       { {simplevariableassignmentlabelname=empty_label;
          simplevariableassignmenttarget=$1;
-         simplevariableassignmentexpression=$3} };
+         simplevariableassignmentexpression=$3} }
   | label Lcolon target Limmediate expression Lsemicolon
       { {simplevariableassignmentlabelname=$1;
          simplevariableassignmenttarget=$3;
-         simplevariableassignmentexpression=$5} };
+         simplevariableassignmentexpression=$5} }
 
 /*
 (* conditional_variable_assignment ::=   *)
@@ -2353,11 +2353,11 @@ conditional_variable_assignment:
   | target Limmediate conditional_expressions Lsemicolon
       { {conditionalvariableassignmentlabelname=empty_label;
          conditionalvariableassignmenttarget=$1;
-         conditionalvariableassignmentexpressions=$3} };
+         conditionalvariableassignmentexpressions=$3} }
   | label Lcolon target Limmediate conditional_expressions Lsemicolon
       { {conditionalvariableassignmentlabelname=$1;
          conditionalvariableassignmenttarget=$3;
-         conditionalvariableassignmentexpressions=$5} };
+         conditionalvariableassignmentexpressions=$5} }
 
 /*
 (* conditional_expressions ::=          *)
@@ -2368,19 +2368,19 @@ conditional_variable_assignment:
 conditional_expressions:
   | expression Lwhen condition
       { [{conditionalexpressionvalue=$1;
-          conditionalexpressioncondition=$3}] };
+          conditionalexpressioncondition=$3}] }
   | conditional_expressions Lelse expression
       { if (List.nth $1 (-1 + List.length $1)).conditionalexpressioncondition <> empty_condition then
           ($1 @ [{conditionalexpressionvalue=$3;
                   conditionalexpressioncondition=empty_condition}])
         else
-          raise Parsing.Parse_error };
+          raise Parsing.Parse_error }
   | conditional_expressions Lelse expression Lwhen condition
       { if (List.nth $1 (-1 + List.length $1)).conditionalexpressioncondition <> empty_condition then
           ($1 @ [{conditionalexpressionvalue=$3;
                   conditionalexpressioncondition=$5}])
         else
-          raise Parsing.Parse_error };
+          raise Parsing.Parse_error }
 
 /*
 (* selected_variable_assignment ::=      *)
@@ -2393,25 +2393,25 @@ selected_variable_assignment:
          selectedvariableassignmenttarget=$4;
          selectedvariableassignmentselector=$2;
          selectedvariableassignmentkind=OrdinarySelection;
-         selectedvariableassignmentexpressions=$6} };
+         selectedvariableassignmentexpressions=$6} }
   | label Lcolon Lwith selector Lselect target Limmediate selected_expressions Lsemicolon
       { {selectedvariableassignmentlabelname=$1;
          selectedvariableassignmenttarget=$6;
          selectedvariableassignmentselector=$4;
          selectedvariableassignmentkind=OrdinarySelection;
-         selectedvariableassignmentexpressions=$8} };
+         selectedvariableassignmentexpressions=$8} }
   | Lwith selector Lselect Lquestionmark target Limmediate selected_expressions Lsemicolon
       { {selectedvariableassignmentlabelname=empty_label;
          selectedvariableassignmenttarget=$5;
          selectedvariableassignmentselector=$2;
          selectedvariableassignmentkind=MatchingSelection;
-         selectedvariableassignmentexpressions=$7} };
+         selectedvariableassignmentexpressions=$7} }
   | label Lcolon Lwith selector Lselect Lquestionmark target Limmediate selected_expressions Lsemicolon
       { {selectedvariableassignmentlabelname=$1;
          selectedvariableassignmenttarget=$7;
          selectedvariableassignmentselector=$4;
          selectedvariableassignmentkind=MatchingSelection;
-         selectedvariableassignmentexpressions=$9} };
+         selectedvariableassignmentexpressions=$9} }
 
 /*
 (* selected_expressions ::=        *)
@@ -2421,10 +2421,10 @@ selected_variable_assignment:
 selected_expressions:
   | expression Lwhen choices
       { [{selectedexpressionvalue=$1;
-          selectedexpressionchoices=$3}] };
+          selectedexpressionchoices=$3}] }
   | selected_expressions Lcomma expression Lwhen choices
       { ($1 @ [{selectedexpressionvalue=$3;
-                selectedexpressionchoices=$5}]) };
+                selectedexpressionchoices=$5}]) }
 
 /*
 (* procedure_call_statement ::=                   *)
@@ -2432,9 +2432,9 @@ selected_expressions:
 */
 procedure_call_statement:
   | procedure_call Lsemicolon
-      { {procedurecalllabelname=empty_label; procedurecall=$1} };
+      { {procedurecalllabelname=empty_label; procedurecall=$1} }
   | label Lcolon procedure_call Lsemicolon
-      { {procedurecalllabelname=$1; procedurecall=$3} };
+      { {procedurecalllabelname=$1; procedurecall=$3} }
 
 /*
 (* procedure_call ::=                             *)
@@ -2442,9 +2442,9 @@ procedure_call_statement:
 */
 procedure_call:
   | name
-      { {procedurecallname=$1; procedurecallparameter=[]} };
+      { {procedurecallname=$1; procedurecallparameter=[]} }
   | name parameter
-      { {procedurecallname=$1; procedurecallparameter=$2} };
+      { {procedurecallname=$1; procedurecallparameter=$2} }
 
 /*
 (* if_statement ::=               *)
@@ -2459,37 +2459,37 @@ procedure_call:
 */
 if_statement:
   | Lif condition then_statements Lend Lif Lsemicolon
-      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=ElseNone} };
+      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=ElseNone} }
   | label Lcolon Lif condition then_statements Lend Lif Lsemicolon
-      { {iflabelname=$1; ifcondition=$4; thenstatements=$5; elsestatements=ElseNone} };
+      { {iflabelname=$1; ifcondition=$4; thenstatements=$5; elsestatements=ElseNone} }
   | label Lcolon Lif condition then_statements Lend Lif label Lsemicolon
-      { {iflabelname=check_labels $1 $8; ifcondition=$4; thenstatements=$5; elsestatements=ElseNone} };
+      { {iflabelname=check_labels $1 $8; ifcondition=$4; thenstatements=$5; elsestatements=ElseNone} }
   | Lif condition then_statements else_statements Lend Lif Lsemicolon
-      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=$4} };
+      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=$4} }
   | label Lcolon Lif condition then_statements else_statements Lend Lif Lsemicolon
-      { {iflabelname=$1; ifcondition=$4; thenstatements=$5; elsestatements=$6} };
+      { {iflabelname=$1; ifcondition=$4; thenstatements=$5; elsestatements=$6} }
   | label Lcolon Lif condition then_statements else_statements Lend Lif label Lsemicolon
-      { {iflabelname=check_labels $1 $9; ifcondition=$4; thenstatements=$5; elsestatements=$6} };
+      { {iflabelname=check_labels $1 $9; ifcondition=$4; thenstatements=$5; elsestatements=$6} }
 
 then_statements:
   | Lthen
-      { [] };
+      { [] }
   | Lthen sequence_of_statements
-      { $2 };
+      { $2 }
 
 else_statements:
   | Lelse
-      { ElseNone };
+      { ElseNone }
   | Lelse sequence_of_statements
-      { Else $2 };
+      { Else $2 }
   | elsif_statements
-      { Elsif $1 };
+      { Elsif $1 }
 
 elsif_statements:
   | Lelsif condition then_statements
-      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=ElseNone} };
+      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=ElseNone} }
   | Lelsif condition then_statements else_statements
-      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=$4} };
+      { {iflabelname=empty_label; ifcondition=$2; thenstatements=$3; elsestatements=$4} }
 
 /*
 (* case_statement ::=                 *)
@@ -2504,32 +2504,32 @@ case_statement:
       { {caselabelname=empty_label;
          caseselector=$2;
          casekind=OrdinarySelection;
-         casealternatives=$4} };
+         casealternatives=$4} }
   | label Lcolon Lcase selector Lis case_statement_alternative_list Lend Lcase Lsemicolon
       { {caselabelname=$1;
          caseselector=$4;
          casekind=OrdinarySelection;
-         casealternatives=$6} };
+         casealternatives=$6} }
   | label Lcolon Lcase selector Lis case_statement_alternative_list Lend Lcase label Lsemicolon
       { {caselabelname=check_labels $1 $9;
          caseselector=$4;
          casekind=OrdinarySelection;
-         casealternatives=$6} };
+         casealternatives=$6} }
   | Lcase Lquestionmark selector Lis case_statement_alternative_list Lend Lcase Lquestionmark Lsemicolon
       { {caselabelname=empty_label;
          caseselector=$3;
          casekind=MatchingSelection;
-         casealternatives=$5} };
+         casealternatives=$5} }
   | label Lquestionmark Lcolon Lcase selector Lis case_statement_alternative_list Lend Lcase Lquestionmark Lsemicolon
       { {caselabelname=$1;
          caseselector=$5;
          casekind=MatchingSelection;
-         casealternatives=$7} };
+         casealternatives=$7} }
   | label Lquestionmark Lcolon Lcase selector Lis case_statement_alternative_list Lend Lcase Lquestionmark label Lsemicolon
       { {caselabelname=check_labels $1 $11;
          caseselector=$5;
          casekind=MatchingSelection;
-         casealternatives=$7} };
+         casealternatives=$7} }
 
 /*
 (* case_statement_alternative ::=     *)
@@ -2538,15 +2538,15 @@ case_statement:
 */
 case_statement_alternative:
   | Lwhen choices Lassociation
-      { {casechoices=$2; casestatements=[]} };
+      { {casechoices=$2; casestatements=[]} }
   | Lwhen choices Lassociation sequence_of_statements
-      { {casechoices=$2; casestatements=$4} };
+      { {casechoices=$2; casestatements=$4} }
 
 case_statement_alternative_list:
   | case_statement_alternative
-      { [$1] };
+      { [$1] }
   | case_statement_alternative_list case_statement_alternative
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* loop_statement ::=                           *)
@@ -2557,23 +2557,23 @@ case_statement_alternative_list:
 */
 loop_statement:
   | loop_statements Lend Lloop Lsemicolon
-      { {looplabelname=empty_label; loopiteration=AlwaysLoop; loopstatements=$1} };
+      { {looplabelname=empty_label; loopiteration=AlwaysLoop; loopstatements=$1} }
   | label Lcolon loop_statements Lend Lloop Lsemicolon
-      { {looplabelname=$1; loopiteration=AlwaysLoop; loopstatements=$3} };
+      { {looplabelname=$1; loopiteration=AlwaysLoop; loopstatements=$3} }
   | label Lcolon loop_statements Lend Lloop label Lsemicolon
-      { {looplabelname=check_labels $1 $6; loopiteration=AlwaysLoop; loopstatements=$3} };
+      { {looplabelname=check_labels $1 $6; loopiteration=AlwaysLoop; loopstatements=$3} }
   | iteration_scheme loop_statements Lend Lloop Lsemicolon
-      { {looplabelname=empty_label; loopiteration=$1; loopstatements=$2} };
+      { {looplabelname=empty_label; loopiteration=$1; loopstatements=$2} }
   | label Lcolon iteration_scheme loop_statements Lend Lloop Lsemicolon
-      { {looplabelname=$1; loopiteration=$3; loopstatements=$4} };
+      { {looplabelname=$1; loopiteration=$3; loopstatements=$4} }
   | label Lcolon iteration_scheme loop_statements Lend Lloop label Lsemicolon
-      { {looplabelname=check_labels $1 $7; loopiteration=$3; loopstatements=$4} };
+      { {looplabelname=check_labels $1 $7; loopiteration=$3; loopstatements=$4} }
 
 loop_statements:
   | Lloop
-      { [] };
+      { [] }
   | Lloop sequence_of_statements
-      { $2 };
+      { $2 }
 
 /*
 (* iteration_scheme ::=                         *)
@@ -2582,9 +2582,9 @@ loop_statements:
 */
 iteration_scheme:
   | Lwhile condition
-      { WhileLoop $2 };
+      { WhileLoop $2 }
   | Lfor parameter_specification
-      { ForLoop $2 };
+      { ForLoop $2 }
 
 /*
 (* parameter_specification ::=                  *)
@@ -2592,7 +2592,7 @@ iteration_scheme:
 */
 parameter_specification:
   | identifier Lin discrete_range
-      { {parameteridentifier=$1; parameterrange=$3} };
+      { {parameteridentifier=$1; parameterrange=$3} }
 
 /*
 (* next_statement ::=                         *)
@@ -2601,21 +2601,21 @@ parameter_specification:
 */
 next_statement:
   | Lnext Lsemicolon
-      { {nextlabelname=empty_label; nextlooplabelname=empty_label; nextcondition=empty_condition} };
+      { {nextlabelname=empty_label; nextlooplabelname=empty_label; nextcondition=empty_condition} }
   | label Lcolon Lnext Lsemicolon
-      { {nextlabelname=$1; nextlooplabelname=empty_label; nextcondition=empty_condition} };
+      { {nextlabelname=$1; nextlooplabelname=empty_label; nextcondition=empty_condition} }
   | Lnext label Lsemicolon
-      { {nextlabelname=empty_label; nextlooplabelname=$2; nextcondition=empty_condition} };
+      { {nextlabelname=empty_label; nextlooplabelname=$2; nextcondition=empty_condition} }
   | label Lcolon Lnext label Lsemicolon
-      { {nextlabelname=$1; nextlooplabelname=$4; nextcondition=empty_condition} };
+      { {nextlabelname=$1; nextlooplabelname=$4; nextcondition=empty_condition} }
   | Lnext Lwhen condition Lsemicolon
-      { {nextlabelname=empty_label; nextlooplabelname=empty_label; nextcondition=$3} };
+      { {nextlabelname=empty_label; nextlooplabelname=empty_label; nextcondition=$3} }
   | label Lcolon Lnext Lwhen condition Lsemicolon
-      { {nextlabelname=$1; nextlooplabelname=empty_label; nextcondition=$5} };
+      { {nextlabelname=$1; nextlooplabelname=empty_label; nextcondition=$5} }
   | Lnext label Lwhen condition Lsemicolon
-      { {nextlabelname=empty_label; nextlooplabelname=$2; nextcondition=$4} };
+      { {nextlabelname=empty_label; nextlooplabelname=$2; nextcondition=$4} }
   | label Lcolon Lnext label Lwhen condition Lsemicolon
-      { {nextlabelname=$1; nextlooplabelname=$4; nextcondition=$6} };
+      { {nextlabelname=$1; nextlooplabelname=$4; nextcondition=$6} }
 
 /*
 (* exit_statement ::=                         *)
@@ -2624,21 +2624,21 @@ next_statement:
 */
 exit_statement:
   | Lexit Lsemicolon
-      { {exitlabelname=empty_label; exitlooplabelname=empty_label; exitcondition=empty_condition} };
+      { {exitlabelname=empty_label; exitlooplabelname=empty_label; exitcondition=empty_condition} }
   | label Lcolon Lexit Lsemicolon
-      { {exitlabelname=$1; exitlooplabelname=empty_label; exitcondition=empty_condition} };
+      { {exitlabelname=$1; exitlooplabelname=empty_label; exitcondition=empty_condition} }
   | Lexit label Lsemicolon
-      { {exitlabelname=empty_label; exitlooplabelname=$2; exitcondition=empty_condition} };
+      { {exitlabelname=empty_label; exitlooplabelname=$2; exitcondition=empty_condition} }
   | label Lcolon Lexit label Lsemicolon
-      { {exitlabelname=$1; exitlooplabelname=$4; exitcondition=empty_condition} };
+      { {exitlabelname=$1; exitlooplabelname=$4; exitcondition=empty_condition} }
   | Lexit Lwhen condition Lsemicolon
-      { {exitlabelname=empty_label; exitlooplabelname=empty_label; exitcondition=$3} };
+      { {exitlabelname=empty_label; exitlooplabelname=empty_label; exitcondition=$3} }
   | label Lcolon Lexit Lwhen condition Lsemicolon
-      { {exitlabelname=$1; exitlooplabelname=empty_label; exitcondition=$5} };
+      { {exitlabelname=$1; exitlooplabelname=empty_label; exitcondition=$5} }
   | Lexit label Lwhen condition Lsemicolon
-      { {exitlabelname=empty_label; exitlooplabelname=$2; exitcondition=$4} };
+      { {exitlabelname=empty_label; exitlooplabelname=$2; exitcondition=$4} }
   | label Lcolon Lexit label Lwhen condition Lsemicolon
-      { {exitlabelname=$1; exitlooplabelname=$4; exitcondition=$6} };
+      { {exitlabelname=$1; exitlooplabelname=$4; exitcondition=$6} }
 
 /*
 (* return_statement ::=                 *)
@@ -2646,13 +2646,13 @@ exit_statement:
 */
 return_statement:
   | Lreturn Lsemicolon
-      { {returnlabelname=empty_label; returnexpression=empty_expression} };
+      { {returnlabelname=empty_label; returnexpression=empty_expression} }
   | label Lcolon Lreturn Lsemicolon
-      { {returnlabelname=$1; returnexpression=empty_expression} };
+      { {returnlabelname=$1; returnexpression=empty_expression} }
   | Lreturn expression Lsemicolon
-      { {returnlabelname=empty_label; returnexpression=$2} };
+      { {returnlabelname=empty_label; returnexpression=$2} }
   | label Lcolon Lreturn expression Lsemicolon
-      { {returnlabelname=$1; returnexpression=$4} };
+      { {returnlabelname=$1; returnexpression=$4} }
 
 /*
 (* null_statement ::=             *)
@@ -2660,9 +2660,9 @@ return_statement:
 */
 null_statement:
   | Lnull Lsemicolon
-      { {nulllabelname=empty_label} };
+      { {nulllabelname=empty_label} }
   | label Lcolon Lnull Lsemicolon
-      { {nulllabelname=$1} };
+      { {nulllabelname=$1} }
 
 /*
 (* sequence_of_statements ::=                 *)
@@ -2670,9 +2670,9 @@ null_statement:
 */
 sequence_of_statements:
   | sequential_statement
-      { [$1] };
+      { [$1] }
   | sequence_of_statements sequential_statement
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* sequential_statement ::=                   *)
@@ -2692,31 +2692,31 @@ sequence_of_statements:
 */
 sequential_statement:
   | wait_statement
-      { SequentialWait $1 };
+      { SequentialWait $1 }
   | assertion_statement
-      { SequentialAssertion $1 };
+      { SequentialAssertion $1 }
   | report_statement
-      { SequentialReport $1 };
+      { SequentialReport $1 }
   | signal_assignment_statement
-      { SequentialSignalAssignment $1 };
+      { SequentialSignalAssignment $1 }
   | variable_assignment_statement
-      { SequentialVariableAssignment $1 };
+      { SequentialVariableAssignment $1 }
   | procedure_call_statement
-      { SequentialProcedureCall $1 };
+      { SequentialProcedureCall $1 }
   | if_statement
-      { SequentialIf $1 };
+      { SequentialIf $1 }
   | case_statement
-      { SequentialCase $1 };
+      { SequentialCase $1 }
   | loop_statement
-      { SequentialLoop $1 };
+      { SequentialLoop $1 }
   | next_statement
-      { SequentialNext $1 };
+      { SequentialNext $1 }
   | exit_statement
-      { SequentialExit $1 };
+      { SequentialExit $1 }
   | return_statement
-      { SequentialReturn $1 };
+      { SequentialReturn $1 }
   | null_statement
-      { SequentialNull $1 };
+      { SequentialNull $1 }
 
 /*
 (* subprogram_declaration ::=                                              *)
@@ -2724,7 +2724,7 @@ sequential_statement:
 */
 subprogram_declaration:
   | subprogram_specification Lsemicolon
-      { $1 };
+      { $1 }
 
 /*
 (* subprogram_specification ::=                                            *)
@@ -2733,9 +2733,9 @@ subprogram_declaration:
 */
 subprogram_specification:
   | procedure_specification
-      { ProcedureSpecification $1 };
+      { ProcedureSpecification $1 }
   | function_specification
-      { FunctionSpecification $1 };
+      { FunctionSpecification $1 }
 
 /*
 (* procedure_specification ::=                                             *)
@@ -2749,26 +2749,26 @@ procedure_specification:
       { {procedurespecdesignator=$2;
          procedurespecparameters=[];
          procedurespecgenericlist=[];
-         procedurespecgenericmapaspect=[]} };*/
+         procedurespecgenericmapaspect=[]} }*/
   | Lprocedure designator subprogram_parameters
       { {procedurespecdesignator=$2;
          procedurespecparameters=$3;
          procedurespecgenericlist=[];
-         procedurespecgenericmapaspect=[]} };
+         procedurespecgenericmapaspect=[]} }
   | Lprocedure designator subprogram_header
       { match $3 with
         | generic_list,generic_map_aspect
             -> {procedurespecdesignator=$2;
                 procedurespecparameters=[];
                 procedurespecgenericlist=generic_list;
-                procedurespecgenericmapaspect=generic_map_aspect} };
+                procedurespecgenericmapaspect=generic_map_aspect} }
   | Lprocedure designator subprogram_header subprogram_parameters
       { match $3 with
         | generic_list,generic_map_aspect
             -> {procedurespecdesignator=$2;
                 procedurespecparameters=$4;
                 procedurespecgenericlist=generic_list;
-                procedurespecgenericmapaspect=generic_map_aspect} };
+                procedurespecgenericmapaspect=generic_map_aspect} }
 
 /*
 (* function_specification ::=                                              *)
@@ -2783,14 +2783,14 @@ function_specification:
          functionspecgenericlist=[];
          functionspecgenericmapaspect=[];
          functionspecreturntype=$4;
-         functionspecpurity=Unknown} };
+         functionspecpurity=Unknown} }
   | Lfunction designator subprogram_parameters Lreturn type_mark
       { {functionspecdesignator=$2;
          functionspecparameters=$3;
          functionspecgenericlist=[];
          functionspecgenericmapaspect=[];
          functionspecreturntype=$5;
-         functionspecpurity=Unknown} };
+         functionspecpurity=Unknown} }
   | Lfunction designator subprogram_header Lreturn type_mark
       { match $3 with
         | generic_list,generic_map_aspect
@@ -2799,7 +2799,7 @@ function_specification:
                 functionspecgenericlist=generic_list;
                 functionspecgenericmapaspect=generic_map_aspect;
                 functionspecreturntype=$5;
-                functionspecpurity=Unknown} };
+                functionspecpurity=Unknown} }
   | Lfunction designator subprogram_header subprogram_parameters Lreturn type_mark
       { match $3 with
         | generic_list,generic_map_aspect
@@ -2808,21 +2808,21 @@ function_specification:
                 functionspecgenericlist=generic_list;
                 functionspecgenericmapaspect=generic_map_aspect;
                 functionspecreturntype=$6;
-                functionspecpurity=Unknown} };
+                functionspecpurity=Unknown} }
   | function_purity Lfunction designator Lreturn type_mark
       { {functionspecdesignator=$3;
          functionspecparameters=[];
          functionspecgenericlist=[];
          functionspecgenericmapaspect=[];
          functionspecreturntype=$5;
-         functionspecpurity=$1} };
+         functionspecpurity=$1} }
   | function_purity Lfunction designator subprogram_parameters Lreturn type_mark
       { {functionspecdesignator=$3;
          functionspecparameters=$4;
          functionspecgenericlist=[];
          functionspecgenericmapaspect=[];
          functionspecreturntype=$6;
-         functionspecpurity=$1} };
+         functionspecpurity=$1} }
   | function_purity Lfunction designator subprogram_header Lreturn type_mark
       { match $4 with
         | generic_list,generic_map_aspect
@@ -2831,7 +2831,7 @@ function_specification:
                 functionspecgenericlist=generic_list;
                 functionspecgenericmapaspect=generic_map_aspect;
                 functionspecreturntype=$6;
-                functionspecpurity=$1} };
+                functionspecpurity=$1} }
   | function_purity Lfunction designator subprogram_header subprogram_parameters Lreturn type_mark
       { match $4 with
         | generic_list,generic_map_aspect
@@ -2840,13 +2840,13 @@ function_specification:
                 functionspecgenericlist=generic_list;
                 functionspecgenericmapaspect=generic_map_aspect;
                 functionspecreturntype=$7;
-                functionspecpurity=$1} };
+                functionspecpurity=$1} }
 
 function_purity:
   | Lpure
-      { Pure };
+      { Pure }
   | Limpure
-      { Impure };
+      { Impure }
 
 /*
 (* designator ::= identifier | operator_symbol                             *)
@@ -2854,24 +2854,24 @@ function_purity:
 */
 designator:
   | identifier
-      { DesignatorIdentifier $1 };
+      { DesignatorIdentifier $1 }
   | Lstring
-      { DesignatorOperator $1 };
+      { DesignatorOperator $1 }
   | Lchar
-      { DesignatorCharacter $1 };
+      { DesignatorCharacter $1 }
 
 /*
 (* formal_parameter_list ::= parameter_interface_list *)
 */
 subprogram_parameters:
   | Lleftparenthesis formal_parameter_list Lrightparenthesis
-      { $2 };
+      { $2 }
   | Lparameter Lleftparenthesis formal_parameter_list Lrightparenthesis
-      { $3 };
+      { $3 }
 
 formal_parameter_list:
   | interface_list
-      { $1 };
+      { $1 }
 
 /*
 (* subprogram_header ::=         *)
@@ -2880,9 +2880,9 @@ formal_parameter_list:
 */
 subprogram_header:
   | Lgeneric Lleftparenthesis generic_list Lrightparenthesis
-      { $3,[] };
+      { $3,[] }
   | Lgeneric Lleftparenthesis generic_list Lrightparenthesis generic_map_aspect
-      { $3,$5 };
+      { $3,$5 }
 
 /*
 (* subprogram_body ::=                                     *)
@@ -2897,7 +2897,7 @@ subprogram_body:
   | subprogram_specification subprogram_declarations subprogram_statements Lend Lsemicolon
       { {subprogramspecification=$1;
          subprogramdeclarations=$2;
-         subprogramstatements=$3} };
+         subprogramstatements=$3} }
   | subprogram_specification subprogram_declarations subprogram_statements Lend Lfunction Lsemicolon
       { match $1 with
         | FunctionSpecification _
@@ -2905,7 +2905,7 @@ subprogram_body:
                 subprogramdeclarations=$2;
                 subprogramstatements=$3};
         | ProcedureSpecification _
-            -> raise Parsing.Parse_error };
+            -> raise Parsing.Parse_error }
   | subprogram_specification subprogram_declarations subprogram_statements Lend Lprocedure Lsemicolon
       { match $1 with
         | ProcedureSpecification _
@@ -2913,7 +2913,7 @@ subprogram_body:
                 subprogramdeclarations=$2;
                 subprogramstatements=$3};
         | FunctionSpecification _
-            -> raise Parsing.Parse_error };
+            -> raise Parsing.Parse_error }
   | subprogram_specification subprogram_declarations subprogram_statements Lend designator Lsemicolon
       { match $1 with
         | FunctionSpecification {functionspecdesignator=spec_designator}
@@ -2924,7 +2924,7 @@ subprogram_body:
                 subprogramstatements=$3};
         | FunctionSpecification _
         | ProcedureSpecification _
-            -> raise Parsing.Parse_error };
+            -> raise Parsing.Parse_error }
   | subprogram_specification subprogram_declarations subprogram_statements Lend Lfunction designator Lsemicolon
       { match $1 with
         | FunctionSpecification {functionspecdesignator=spec_designator}
@@ -2934,7 +2934,7 @@ subprogram_body:
                 subprogramstatements=$3};
         | FunctionSpecification _
         | ProcedureSpecification _
-            -> raise Parsing.Parse_error };
+            -> raise Parsing.Parse_error }
   | subprogram_specification subprogram_declarations subprogram_statements Lend Lprocedure designator Lsemicolon
       { match $1 with
         | ProcedureSpecification {procedurespecdesignator=spec_designator}
@@ -2944,19 +2944,19 @@ subprogram_body:
                 subprogramstatements=$3};
         | FunctionSpecification _
         | ProcedureSpecification _
-            -> raise Parsing.Parse_error };
+            -> raise Parsing.Parse_error }
 
 subprogram_declarations:
   | Lis
-      { [] };
+      { [] }
   | Lis subprogram_declarative_part
-      { $2 };
+      { $2 }
 
 subprogram_statements:
   | Lbegin
-      { [] };
+      { [] }
   | Lbegin subprogram_statement_part
-      { $2 };
+      { $2 }
 
 /*
 (* subprogram_declarative_part ::=                         *)
@@ -2964,9 +2964,9 @@ subprogram_statements:
 */
 subprogram_declarative_part:
   | subprogram_declarative_item
-      { [$1] };
+      { [$1] }
   | subprogram_declarative_part subprogram_declarative_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* subprogram_declarative_item ::=                         *)
@@ -2987,29 +2987,29 @@ subprogram_declarative_part:
 */
 subprogram_declarative_item:
   | subprogram_declaration
-      { SubProgramDeclaration $1 };
+      { SubProgramDeclaration $1 }
   | subprogram_body
-      { SubProgramBody $1 };
+      { SubProgramBody $1 }
   | subprogram_instantiation
-      { SubProgramInstantiation $1 };
+      { SubProgramInstantiation $1 }
   | type_declaration
-      { SubProgramTypeDeclaration $1 };
+      { SubProgramTypeDeclaration $1 }
   | subtype_declaration
-      { SubProgramSubTypeDeclaration $1 };
+      { SubProgramSubTypeDeclaration $1 }
   | constant_declaration
-      { SubProgramConstantDeclaration $1 };
+      { SubProgramConstantDeclaration $1 }
   | variable_declaration
-      { SubProgramVariableDeclaration $1 };
+      { SubProgramVariableDeclaration $1 }
   | file_declaration
-      { SubProgramFileDeclaration $1 };
+      { SubProgramFileDeclaration $1 }
   | alias_declaration
-      { SubProgramAliasDeclaration $1 };
+      { SubProgramAliasDeclaration $1 }
   | attribute_declaration
-      { SubProgramAttributeDeclaration $1 };
+      { SubProgramAttributeDeclaration $1 }
   | attribute_specification
-      { SubProgramAttributeSpecification $1 };
+      { SubProgramAttributeSpecification $1 }
   | use_clause
-      { SubProgramUseClause $1 };
+      { SubProgramUseClause $1 }
 
 /*
 (* subprogram_statement_part ::=                           *)
@@ -3017,7 +3017,7 @@ subprogram_declarative_item:
 */
 subprogram_statement_part:
   | sequence_of_statements
-      { $1 };
+      { $1 }
 
 /*
 (* subprogram_instantiation_declaration ::=                                         *)
@@ -3030,49 +3030,49 @@ subprogram_instantiation:
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = None;
-         subprograminstantiationgenericmapaspect = []} };
+         subprograminstantiationgenericmapaspect = []} }
   | Lfunction designator Lis Lnew name signature Lsemicolon
       { {subprograminstantiationkind = Function;
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = Some $6;
-         subprograminstantiationgenericmapaspect = []} };
+         subprograminstantiationgenericmapaspect = []} }
   | Lfunction designator Lis Lnew name generic_map_aspect Lsemicolon
       { {subprograminstantiationkind = Function;
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = None;
-         subprograminstantiationgenericmapaspect = $6} };
+         subprograminstantiationgenericmapaspect = $6} }
   | Lfunction designator Lis Lnew name signature generic_map_aspect Lsemicolon
       { {subprograminstantiationkind = Function;
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = Some $6;
-         subprograminstantiationgenericmapaspect = $7} };
+         subprograminstantiationgenericmapaspect = $7} }
   | Lprocedure designator Lis Lnew name Lsemicolon
       { {subprograminstantiationkind = Procedure;
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = None;
-         subprograminstantiationgenericmapaspect = []} };
+         subprograminstantiationgenericmapaspect = []} }
   | Lprocedure designator Lis Lnew name signature Lsemicolon
       { {subprograminstantiationkind = Procedure;
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = Some $6;
-         subprograminstantiationgenericmapaspect = []} };
+         subprograminstantiationgenericmapaspect = []} }
   | Lprocedure designator Lis Lnew name generic_map_aspect Lsemicolon
       { {subprograminstantiationkind = Procedure;
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = None;
-         subprograminstantiationgenericmapaspect = $6} };
+         subprograminstantiationgenericmapaspect = $6} }
   | Lprocedure designator Lis Lnew name signature generic_map_aspect Lsemicolon
       { {subprograminstantiationkind = Procedure;
          subprograminstantiationdesignator = $2;
          subprograminstantiationname = $5;
          subprograminstantiationsignature = Some $6;
-         subprograminstantiationgenericmapaspect = $7} };
+         subprograminstantiationgenericmapaspect = $7} }
 
 /*
 (* component_declaration ::=                 *)
@@ -3083,53 +3083,53 @@ subprogram_instantiation:
 */
 component_header:
   | Lcomponent identifier
-      { $2 };
+      { $2 }
   | Lcomponent identifier Lis
-      { $2 };
+      { $2 }
 
 component_trailer:
   | Lend Lcomponent Lsemicolon
-      { empty_simple_name };
+      { empty_simple_name }
   | Lend Lcomponent simple_name Lsemicolon
-      { $3 };
+      { $3 }
 
 component_declaration:
   | component_header component_trailer
-      { {componentname=check_identifiers $1 $2; componentgeneric=[]; componentport=[]} };
+      { {componentname=check_identifiers $1 $2; componentgeneric=[]; componentport=[]} }
   | component_header generic_clause component_trailer
-      { {componentname=check_identifiers $1 $3; componentgeneric=$2; componentport=[]} };
+      { {componentname=check_identifiers $1 $3; componentgeneric=$2; componentport=[]} }
   | component_header port_clause component_trailer
-      { {componentname=check_identifiers $1 $3; componentgeneric=[]; componentport=$2} };
+      { {componentname=check_identifiers $1 $3; componentgeneric=[]; componentport=$2} }
   | component_header generic_clause port_clause component_trailer
-      { {componentname=check_identifiers $1 $4; componentgeneric=$2; componentport=$3} };
+      { {componentname=check_identifiers $1 $4; componentgeneric=$2; componentport=$3} }
 
 /*
 (* generic_clause ::= generic( generic_list ); *)
 */
 generic_clause:
   | Lgeneric Lleftparenthesis generic_list Lrightparenthesis Lsemicolon
-      { $3 };
+      { $3 }
 
 /*
 (* port_clause ::= port( port_list );          *)
 */
 port_clause:
   | Lport Lleftparenthesis port_list Lrightparenthesis Lsemicolon
-      { $3 };
+      { $3 }
 
 /*
 (* generic_list ::= generic_interface_list *)
 */
 generic_list:
   | interface_list
-      { $1 };
+      { $1 }
 
 /*
 (* port_list ::= port_interface_list *)
 */
 port_list:
   | interface_list
-      { $1 };
+      { $1 }
 
 /*
 (* configuration_specification ::=                   *)
@@ -3137,7 +3137,7 @@ port_list:
 */
 configuration_specification:
   | Lfor component_specification binding_indication Lsemicolon
-      { {configurationcomponent=$2; configurationbinding=$3} };
+      { {configurationcomponent=$2; configurationbinding=$3} }
 
 /*
 (* component_specification ::=                       *)
@@ -3145,7 +3145,7 @@ configuration_specification:
 */
 component_specification:
   | instantiation_list Lcolon name
-      { {componentinstantiations=$1; componentspecname=$3} };
+      { {componentinstantiations=$1; componentspecname=$3} }
 
 /*
 (* instantiation_list ::=                            *)
@@ -3155,16 +3155,16 @@ component_specification:
 */
 instantiation_list:
   | label
-      { InstantiationLabels [$1] };
+      { InstantiationLabels [$1] }
   | instantiation_list Lcomma label
       { match $1 with
           | InstantiationLabels l
               -> InstantiationLabels (l @ [$3]);
-          | _ -> raise Parsing.Parse_error; };
+          | _ -> raise Parsing.Parse_error; }
   | Lothers
-      { InstantiationOthers };
+      { InstantiationOthers }
   | Lall
-      { InstantiationAll };
+      { InstantiationAll }
 
 /*
 (* binding_indication ::=                             *)
@@ -3174,19 +3174,19 @@ instantiation_list:
 */
 binding_indication:
   | Luse entity_aspect
-      { {bindingentity=$2; bindinggenericmap=[]; bindingportmap=[]} };
+      { {bindingentity=$2; bindinggenericmap=[]; bindingportmap=[]} }
   | generic_map_aspect
-      { {bindingentity=BindingOpen; bindinggenericmap=$1; bindingportmap=[]} };
+      { {bindingentity=BindingOpen; bindinggenericmap=$1; bindingportmap=[]} }
   | port_map_aspect
-      { {bindingentity=BindingOpen; bindinggenericmap=[]; bindingportmap=$1} };
+      { {bindingentity=BindingOpen; bindinggenericmap=[]; bindingportmap=$1} }
   | generic_map_aspect port_map_aspect
-      { {bindingentity=BindingOpen; bindinggenericmap=$1; bindingportmap=$2} };
+      { {bindingentity=BindingOpen; bindinggenericmap=$1; bindingportmap=$2} }
   | Luse entity_aspect generic_map_aspect
-      { {bindingentity=$2; bindinggenericmap=$3; bindingportmap=[]} };
+      { {bindingentity=$2; bindinggenericmap=$3; bindingportmap=[]} }
   | Luse entity_aspect port_map_aspect
-      { {bindingentity=$2; bindinggenericmap=[]; bindingportmap=$3} };
+      { {bindingentity=$2; bindinggenericmap=[]; bindingportmap=$3} }
   | Luse entity_aspect generic_map_aspect port_map_aspect
-      { {bindingentity=$2; bindinggenericmap=$3; bindingportmap=$4} };
+      { {bindingentity=$2; bindinggenericmap=$3; bindingportmap=$4} }
 
 /*
 (* entity_aspect ::=                                  *)
@@ -3196,13 +3196,13 @@ binding_indication:
 */
 entity_aspect:
   | Lentity name
-      { BindingEntity $2 };
+      { BindingEntity $2 }
   | Lentity name Lleftparenthesis identifier Lrightparenthesis
-      { BindingEntityArchitecture ($2,$4) };
+      { BindingEntityArchitecture ($2,$4) }
   | Lconfiguration name
-      { BindingConfiguration $2 };
+      { BindingConfiguration $2 }
   | Lopen
-      { BindingOpen };
+      { BindingOpen }
 
 /*
 (* generic_map_aspect ::=                             *)
@@ -3210,7 +3210,7 @@ entity_aspect:
 */
 generic_map_aspect:
   | Lgeneric Lmap Lleftparenthesis association_list Lrightparenthesis
-      { $4 };
+      { $4 }
 
 /*
 (* port_map_aspect ::=                                *)
@@ -3218,7 +3218,7 @@ generic_map_aspect:
 */
 port_map_aspect:
   | Lport Lmap Lleftparenthesis association_list Lrightparenthesis
-      { $4 };
+      { $4 }
 
 /*
 (* block_statement ::=                                     *)
@@ -3233,16 +3233,16 @@ port_map_aspect:
 block_statement:
   | label Lcolon block_declarations Lbegin Lend Lblock Lsemicolon
       { { $3 with blocklabelname=$1;
-                  blockstatements=[]} };
+                  blockstatements=[]} }
   | label Lcolon block_declarations Lbegin Lend Lblock label Lsemicolon
       { { $3 with blocklabelname=check_labels $1 $7;
-                  blockstatements=[]} };
+                  blockstatements=[]} }
   | label Lcolon block_declarations Lbegin block_statement_part Lend Lblock Lsemicolon
       { { $3 with blocklabelname=$1;
-                  blockstatements=$5} };
+                  blockstatements=$5} }
   | label Lcolon block_declarations Lbegin block_statement_part Lend Lblock label Lsemicolon
       { { $3 with blocklabelname=check_labels $1 $8;
-                  blockstatements=$5} };
+                  blockstatements=$5} }
 
 block_declarations:
   | Lblock
@@ -3253,7 +3253,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = [];
-         blockstatements = [] }; }
+         blockstatements = [] } }
   | Lblock block_header
       { match $2 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3264,7 +3264,7 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = [];
-                blockstatements = [] }; };
+                blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis
       { {blocklabelname = empty_identifier;
          blockguardcondition = $3;
@@ -3273,7 +3273,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = [];
-         blockstatements = [] }; }
+         blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis block_header
       { match $5 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3284,7 +3284,7 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = [];
-                blockstatements = [] }; };
+                blockstatements = [] } }
   | Lblock Lis
       { {blocklabelname = empty_identifier;
          blockguardcondition = empty_condition;
@@ -3293,7 +3293,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = [];
-         blockstatements = [] }; }
+         blockstatements = [] } }
   | Lblock Lis block_header
       { match $3 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3304,7 +3304,7 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = [];
-                blockstatements = [] }; };
+                blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis Lis
       { {blocklabelname = empty_identifier;
          blockguardcondition = $3;
@@ -3313,7 +3313,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = [];
-         blockstatements = [] }; }
+         blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis Lis block_header
       { match $6 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3324,7 +3324,7 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = [];
-                blockstatements = [] }; };
+                blockstatements = [] } }
   | Lblock block_declarative_part
       { {blocklabelname = empty_identifier;
          blockguardcondition = empty_condition;
@@ -3333,7 +3333,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = $2;
-         blockstatements = [] }; };
+         blockstatements = [] } }
   | Lblock block_header block_declarative_part
       { match $2 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3344,7 +3344,7 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = $3;
-                blockstatements = [] }; };
+                blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis block_declarative_part
       { {blocklabelname = empty_identifier;
          blockguardcondition = $3;
@@ -3353,7 +3353,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = $5;
-         blockstatements = [] }; };
+         blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis block_header block_declarative_part
       { match $5 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3364,7 +3364,7 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = $6;
-                blockstatements = [] }; };
+                blockstatements = [] } }
   | Lblock Lis block_declarative_part
       { {blocklabelname = empty_identifier;
          blockguardcondition = empty_condition;
@@ -3373,7 +3373,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = $3;
-         blockstatements = [] }; };
+         blockstatements = [] } }
   | Lblock Lis block_header block_declarative_part
       { match $3 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3384,7 +3384,7 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = $4;
-                blockstatements = [] }; };
+                blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis Lis block_declarative_part
       { {blocklabelname = empty_identifier;
          blockguardcondition = $3;
@@ -3393,7 +3393,7 @@ block_declarations:
          blockportclause = [];
          blockportmapaspect = [];
          blockdeclarations = $6;
-         blockstatements = [] }; };
+         blockstatements = [] } }
   | Lblock Lleftparenthesis condition Lrightparenthesis Lis block_header block_declarative_part
       { match $6 with
         | generic_clause,generic_map_aspect,port_clause,port_map_aspect
@@ -3404,25 +3404,25 @@ block_declarations:
                 blockportclause = port_clause;
                 blockportmapaspect = port_map_aspect;
                 blockdeclarations = $7;
-                blockstatements = [] }; };
+                blockstatements = [] } }
 
 block_header:
   | generic_clause
-      { ($1,[],[],[]) };
+      { ($1,[],[],[]) }
   | generic_clause generic_map_aspect Lsemicolon
-      { ($1,$2,[],[]) };
+      { ($1,$2,[],[]) }
   | port_clause
-      { ([],[],$1,[]) };
+      { ([],[],$1,[]) }
   | port_clause port_map_aspect Lsemicolon
-      { ([],[],$1,$2) };
+      { ([],[],$1,$2) }
   | generic_clause port_clause
-      { ($1,[],$2,[]) };
+      { ($1,[],$2,[]) }
   | generic_clause generic_map_aspect Lsemicolon port_clause
-      { ($1,$2,$4,[]) };
+      { ($1,$2,$4,[]) }
   | generic_clause port_clause port_map_aspect Lsemicolon
-      { ($1,[],$2,$3) };
+      { ($1,[],$2,$3) }
   | generic_clause generic_map_aspect Lsemicolon port_clause port_map_aspect Lsemicolon
-      { ($1,$2,$4,$5) };
+      { ($1,$2,$4,$5) }
 
 /*
 (* block_declarative_part ::=                              *)
@@ -3430,9 +3430,9 @@ block_header:
 */
 block_declarative_part:
   | block_declarative_item
-      { [$1] };
+      { [$1] }
   | block_declarative_part block_declarative_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* block_statement_part ::=                                *)
@@ -3440,9 +3440,9 @@ block_declarative_part:
 */
 block_statement_part:
   | concurrent_statement
-      { [$1] };
+      { [$1] }
   | block_statement_part concurrent_statement
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* block_declarative_item ::=                              *)
@@ -3467,33 +3467,33 @@ block_statement_part:
 */
 block_declarative_item:
   | subprogram_declaration
-      { BlockSubProgramDeclaration $1 };
+      { BlockSubProgramDeclaration $1 }
   | subprogram_body
-      { BlockSubProgramBody $1 };
+      { BlockSubProgramBody $1 }
   | subprogram_instantiation
-      { BlockSubProgramInstantiation $1 };
+      { BlockSubProgramInstantiation $1 }
   | type_declaration
-      { BlockTypeDeclaration $1 };
+      { BlockTypeDeclaration $1 }
   | subtype_declaration
-      { BlockSubTypeDeclaration $1 };
+      { BlockSubTypeDeclaration $1 }
   | constant_declaration
-      { BlockConstantDeclaration $1 };
+      { BlockConstantDeclaration $1 }
   | signal_declaration
-      { BlockSignalDeclaration $1 };
+      { BlockSignalDeclaration $1 }
   | file_declaration
-      { BlockFileDeclaration $1 };
+      { BlockFileDeclaration $1 }
   | alias_declaration
-      { BlockAliasDeclaration $1 };
+      { BlockAliasDeclaration $1 }
   | component_declaration
-      { BlockComponentDeclaration $1 };
+      { BlockComponentDeclaration $1 }
   | attribute_declaration
-      { BlockAttributeDeclaration $1 };
+      { BlockAttributeDeclaration $1 }
   | attribute_specification
-      { BlockAttributeSpecification $1 };
+      { BlockAttributeSpecification $1 }
   | configuration_specification
-      { BlockConfigurationSpecification $1 };
+      { BlockConfigurationSpecification $1 }
   | use_clause
-      { BlockUseClause $1 };
+      { BlockUseClause $1 }
 
 /*
 (* process_statement ::=                                   *)
@@ -3506,49 +3506,49 @@ block_declarative_item:
 */
 process_statement:
   | process_declarations process_statements Lend Lprocess Lsemicolon
-      { {processlabelname=empty_label; processpostponed=false; processsensitivitylist=fst $1; processdeclarations=snd $1; processstatements=$2} };
+      { {processlabelname=empty_label; processpostponed=false; processsensitivitylist=fst $1; processdeclarations=snd $1; processstatements=$2} }
   | Lpostponed process_declarations process_statements Lend Lpostponed Lprocess Lsemicolon
-      { {processlabelname=empty_label; processpostponed=true; processsensitivitylist=fst $2; processdeclarations=snd $2; processstatements=$3} };
+      { {processlabelname=empty_label; processpostponed=true; processsensitivitylist=fst $2; processdeclarations=snd $2; processstatements=$3} }
   | label Lcolon process_declarations process_statements Lend Lprocess Lsemicolon
-      { {processlabelname=$1; processpostponed=false; processsensitivitylist=fst $3; processdeclarations=snd $3; processstatements=$4} };
+      { {processlabelname=$1; processpostponed=false; processsensitivitylist=fst $3; processdeclarations=snd $3; processstatements=$4} }
   | label Lcolon Lpostponed process_declarations process_statements Lend Lpostponed Lprocess Lsemicolon
-      { {processlabelname=$1; processpostponed=true; processsensitivitylist=fst $4; processdeclarations=snd $4; processstatements=$5} };
+      { {processlabelname=$1; processpostponed=true; processsensitivitylist=fst $4; processdeclarations=snd $4; processstatements=$5} }
   | label Lcolon process_declarations process_statements Lend Lprocess label Lsemicolon
-      { {processlabelname=check_labels $1 $7; processpostponed=false; processsensitivitylist=fst $3; processdeclarations=snd $3; processstatements=$4} };
+      { {processlabelname=check_labels $1 $7; processpostponed=false; processsensitivitylist=fst $3; processdeclarations=snd $3; processstatements=$4} }
   | label Lcolon Lpostponed process_declarations process_statements Lend Lpostponed Lprocess label Lsemicolon
-      { {processlabelname=check_labels $1 $9; processpostponed=true; processsensitivitylist=fst $4; processdeclarations=snd $4; processstatements=$5} };
+      { {processlabelname=check_labels $1 $9; processpostponed=true; processsensitivitylist=fst $4; processdeclarations=snd $4; processstatements=$5} }
 
 process_declarations:
   | Lprocess
-      { (SensitivityExpressionList [],[]) };
+      { (SensitivityExpressionList [],[]) }
   | Lprocess Lis
-      { (SensitivityExpressionList [],[]) };
+      { (SensitivityExpressionList [],[]) }
   | Lprocess Lleftparenthesis sensitivity_list Lrightparenthesis
-      { (SensitivityExpressionList $3,[]) };
+      { (SensitivityExpressionList $3,[]) }
   | Lprocess Lleftparenthesis sensitivity_list Lrightparenthesis Lis
-      { (SensitivityExpressionList $3,[]) };
+      { (SensitivityExpressionList $3,[]) }
   | Lprocess Lleftparenthesis Lall Lrightparenthesis
-      { (SensitivityAll,[]) };
+      { (SensitivityAll,[]) }
   | Lprocess Lleftparenthesis Lall Lrightparenthesis Lis
-      { (SensitivityAll,[]) };
+      { (SensitivityAll,[]) }
   | Lprocess process_declarative_part
-      { (SensitivityExpressionList [],$2) };
+      { (SensitivityExpressionList [],$2) }
   | Lprocess Lis process_declarative_part
-      { (SensitivityExpressionList [],$3) };
+      { (SensitivityExpressionList [],$3) }
   | Lprocess Lleftparenthesis sensitivity_list Lrightparenthesis process_declarative_part
-      { (SensitivityExpressionList $3,$5) };
+      { (SensitivityExpressionList $3,$5) }
   | Lprocess Lleftparenthesis sensitivity_list Lrightparenthesis Lis process_declarative_part
-      { (SensitivityExpressionList $3,$6) };
+      { (SensitivityExpressionList $3,$6) }
   | Lprocess Lleftparenthesis Lall Lrightparenthesis process_declarative_part
-      { (SensitivityAll,$5) };
+      { (SensitivityAll,$5) }
   | Lprocess Lleftparenthesis Lall Lrightparenthesis Lis process_declarative_part
-      { (SensitivityAll,$6) };
+      { (SensitivityAll,$6) }
 
 process_statements:
   | Lbegin
-      { [] };
+      { [] }
   | Lbegin process_statement_part
-      { $2 };
+      { $2 }
 
 /*
 (* process_declarative_part ::=                            *)
@@ -3556,9 +3556,9 @@ process_statements:
 */
 process_declarative_part:
   | process_declarative_item
-    { [$1] };
+    { [$1] }
   | process_declarative_part process_declarative_item
-    { ($1 @ [$2]) };
+    { ($1 @ [$2]) }
 
 /*
 (* process_declarative_item ::=                            *)
@@ -3579,29 +3579,29 @@ process_declarative_part:
 */
 process_declarative_item:
   | subprogram_declaration
-      { ProcessSubProgramDeclaration $1 };
+      { ProcessSubProgramDeclaration $1 }
   | subprogram_body
-      { ProcessSubProgramBody $1 };
+      { ProcessSubProgramBody $1 }
   | subprogram_instantiation
-      { ProcessSubProgramInstantiation $1 };
+      { ProcessSubProgramInstantiation $1 }
   | type_declaration
-      { ProcessTypeDeclaration $1 };
+      { ProcessTypeDeclaration $1 }
   | subtype_declaration
-      { ProcessSubTypeDeclaration $1 };
+      { ProcessSubTypeDeclaration $1 }
   | constant_declaration
-      { ProcessConstantDeclaration $1 };
+      { ProcessConstantDeclaration $1 }
   | variable_declaration
-      { ProcessVariableDeclaration $1 };
+      { ProcessVariableDeclaration $1 }
   | file_declaration
-      { ProcessFileDeclaration $1 };
+      { ProcessFileDeclaration $1 }
   | alias_declaration
-      { ProcessAliasDeclaration $1 };
+      { ProcessAliasDeclaration $1 }
   | attribute_declaration
-      { ProcessAttributeDeclaration $1 };
+      { ProcessAttributeDeclaration $1 }
   | attribute_specification
-      { ProcessAttributeSpecification $1 };
+      { ProcessAttributeSpecification $1 }
   | use_clause
-      { ProcessUseClause $1 };
+      { ProcessUseClause $1 }
 
 /*
 (* process_statement_part ::=                              *)
@@ -3609,9 +3609,9 @@ process_declarative_item:
 */
 process_statement_part:
   | sequential_statement
-      { [$1] };
+      { [$1] }
   | process_statement_part sequential_statement
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* concurrent_procedure_call_statement ::=            *)
@@ -3620,13 +3620,13 @@ process_statement_part:
 */
 concurrent_procedure_call_statement:
   | procedure_call Lsemicolon
-      { {concurrentprocedurelabelname=empty_label; concurrentpostponedprocedure=false; concurrentprocedurecall=$1} };
+      { {concurrentprocedurelabelname=empty_label; concurrentpostponedprocedure=false; concurrentprocedurecall=$1} }
   | label Lcolon procedure_call Lsemicolon
-      { {concurrentprocedurelabelname=$1; concurrentpostponedprocedure=false; concurrentprocedurecall=$3} };
+      { {concurrentprocedurelabelname=$1; concurrentpostponedprocedure=false; concurrentprocedurecall=$3} }
   | Lpostponed procedure_call Lsemicolon
-      { {concurrentprocedurelabelname=empty_label; concurrentpostponedprocedure=true; concurrentprocedurecall=$2} };
+      { {concurrentprocedurelabelname=empty_label; concurrentpostponedprocedure=true; concurrentprocedurecall=$2} }
   | label Lcolon Lpostponed procedure_call Lsemicolon
-      { {concurrentprocedurelabelname=$1; concurrentpostponedprocedure=true; concurrentprocedurecall=$4} };
+      { {concurrentprocedurelabelname=$1; concurrentpostponedprocedure=true; concurrentprocedurecall=$4} }
 
 /*
 (* concurrent_assertion_statement ::=            *)
@@ -3635,13 +3635,13 @@ concurrent_procedure_call_statement:
 */
 concurrent_assertion_statement:
   | assertion Lsemicolon
-      { {concurrentassertionlabelname=empty_label; concurrentpostponedassertion=false; concurrentassertion=$1} };
+      { {concurrentassertionlabelname=empty_label; concurrentpostponedassertion=false; concurrentassertion=$1} }
   | label Lcolon assertion Lsemicolon
-      { {concurrentassertionlabelname=$1; concurrentpostponedassertion=false; concurrentassertion=$3} };
+      { {concurrentassertionlabelname=$1; concurrentpostponedassertion=false; concurrentassertion=$3} }
   | Lpostponed assertion Lsemicolon
-      { {concurrentassertionlabelname=empty_label; concurrentpostponedassertion=true; concurrentassertion=$2} };
+      { {concurrentassertionlabelname=empty_label; concurrentpostponedassertion=true; concurrentassertion=$2} }
   | label Lcolon Lpostponed assertion Lsemicolon
-      { {concurrentassertionlabelname=$1; concurrentpostponedassertion=true; concurrentassertion=$4} };
+      { {concurrentassertionlabelname=$1; concurrentpostponedassertion=true; concurrentassertion=$4} }
 
 /*
 (* concurrent_signal_assignment_statement ::=                            *)
@@ -3654,51 +3654,51 @@ concurrent_signal_assignment_statement:
   | concurrent_simple_signal_assignment
       { {concurrentsignallabelname=empty_label;
          concurrentsignalpostponed=false;
-         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $1} };
+         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $1} }
   | label Lcolon concurrent_simple_signal_assignment
       { {concurrentsignallabelname=$1;
          concurrentsignalpostponed=false;
-         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $3} };
+         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $3} }
   | Lpostponed concurrent_simple_signal_assignment
       { {concurrentsignallabelname=empty_label;
          concurrentsignalpostponed=true;
-         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $2} };
+         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $2} }
   | label Lcolon Lpostponed concurrent_simple_signal_assignment
       { {concurrentsignallabelname=$1;
          concurrentsignalpostponed=true;
-         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $4} };
+         concurrentsignalassignment=ConcurrentSimpleSignalAssignment $4} }
   | concurrent_conditional_signal_assignment
       { {concurrentsignallabelname=empty_label;
          concurrentsignalpostponed=false;
-         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $1} };
+         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $1} }
   | label Lcolon concurrent_conditional_signal_assignment
       { {concurrentsignallabelname=$1;
          concurrentsignalpostponed=false;
-         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $3} };
+         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $3} }
   | Lpostponed concurrent_conditional_signal_assignment
       { {concurrentsignallabelname=empty_label;
          concurrentsignalpostponed=true;
-         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $2} };
+         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $2} }
   | label Lcolon Lpostponed concurrent_conditional_signal_assignment
       { {concurrentsignallabelname=$1;
          concurrentsignalpostponed=true;
-         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $4} };
+         concurrentsignalassignment=ConcurrentConditionalSignalAssignment $4} }
   | concurrent_selected_signal_assignment
       { {concurrentsignallabelname=empty_label;
          concurrentsignalpostponed=false;
-         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $1} };
+         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $1} }
   | label Lcolon concurrent_selected_signal_assignment
       { {concurrentsignallabelname=$1;
          concurrentsignalpostponed=false;
-         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $3} };
+         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $3} }
   | Lpostponed concurrent_selected_signal_assignment
       { {concurrentsignallabelname=empty_label;
          concurrentsignalpostponed=true;
-         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $2} };
+         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $2} }
   | label Lcolon Lpostponed concurrent_selected_signal_assignment
       { {concurrentsignallabelname=$1;
          concurrentsignalpostponed=true;
-         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $4} };
+         concurrentsignalassignment=ConcurrentSelectedSignalAssignment $4} }
 
 /*
 (* concurrent_simple_signal_assignment ::=                *)
@@ -3709,22 +3709,22 @@ concurrent_simple_signal_assignment:
       { {concurrentsimplesignaltarget=$1;
          concurrentsimplesignalguarded=false;
          concurrentsimplesignaldelay=DelayNone;
-         concurrentsimplesignalwaveform=$4} };
+         concurrentsimplesignalwaveform=$4} }
   | target Lless Lequal Lguarded waveform Lsemicolon
       { {concurrentsimplesignaltarget=$1;
          concurrentsimplesignalguarded=true;
          concurrentsimplesignaldelay=DelayNone;
-         concurrentsimplesignalwaveform=$5} };
+         concurrentsimplesignalwaveform=$5} }
   | target Lless Lequal delay_mechanism waveform Lsemicolon
       { {concurrentsimplesignaltarget=$1;
          concurrentsimplesignalguarded=false;
          concurrentsimplesignaldelay=$4;
-         concurrentsimplesignalwaveform=$5} };
+         concurrentsimplesignalwaveform=$5} }
   | target Lless Lequal Lguarded delay_mechanism waveform Lsemicolon
       { {concurrentsimplesignaltarget=$1;
          concurrentsimplesignalguarded=true;
          concurrentsimplesignaldelay=$5;
-         concurrentsimplesignalwaveform=$6} };
+         concurrentsimplesignalwaveform=$6} }
 
 /*
 (* options ::= [ guarded ] [delay_mechanism]                  *)
@@ -3737,22 +3737,22 @@ concurrent_conditional_signal_assignment:
       { {concurrentconditionalsignaltarget=$1;
          concurrentconditionalsignalguarded=false;
          concurrentconditionalsignaldelay=DelayNone;
-         concurrentconditionalsignalwaveforms=$4} };
+         concurrentconditionalsignalwaveforms=$4} }
   | target Lless Lequal Lguarded conditional_waveforms Lsemicolon
       { {concurrentconditionalsignaltarget=$1;
          concurrentconditionalsignalguarded=true;
          concurrentconditionalsignaldelay=DelayNone;
-         concurrentconditionalsignalwaveforms=$5} };
+         concurrentconditionalsignalwaveforms=$5} }
   | target Lless Lequal delay_mechanism conditional_waveforms Lsemicolon
       { {concurrentconditionalsignaltarget=$1;
          concurrentconditionalsignalguarded=false;
          concurrentconditionalsignaldelay=$4;
-         concurrentconditionalsignalwaveforms=$5} };
+         concurrentconditionalsignalwaveforms=$5} }
   | target Lless Lequal Lguarded delay_mechanism conditional_waveforms Lsemicolon
       { {concurrentconditionalsignaltarget=$1;
          concurrentconditionalsignalguarded=true;
          concurrentconditionalsignaldelay=$5;
-         concurrentconditionalsignalwaveforms=$6} };
+         concurrentconditionalsignalwaveforms=$6} }
 
 /*
 (* conditional_waveforms ::=          *)
@@ -3763,19 +3763,19 @@ concurrent_conditional_signal_assignment:
 conditional_waveforms:
   | waveform Lwhen condition
       { [{conditionalwaveformvalue=$1;
-          conditionalwaveformcondition=$3}] };
+          conditionalwaveformcondition=$3}] }
   | conditional_waveforms Lelse waveform
       { if (List.nth $1 (-1 + List.length $1)).conditionalwaveformcondition <> empty_condition then
           ($1 @ [{conditionalwaveformvalue=$3;
                   conditionalwaveformcondition=empty_condition}])
         else
-          raise Parsing.Parse_error };
+          raise Parsing.Parse_error }
   | conditional_waveforms Lelse waveform Lwhen condition
       { if (List.nth $1 (-1 + List.length $1)).conditionalwaveformcondition <> empty_condition then
           ($1 @ [{conditionalwaveformvalue=$3;
                   conditionalwaveformcondition=$5}])
         else
-          raise Parsing.Parse_error };
+          raise Parsing.Parse_error }
 
 /*
 (* selected_signal_assignment ::=                             *)
@@ -3789,56 +3789,56 @@ concurrent_selected_signal_assignment:
          concurrentselectedsignaldelay=DelayNone;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=OrdinarySelection;
-         concurrentselectedsignalwaveforms=$7} };
+         concurrentselectedsignalwaveforms=$7} }
   | Lwith selector Lselect target Lless Lequal Lguarded selected_waveforms Lsemicolon
       { {concurrentselectedsignaltarget=$4;
          concurrentselectedsignalguarded=true;
          concurrentselectedsignaldelay=DelayNone;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=OrdinarySelection;
-         concurrentselectedsignalwaveforms=$8} };
+         concurrentselectedsignalwaveforms=$8} }
   | Lwith selector Lselect target Lless Lequal delay_mechanism selected_waveforms Lsemicolon
       { {concurrentselectedsignaltarget=$4;
          concurrentselectedsignalguarded=false;
          concurrentselectedsignaldelay=$7;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=OrdinarySelection;
-         concurrentselectedsignalwaveforms=$8} };
+         concurrentselectedsignalwaveforms=$8} }
   | Lwith selector Lselect target Lless Lequal Lguarded delay_mechanism selected_waveforms Lsemicolon
       { {concurrentselectedsignaltarget=$4;
          concurrentselectedsignalguarded=true;
          concurrentselectedsignaldelay=$8;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=OrdinarySelection;
-         concurrentselectedsignalwaveforms=$9} };
+         concurrentselectedsignalwaveforms=$9} }
   | Lwith selector Lselect Lquestionmark target Lless Lequal selected_waveforms Lsemicolon
       { {concurrentselectedsignaltarget=$5;
          concurrentselectedsignalguarded=false;
          concurrentselectedsignaldelay=DelayNone;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=MatchingSelection;
-         concurrentselectedsignalwaveforms=$8} };
+         concurrentselectedsignalwaveforms=$8} }
   | Lwith selector Lselect Lquestionmark target Lless Lequal Lguarded selected_waveforms Lsemicolon
       { {concurrentselectedsignaltarget=$5;
          concurrentselectedsignalguarded=true;
          concurrentselectedsignaldelay=DelayNone;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=MatchingSelection;
-         concurrentselectedsignalwaveforms=$9} };
+         concurrentselectedsignalwaveforms=$9} }
   | Lwith selector Lselect Lquestionmark target Lless Lequal delay_mechanism selected_waveforms Lsemicolon
       { {concurrentselectedsignaltarget=$5;
          concurrentselectedsignalguarded=false;
          concurrentselectedsignaldelay=$8;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=MatchingSelection;
-         concurrentselectedsignalwaveforms=$9} };
+         concurrentselectedsignalwaveforms=$9} }
   | Lwith selector Lselect Lquestionmark target Lless Lequal Lguarded delay_mechanism selected_waveforms Lsemicolon
       { {concurrentselectedsignaltarget=$5;
          concurrentselectedsignalguarded=true;
          concurrentselectedsignaldelay=$9;
          concurrentselectedsignalselector=$2;
          concurrentselectedsignalkind=MatchingSelection;
-         concurrentselectedsignalwaveforms=$10} };
+         concurrentselectedsignalwaveforms=$10} }
 
 /*
 (* selected_waveforms ::=                                     *)
@@ -3848,10 +3848,10 @@ concurrent_selected_signal_assignment:
 selected_waveforms:
   | waveform Lwhen choices
       { [{selectedwaveformvalue=$1;
-          selectedwaveformchoices=$3}] };
+          selectedwaveformchoices=$3}] }
   | selected_waveforms Lcomma waveform Lwhen choices
       { ($1 @ [{selectedwaveformvalue=$3;
-                selectedwaveformchoices=$5}]) };
+                selectedwaveformchoices=$5}]) }
 
 /*
 (* component_instantiation_statement ::=            *)
@@ -3863,48 +3863,48 @@ selected_waveforms:
 component_instantiation_statement:
 /* conflict with procedure calls
   | label Lcolon name Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=[]; componentportmap=[]} }; */
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=[]; componentportmap=[]} } */
   | label Lcolon Lcomponent name Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=[]; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=[]; componentportmap=[]} }
   | label Lcolon Lentity name Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=[]; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=[]; componentportmap=[]} }
   | label Lcolon Lentity name Lleftparenthesis identifier Lrightparenthesis Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=[]; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=[]; componentportmap=[]} }
   | label Lcolon Lconfiguration name Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=[]; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=[]; componentportmap=[]} }
 
   | label Lcolon name generic_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=$4; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=$4; componentportmap=[]} }
   | label Lcolon Lcomponent name generic_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=$5; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=$5; componentportmap=[]} }
   | label Lcolon Lentity name generic_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=$5; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=$5; componentportmap=[]} }
   | label Lcolon Lentity name Lleftparenthesis identifier Lrightparenthesis generic_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=$8; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=$8; componentportmap=[]} }
   | label Lcolon Lconfiguration name generic_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=$5; componentportmap=[]} };
+      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=$5; componentportmap=[]} }
 
   | label Lcolon name port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=[]; componentportmap=$4} };
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=[]; componentportmap=$4} }
   | label Lcolon Lcomponent name port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=[]; componentportmap=$5} };
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=[]; componentportmap=$5} }
   | label Lcolon Lentity name port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=[]; componentportmap=$5} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=[]; componentportmap=$5} }
   | label Lcolon Lentity name Lleftparenthesis identifier Lrightparenthesis port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=[]; componentportmap=$8} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=[]; componentportmap=$8} }
   | label Lcolon Lconfiguration name port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=[]; componentportmap=$5} };
+      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=[]; componentportmap=$5} }
 
   | label Lcolon name generic_map_aspect port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=$4; componentportmap=$5} };
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $3; componentgenericmap=$4; componentportmap=$5} }
   | label Lcolon Lcomponent name generic_map_aspect port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=$5; componentportmap=$6} };
+      { {componentlabelname=$1; componentunit=InstantiatedComponent $4; componentgenericmap=$5; componentportmap=$6} }
   | label Lcolon Lentity name generic_map_aspect port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=$5; componentportmap=$6} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,empty_identifier); componentgenericmap=$5; componentportmap=$6} }
   | label Lcolon Lentity name Lleftparenthesis identifier Lrightparenthesis generic_map_aspect port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=$8; componentportmap=$9} };
+      { {componentlabelname=$1; componentunit=InstantiatedEntityArchitecture ($4,$6); componentgenericmap=$8; componentportmap=$9} }
   | label Lcolon Lconfiguration name generic_map_aspect port_map_aspect Lsemicolon
-      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=$5; componentportmap=$6} };
+      { {componentlabelname=$1; componentunit=InstantiatedConfiguration $4; componentgenericmap=$5; componentportmap=$6} }
 
 /*
 (* instantiated_unit ::=                            *)
@@ -3914,15 +3914,15 @@ component_instantiation_statement:
 */
 /*instantiated_unit:
   | name
-      { InstantiatedComponent $1 };
+      { InstantiatedComponent $1 }
   | Lcomponent name
-      { InstantiatedComponent $2 };
+      { InstantiatedComponent $2 }
   | Lentity name
-      { InstantiatedEntityArchitecture ($2, empty_identifier) };
+      { InstantiatedEntityArchitecture ($2, empty_identifier) }
   | Lentity name Lleftparenthesis identifier Lrightparenthesis
-      { InstantiatedEntityArchitecture ($2, $4) };
+      { InstantiatedEntityArchitecture ($2, $4) }
   | Lconfiguration name
-      { InstantiatedConfiguration $2 };*/
+      { InstantiatedConfiguration $2 }*/
 
 /*
 (* generate_statement ::=            *)
@@ -3932,17 +3932,17 @@ component_instantiation_statement:
 */
 generate_statement:
   | for_generate_statement
-      { ForGenerateStatement $1; };
+      { ForGenerateStatement $1; }
   | if_generate_statement
-      { IfGenerateStatement $1; };
+      { IfGenerateStatement $1; }
   | case_generate_statement
-      { CaseGenerateStatement $1; };
+      { CaseGenerateStatement $1; }
 
 end_generate_statement:
   | Lend Lgenerate Lsemicolon
-      { empty_label };
+      { empty_label }
   | Lend Lgenerate label Lsemicolon
-      { $3 };
+      { $3 }
 
 /*
 (* if_generate_statement ::=                               *)
@@ -3964,7 +3964,7 @@ if_generate_statement:
                  ifgeneratecondition=condition;
                  ifgeneratedeclarations=[];
                  ifgeneratethenstatements=[];
-                 ifgenerateelsestatements=else_generate_statement } };
+                 ifgenerateelsestatements=else_generate_statement } }
   | label Lcolon if_generate_label_condition end_generate_statement_body else_generate_statement
       { match $3,$5 with
         | (alternate_label,condition),(end_generate_label,else_generate_statement)
@@ -3973,7 +3973,7 @@ if_generate_statement:
                  ifgeneratecondition=condition;
                  ifgeneratedeclarations=[];
                  ifgeneratethenstatements=[];
-                 ifgenerateelsestatements=else_generate_statement } };
+                 ifgenerateelsestatements=else_generate_statement } }
   | label Lcolon if_generate_label_condition generate_statement_body else_generate_statement
       { match $3,$4,$5 with
         | (alternate_label,condition),(declarations,statements),(end_generate_label,else_generate_statement)
@@ -3982,7 +3982,7 @@ if_generate_statement:
                  ifgeneratecondition=condition;
                  ifgeneratedeclarations=declarations;
                  ifgeneratethenstatements=statements;
-                 ifgenerateelsestatements=else_generate_statement }; };
+                 ifgenerateelsestatements=else_generate_statement } }
   | label Lcolon if_generate_label_condition generate_statement_body end_generate_statement_body else_generate_statement
       { match $3,$4,$6 with
         | (alternate_label,condition),(declarations,statements),(end_generate_label,else_generate_statement)
@@ -3991,24 +3991,24 @@ if_generate_statement:
                  ifgeneratecondition=condition;
                  ifgeneratedeclarations=declarations;
                  ifgeneratethenstatements=statements;
-                 ifgenerateelsestatements=else_generate_statement }; };
+                 ifgenerateelsestatements=else_generate_statement } }
 
 if_generate_label_condition:
   | Lif condition Lgenerate
-      { empty_label,$2 };
+      { empty_label,$2 }
   | Lif label Lcolon condition Lgenerate
-      { $2, $4 };
+      { $2, $4 }
 
 else_generate_statement:
   | end_generate_statement
-      { $1,GenerateElseNone };
+      { $1,GenerateElseNone }
   | else_generate_label end_generate_statement
       { $2,GenerateElse {ifgeneratelabelname=empty_label;
                          ifgeneratealternatelabelname=$1;
                          ifgeneratecondition=empty_condition;
                          ifgeneratedeclarations=[];
                          ifgeneratethenstatements=[];
-                         ifgenerateelsestatements=GenerateElseNone} };
+                         ifgenerateelsestatements=GenerateElseNone} }
   | else_generate_label generate_statement_body end_generate_statement
       { match $2 with
         | declarations,statements
@@ -4017,14 +4017,14 @@ else_generate_statement:
                                 ifgeneratecondition=empty_condition;
                                 ifgeneratedeclarations=declarations;
                                 ifgeneratethenstatements=statements;
-                                ifgenerateelsestatements=GenerateElseNone} };
+                                ifgenerateelsestatements=GenerateElseNone} }
   | else_generate_label end_generate_statement_body end_generate_statement
       { $2,GenerateElse {ifgeneratelabelname=empty_label;
                          ifgeneratealternatelabelname=check_labels $1 $2;
                          ifgeneratecondition=empty_condition;
                          ifgeneratedeclarations=[];
                          ifgeneratethenstatements=[];
-                         ifgenerateelsestatements=GenerateElseNone} };
+                         ifgenerateelsestatements=GenerateElseNone} }
   | else_generate_label generate_statement_body end_generate_statement_body end_generate_statement
       { match $2 with
         | declarations,statements
@@ -4033,15 +4033,15 @@ else_generate_statement:
                                 ifgeneratecondition=empty_condition;
                                 ifgeneratedeclarations=declarations;
                                 ifgeneratethenstatements=statements;
-                                ifgenerateelsestatements=GenerateElseNone} };
+                                ifgenerateelsestatements=GenerateElseNone} }
   | elsif_generate_statement
-      { $1 };
+      { $1 }
 
 else_generate_label:
   | Lelse Lgenerate
-      { empty_label };
+      { empty_label }
   | Lelse label Lcolon Lgenerate
-      { $2 };
+      { $2 }
 
 elsif_generate_statement:
   | elsif_generate_label_condition else_generate_statement
@@ -4052,7 +4052,7 @@ elsif_generate_statement:
                                                  ifgeneratecondition=condition;
                                                  ifgeneratedeclarations=[];
                                                  ifgeneratethenstatements=[];
-                                                 ifgenerateelsestatements=else_generate_statement} };
+                                                 ifgenerateelsestatements=else_generate_statement} }
   | elsif_generate_label_condition generate_statement_body else_generate_statement
       { match $1,$2,$3 with
         | (alternate_label,condition),(declarations,statements),(end_generate_label,else_generate_statement)
@@ -4061,7 +4061,7 @@ elsif_generate_statement:
                                                  ifgeneratecondition=condition;
                                                  ifgeneratedeclarations=declarations;
                                                  ifgeneratethenstatements=statements;
-                                                 ifgenerateelsestatements=else_generate_statement} };
+                                                 ifgenerateelsestatements=else_generate_statement} }
   | elsif_generate_label_condition end_generate_statement_body else_generate_statement
       { match $1,$3 with
         | (alternate_label,condition),(end_generate_label,else_generate_statement)
@@ -4070,7 +4070,7 @@ elsif_generate_statement:
                                                  ifgeneratecondition=condition;
                                                  ifgeneratedeclarations=[];
                                                  ifgeneratethenstatements=[];
-                                                 ifgenerateelsestatements=else_generate_statement} };
+                                                 ifgenerateelsestatements=else_generate_statement} }
   | elsif_generate_label_condition generate_statement_body end_generate_statement_body else_generate_statement
       { match $1,$2,$4 with
         | (alternate_label,condition),(declarations,statements),(end_generate_label,else_generate_statement)
@@ -4079,13 +4079,13 @@ elsif_generate_statement:
                                                  ifgeneratecondition=condition;
                                                  ifgeneratedeclarations=declarations;
                                                  ifgeneratethenstatements=statements;
-                                                 ifgenerateelsestatements=else_generate_statement} };
+                                                 ifgenerateelsestatements=else_generate_statement} }
 
 elsif_generate_label_condition:
   | Lelsif condition Lgenerate
-      { empty_label,$2 };
+      { empty_label,$2 }
   | Lelsif label Lcolon condition Lgenerate
-      { $2, $4 };
+      { $2, $4 }
 
 /*
 (* for_generate_statement ::=                         *)
@@ -4100,13 +4100,13 @@ for_generate_statement:
           forgeneratealternatelabelname=empty_label;
           forgenerateparameter=$4;
           forgeneratedeclarations=[];
-          forgeneratestatements=[] } };
+          forgeneratestatements=[] } }
   | label Lcolon Lfor parameter_specification Lgenerate end_generate_statement_body end_generate_statement
       { { forgeneratelabelname=check_labels $1 $7;
           forgeneratealternatelabelname=check_labels empty_label $6;
           forgenerateparameter=$4;
           forgeneratedeclarations=[];
-          forgeneratestatements=[] } };
+          forgeneratestatements=[] } }
   | label Lcolon Lfor parameter_specification Lgenerate generate_statement_body end_generate_statement
       { match $6 with
         | declarations,statements
@@ -4114,7 +4114,7 @@ for_generate_statement:
                  forgeneratealternatelabelname=empty_label;
                  forgenerateparameter=$4;
                  forgeneratedeclarations=declarations;
-                 forgeneratestatements=statements }; };
+                 forgeneratestatements=statements } }
   | label Lcolon Lfor parameter_specification Lgenerate generate_statement_body end_generate_statement_body end_generate_statement
       { match $6 with
         | declarations,statements
@@ -4122,7 +4122,7 @@ for_generate_statement:
                  forgeneratealternatelabelname=check_labels empty_label $7;
                  forgenerateparameter=$4;
                  forgeneratedeclarations=declarations;
-                 forgeneratestatements=statements }; };
+                 forgeneratestatements=statements } }
 
 /*
 (* case_generate_statement ::=               *)
@@ -4137,32 +4137,32 @@ case_generate_statement:
       { {casegeneratelabelname=$1;
          casegenerateselector=$4;
          casegeneratekind=OrdinarySelection;
-         casegeneratealternatives=$7} };
+         casegeneratealternatives=$7} }
   | label Lcolon Lcase selector Lgenerate Lwhen case_generate_alternative_list label Lsemicolon
       { {casegeneratelabelname=check_labels $1 $8;
          casegenerateselector=$4;
          casegeneratekind=OrdinarySelection;
-         casegeneratealternatives=$7} };
+         casegeneratealternatives=$7} }
 
 case_generate_alternative_continued:
   | case_generate_alternative Lwhen
-      { [$1] };
+      { [$1] }
   | case_generate_alternative end_generate_statement_body Lwhen
-      { [{$1 with casegeneratealternatelabelname = check_labels $1.casegeneratealternatelabelname $2}] };
+      { [{$1 with casegeneratealternatelabelname = check_labels $1.casegeneratealternatelabelname $2}] }
   | case_generate_alternative_continued case_generate_alternative Lwhen
       { $1 @ [$2] }
   | case_generate_alternative_continued case_generate_alternative end_generate_statement_body Lwhen
-      { $1 @ [{$2 with casegeneratealternatelabelname = check_labels $2.casegeneratealternatelabelname $3}] };
+      { $1 @ [{$2 with casegeneratealternatelabelname = check_labels $2.casegeneratealternatelabelname $3}] }
 
 case_generate_alternative_list:
   | case_generate_alternative Lend Lgenerate
-      { [$1] };
+      { [$1] }
   | case_generate_alternative end_generate_statement_body Lend Lgenerate
-      { [{$1 with casegeneratealternatelabelname = check_labels $1.casegeneratealternatelabelname $2}] };
+      { [{$1 with casegeneratealternatelabelname = check_labels $1.casegeneratealternatelabelname $2}] }
   | case_generate_alternative_continued case_generate_alternative Lend Lgenerate
-      { $1 @ [$2] };
+      { $1 @ [$2] }
   | case_generate_alternative_continued case_generate_alternative end_generate_statement_body Lend Lgenerate
-      { $1 @ [{$2 with casegeneratealternatelabelname = check_labels $2.casegeneratealternatelabelname $3}] };
+      { $1 @ [{$2 with casegeneratealternatelabelname = check_labels $2.casegeneratealternatelabelname $3}] }
 
 /*
 (* case_generate_alternative ::=             *)
@@ -4176,20 +4176,20 @@ case_generate_alternative:
             -> {casegeneratealternatelabelname=alternate_label;
                 casegeneratechoices=choices;
                 casegeneratedeclarations=[];
-                casegeneratestatements=[]} };
+                casegeneratestatements=[]} }
   | case_generate_label_choices generate_statement_body
       { match $1,$2 with
         | (alternate_label,choices),(declarations,statements)
             -> {casegeneratealternatelabelname=alternate_label;
                 casegeneratechoices=choices;
                 casegeneratedeclarations=declarations;
-                casegeneratestatements=statements} };
+                casegeneratestatements=statements} }
 
 case_generate_label_choices:
   | choices Lassociation
-      { empty_label,$1 };
+      { empty_label,$1 }
   | label Lcolon choices Lassociation
-      { $1,$3 };
+      { $1,$3 }
 
 /*
 (* generate_statement_body ::=        *)
@@ -4200,21 +4200,21 @@ case_generate_label_choices:
 */
 generate_statement_body:
   | Lbegin
-      { [],[] };
+      { [],[] }
   | block_declarative_part Lbegin
-      { $1,[] };
+      { $1,[] }
   | concurrent_statements
-      { [],$1 };
+      { [],$1 }
   | Lbegin concurrent_statements
-      { [],$2 };
+      { [],$2 }
   | block_declarative_part Lbegin concurrent_statements
-      { $1,$3 };
+      { $1,$3 }
 
 end_generate_statement_body:
   | Lend Lsemicolon
-      { empty_label };
+      { empty_label }
   | Lend label Lsemicolon
-      { $2 };
+      { $2 }
 
 /*
 (* use_clause ::=                          *)
@@ -4222,13 +4222,13 @@ end_generate_statement_body:
 */
 use_clause:
   | Luse selected_name_list Lsemicolon
-      { $2 };
+      { $2 }
 
 use_clause_list:
   | use_clause
-      { [$1] };
+      { [$1] }
   | use_clause_list use_clause
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* concurrent_statement ::=                              *)
@@ -4242,25 +4242,25 @@ use_clause_list:
 */
 concurrent_statement:
   | block_statement
-      { ConcurrentBlockStatement $1 };
+      { ConcurrentBlockStatement $1 }
   | process_statement
-      { ConcurrentProcessStatement $1 };
+      { ConcurrentProcessStatement $1 }
   | concurrent_procedure_call_statement
-      { ConcurrentProcedureCallStatement $1 };
+      { ConcurrentProcedureCallStatement $1 }
   | concurrent_assertion_statement
-      { ConcurrentAssertionStatement $1 };
+      { ConcurrentAssertionStatement $1 }
   | concurrent_signal_assignment_statement
-      { ConcurrentSignalAssignmentStatement $1 };
+      { ConcurrentSignalAssignmentStatement $1 }
   | component_instantiation_statement
-      { ConcurrentComponentInstantiationStatement $1 };
+      { ConcurrentComponentInstantiationStatement $1 }
   | generate_statement
-      { ConcurrentGenerateStatement $1 };
+      { ConcurrentGenerateStatement $1 }
 
 concurrent_statements:
   | concurrent_statement
-      { [$1] };
+      { [$1] }
   | concurrent_statements concurrent_statement
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* package_declarative_item ::=                             *)
@@ -4283,29 +4283,29 @@ concurrent_statements:
 */
 package_declarative_item:
   | subprogram_declaration
-      { PackageSubProgramDeclaration $1 };
+      { PackageSubProgramDeclaration $1 }
   | subprogram_instantiation
-      { PackageSubProgramInstantiation $1 };
+      { PackageSubProgramInstantiation $1 }
   | type_declaration
-      { PackageTypeDeclaration $1 };
+      { PackageTypeDeclaration $1 }
   | subtype_declaration
-      { PackageSubTypeDeclaration $1 };
+      { PackageSubTypeDeclaration $1 }
   | constant_declaration
-      { PackageConstantDeclaration $1 };
+      { PackageConstantDeclaration $1 }
   | signal_declaration
-      { PackageSignalDeclaration $1 };
+      { PackageSignalDeclaration $1 }
   | file_declaration
-      { PackageFileDeclaration $1 };
+      { PackageFileDeclaration $1 }
   | alias_declaration
-      { PackageAliasDeclaration $1 };
+      { PackageAliasDeclaration $1 }
   | component_declaration
-      { PackageComponentDeclaration $1 };
+      { PackageComponentDeclaration $1 }
   | attribute_declaration
-      { PackageAttributeDeclaration $1 };
+      { PackageAttributeDeclaration $1 }
   | attribute_specification
-      { PackageAttributeSpecification $1 };
+      { PackageAttributeSpecification $1 }
   | use_clause
-      { PackageUseClause $1 };
+      { PackageUseClause $1 }
 
 /*
 (* package_declarative_part ::=                             *)
@@ -4313,9 +4313,9 @@ package_declarative_item:
 */
 package_declarative_part:
   | package_declarative_item
-      { [$1] };
+      { [$1] }
   | package_declarative_part package_declarative_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* package_declaration ::=                                  *)
@@ -4331,42 +4331,42 @@ package_declaration:
             -> {packagename=$2;
                 packagegenericclause=generic_clause;
                 packagegenericmapaspect=generic_map_aspect;
-                packagedeclarations=declarations} };
+                packagedeclarations=declarations} }
   | Lpackage identifier package_declarations Lend Lpackage Lsemicolon
       { match $3 with
         | generic_clause,generic_map_aspect,declarations
             -> {packagename=$2;
                 packagegenericclause=generic_clause;
                 packagegenericmapaspect=generic_map_aspect;
-                packagedeclarations=declarations} };
+                packagedeclarations=declarations} }
   | Lpackage identifier package_declarations Lend identifier Lsemicolon
       { match $3 with
         | generic_clause,generic_map_aspect,declarations
             -> {packagename=check_identifiers $2 $5;
                 packagegenericclause=generic_clause;
                 packagegenericmapaspect=generic_map_aspect;
-                packagedeclarations=declarations} };
+                packagedeclarations=declarations} }
   | Lpackage identifier package_declarations Lend Lpackage identifier Lsemicolon
       { match $3 with
         | generic_clause,generic_map_aspect,declarations
             -> {packagename=check_identifiers $2 $6;
                 packagegenericclause=generic_clause;
                 packagegenericmapaspect=generic_map_aspect;
-                packagedeclarations=declarations} };
+                packagedeclarations=declarations} }
 
 package_declarations:
   | Lis
-      { [],[],[] };
+      { [],[],[] }
   | Lis package_declarative_part
-      { [],[],$2 };
+      { [],[],$2 }
   | Lis package_header
       { match $2 with
         | generic_clause,generic_map_aspect
-            -> generic_clause,generic_map_aspect,[] };
+            -> generic_clause,generic_map_aspect,[] }
   | Lis package_header package_declarative_part
       { match $2 with
         | generic_clause,generic_map_aspect
-            -> generic_clause,generic_map_aspect,$3 };
+            -> generic_clause,generic_map_aspect,$3 }
 
 /*
 (* package_header ::=                                       *)
@@ -4375,9 +4375,9 @@ package_declarations:
 */
 package_header:
   | generic_clause
-      { $1,[] };
+      { $1,[] }
   | generic_clause generic_map_aspect Lsemicolon
-      { $1,$2 };
+      { $1,$2 }
 
 /*
 (* package_body_declarative_item ::=                        *)
@@ -4396,23 +4396,23 @@ package_header:
 */
 package_body_declarative_item:
   | subprogram_declaration
-      { PackageBodySubProgramDeclaration $1 };
+      { PackageBodySubProgramDeclaration $1 }
   | subprogram_body
-      { PackageBodySubProgramBody $1 };
+      { PackageBodySubProgramBody $1 }
   | subprogram_instantiation
-      { PackageBodySubProgramInstantiation $1 };
+      { PackageBodySubProgramInstantiation $1 }
   | type_declaration
-      { PackageBodyTypeDeclaration $1 };
+      { PackageBodyTypeDeclaration $1 }
   | subtype_declaration
-      { PackageBodySubTypeDeclaration $1 };
+      { PackageBodySubTypeDeclaration $1 }
   | constant_declaration
-      { PackageBodyConstantDeclaration $1 };
+      { PackageBodyConstantDeclaration $1 }
   | file_declaration
-      { PackageBodyFileDeclaration $1 };
+      { PackageBodyFileDeclaration $1 }
   | alias_declaration
-      { PackageBodyAliasDeclaration $1 };
+      { PackageBodyAliasDeclaration $1 }
   | use_clause
-      { PackageBodyUseClause $1 };
+      { PackageBodyUseClause $1 }
 
 /*
 (* package_body_declarative_part ::=                        *)
@@ -4420,9 +4420,9 @@ package_body_declarative_item:
 */
 package_body_declarative_part:
   | package_body_declarative_item
-      { [$1] };
+      { [$1] }
   | package_body_declarative_part package_body_declarative_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* package_body ::=                                         *)
@@ -4432,19 +4432,19 @@ package_body_declarative_part:
 */
 package_body:
   | Lpackage Lbody identifier package_body_declarations Lend Lsemicolon
-      { {packagebodyname=$3; packagebodydeclarations=$4} };
+      { {packagebodyname=$3; packagebodydeclarations=$4} }
   | Lpackage Lbody identifier package_body_declarations Lend Lpackage Lbody Lsemicolon
-      { {packagebodyname=$3; packagebodydeclarations=$4} };
+      { {packagebodyname=$3; packagebodydeclarations=$4} }
   | Lpackage Lbody identifier package_body_declarations Lend identifier Lsemicolon
-      { {packagebodyname=check_identifiers $3 $6; packagebodydeclarations=$4} };
+      { {packagebodyname=check_identifiers $3 $6; packagebodydeclarations=$4} }
   | Lpackage Lbody identifier package_body_declarations Lend Lpackage Lbody identifier Lsemicolon
-      { {packagebodyname=check_identifiers $3 $8; packagebodydeclarations=$4} };
+      { {packagebodyname=check_identifiers $3 $8; packagebodydeclarations=$4} }
 
 package_body_declarations:
   | Lis
-      { [] };
+      { [] }
   | Lis package_body_declarative_part
-      { $2 };
+      { $2 }
 
 /*
 (* package_instantiation_declaration ::=                   *)
@@ -4456,11 +4456,11 @@ package_instantiation:
   | Lpackage identifier Lis Lnew name Lsemicolon
       { {packageinstantiationidentifier = $2;
          packageinstantiationname = $5;
-         packageinstantiationgenericmap = []} };
+         packageinstantiationgenericmap = []} }
   | Lpackage identifier Lis Lnew name generic_map_aspect Lsemicolon
       { {packageinstantiationidentifier = $2;
          packageinstantiationname = $5;
-         packageinstantiationgenericmap = $6} };
+         packageinstantiationgenericmap = $6} }
 
 /*
 (* entity_declarative_part ::=                              *)
@@ -4468,9 +4468,9 @@ package_instantiation:
 */
 entity_declarative_part:
   | entity_declarative_item
-      { [$1] };
+      { [$1] }
   | entity_declarative_part entity_declarative_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* entity_declarative_item ::                               *)
@@ -4493,29 +4493,29 @@ entity_declarative_part:
 */
 entity_declarative_item:
   | subprogram_declaration
-      { EntitySubProgramDeclaration $1 };
+      { EntitySubProgramDeclaration $1 }
   | subprogram_body
-      { EntitySubProgramBody $1 };
+      { EntitySubProgramBody $1 }
   | subprogram_instantiation
-      { EntitySubProgramInstantiation $1 };
+      { EntitySubProgramInstantiation $1 }
   | type_declaration
-      { EntityTypeDeclaration $1 };
+      { EntityTypeDeclaration $1 }
   | subtype_declaration
-      { EntitySubTypeDeclaration $1 };
+      { EntitySubTypeDeclaration $1 }
   | constant_declaration
-      { EntityConstantDeclaration $1 };
+      { EntityConstantDeclaration $1 }
   | signal_declaration
-      { EntitySignalDeclaration $1 };
+      { EntitySignalDeclaration $1 }
   | file_declaration
-      { EntityFileDeclaration $1 };
+      { EntityFileDeclaration $1 }
   | alias_declaration
-      { EntityAliasDeclaration $1 };
+      { EntityAliasDeclaration $1 }
   | attribute_declaration
-      { EntityAttributeDeclaration $1 };
+      { EntityAttributeDeclaration $1 }
   | attribute_specification
-      { EntityAttributeSpecification $1 };
+      { EntityAttributeSpecification $1 }
   | use_clause
-      { EntityUseClause $1 };
+      { EntityUseClause $1 }
 
 /*
 (* entity_statement_part ::=              *)
@@ -4523,9 +4523,9 @@ entity_declarative_item:
 */
 entity_statement_part:
   | entity_statement
-      { [$1] };
+      { [$1] }
   | entity_statement_part entity_statement
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* entity_statement ::=                   *)
@@ -4535,11 +4535,11 @@ entity_statement_part:
 */
 entity_statement:
   | concurrent_assertion_statement
-      { EntityConcurrentAssertionStatement $1 };
+      { EntityConcurrentAssertionStatement $1 }
   | concurrent_procedure_call_statement
-      { EntityConcurrentProcedureCallStatement $1 };
+      { EntityConcurrentProcedureCallStatement $1 }
   | process_statement
-      { EntityProcessStatement $1 };
+      { EntityProcessStatement $1 }
 
 /*
 (* entity_header ::=              *)
@@ -4548,21 +4548,21 @@ entity_statement:
 */
 entity_header_helper:
   | Lis
-      { ({entitygenerics=[]; entityports=[]},[]) };
+      { ({entitygenerics=[]; entityports=[]},[]) }
   | Lis generic_clause
-      { ({entitygenerics=$2; entityports=[]},[]) };
+      { ({entitygenerics=$2; entityports=[]},[]) }
   | Lis port_clause
-      { ({entitygenerics=[]; entityports=$2},[]) };
+      { ({entitygenerics=[]; entityports=$2},[]) }
   | Lis generic_clause port_clause
-      { ({entitygenerics=$2; entityports=$3},[]) };
+      { ({entitygenerics=$2; entityports=$3},[]) }
   | Lis entity_declarative_part
-      { ({entitygenerics=[]; entityports=[]},$2) };
+      { ({entitygenerics=[]; entityports=[]},$2) }
   | Lis generic_clause entity_declarative_part
-      { ({entitygenerics=$2; entityports=[]},$3) };
+      { ({entitygenerics=$2; entityports=[]},$3) }
   | Lis port_clause entity_declarative_part
-      { ({entitygenerics=[]; entityports=$2},$3) };
+      { ({entitygenerics=[]; entityports=$2},$3) }
   | Lis generic_clause port_clause entity_declarative_part
-      { ({entitygenerics=$2; entityports=$3},$4) };
+      { ({entitygenerics=$2; entityports=$3},$4) }
 
 /*
 (* entity_declaration ::=                           *)
@@ -4575,21 +4575,21 @@ entity_header_helper:
 */
 entity_declaration:
   | Lentity identifier entity_header_helper Lend Lsemicolon
-      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} };
+      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} }
   | Lentity identifier entity_header_helper Lend Lentity Lsemicolon
-      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} };
+      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} }
   | Lentity identifier entity_header_helper Lend identifier Lsemicolon
-      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} };
+      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} }
   | Lentity identifier entity_header_helper Lend Lentity identifier Lsemicolon
-      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} };
+      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=[]} }
   | Lentity identifier entity_header_helper Lbegin entity_statement_part Lend Lsemicolon
-      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} };
+      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} }
   | Lentity identifier entity_header_helper Lbegin entity_statement_part Lend Lentity Lsemicolon
-      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} };
+      { {entityname=$2; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} }
   | Lentity identifier entity_header_helper Lbegin entity_statement_part Lend identifier Lsemicolon
-      { {entityname=check_identifiers $2 $7; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} };
+      { {entityname=check_identifiers $2 $7; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} }
   | Lentity identifier entity_header_helper Lbegin entity_statement_part Lend Lentity identifier Lsemicolon
-      { {entityname=check_identifiers $2 $8; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} };
+      { {entityname=check_identifiers $2 $8; entityheader=fst $3; entitydeclarations=snd $3; entitystatements=$5} }
 
 /*
 (* architecture_declarative_part ::=              *)
@@ -4597,9 +4597,9 @@ entity_declaration:
 */
 architecture_declarative_part:
   | block_declarative_item
-      { [$1] };
+      { [$1] }
   | architecture_declarative_part block_declarative_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* architecture_statement_part ::=              *)
@@ -4607,9 +4607,9 @@ architecture_declarative_part:
 */
 architecture_statement_part:
   | concurrent_statement
-      { [$1] };
+      { [$1] }
   | architecture_statement_part concurrent_statement
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* architecture_body ::=                                 *)
@@ -4621,34 +4621,34 @@ architecture_statement_part:
 */
 architecture_body:
   | Larchitecture identifier Lof simple_name architecture_declarations architecture_statements Lend Lsemicolon
-      { {archname=$2; archentityname=$4; archdeclarations=$5; archstatements=$6} };
+      { {archname=$2; archentityname=$4; archdeclarations=$5; archstatements=$6} }
   | Larchitecture identifier Lof simple_name architecture_declarations architecture_statements Lend Larchitecture Lsemicolon
-      { {archname=$2; archentityname=$4; archdeclarations=$5; archstatements=$6} };
+      { {archname=$2; archentityname=$4; archdeclarations=$5; archstatements=$6} }
   | Larchitecture identifier Lof simple_name architecture_declarations architecture_statements Lend identifier Lsemicolon
-      { {archname=check_identifiers $2 $8; archentityname=$4; archdeclarations=$5; archstatements=$6} };
+      { {archname=check_identifiers $2 $8; archentityname=$4; archdeclarations=$5; archstatements=$6} }
   | Larchitecture identifier Lof simple_name architecture_declarations architecture_statements Lend Larchitecture identifier Lsemicolon
-      { {archname=check_identifiers $2 $9; archentityname=$4; archdeclarations=$5; archstatements=$6} };
+      { {archname=check_identifiers $2 $9; archentityname=$4; archdeclarations=$5; archstatements=$6} }
 
 architecture_declarations:
   | Lis
-      { [] };
+      { [] }
   | Lis architecture_declarative_part
-      { $2 };
+      { $2 }
 
 architecture_statements:
   | Lbegin
-      { [] };
+      { [] }
   | Lbegin architecture_statement_part
-      { $2 };
+      { $2 }
 
 /*
 (* context_clause ::= { context_item } *)
 */
 context_clause:
   | context_item
-      { [$1] };
+      { [$1] }
   | context_clause context_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* context_declaration ::=                       *)
@@ -4659,28 +4659,28 @@ context_clause:
 context_declaration:
   | Lcontext identifier Lis Lend Lsemicolon
       { {contextname=$2;
-         contextclause=[]} };
+         contextclause=[]} }
   | Lcontext identifier Lis Lend Lcontext Lsemicolon
       { {contextname=$2;
-         contextclause=[]} };
+         contextclause=[]} }
   | Lcontext identifier Lis Lend identifier Lsemicolon
       { {contextname=check_identifiers $2 $5;
-         contextclause=[]} };
+         contextclause=[]} }
   | Lcontext identifier Lis Lend Lcontext identifier Lsemicolon
       { {contextname=check_identifiers $2 $6;
-         contextclause=[]} };
+         contextclause=[]} }
   | Lcontext identifier Lis context_clause Lend Lsemicolon
       { {contextname=$2;
-         contextclause=$4} };
+         contextclause=$4} }
   | Lcontext identifier Lis context_clause Lend Lcontext Lsemicolon
       { {contextname=$2;
-         contextclause=$4} };
+         contextclause=$4} }
   | Lcontext identifier Lis context_clause Lend identifier Lsemicolon
       { {contextname=check_identifiers $2 $6;
-         contextclause=$4} };
+         contextclause=$4} }
   | Lcontext identifier Lis context_clause Lend Lcontext identifier Lsemicolon
       { {contextname=check_identifiers $2 $7;
-         contextclause=$4} };
+         contextclause=$4} }
 
 /*
 (* context_reference ::=                         *)
@@ -4688,7 +4688,7 @@ context_declaration:
 */
 context_reference:
   | Lcontext selected_name_list Lsemicolon
-      { $2 };
+      { $2 }
 
 /*
 (* context_item ::=                    *)
@@ -4697,11 +4697,11 @@ context_reference:
 */
 context_item:
   | library_clause
-      { ContextLibraryClause $1 };
+      { ContextLibraryClause $1 }
   | use_clause
-      { ContextUseClause $1 };
+      { ContextUseClause $1 }
   | context_reference
-      { ContextContextReference $1 };
+      { ContextContextReference $1 }
 
 /*
 (* configuration_declaration ::=                      *)
@@ -4712,19 +4712,19 @@ context_item:
 */
 configuration_declaration:
   | Lconfiguration identifier Lof name configuration_declarations block_configuration Lend Lsemicolon
-      { {confname=$2; confentityname=$4; confdeclarations=$5; confblock=$6} };
+      { {confname=$2; confentityname=$4; confdeclarations=$5; confblock=$6} }
   | Lconfiguration identifier Lof name configuration_declarations block_configuration Lend Lconfiguration Lsemicolon
-      { {confname=$2; confentityname=$4; confdeclarations=$5; confblock=$6} };
+      { {confname=$2; confentityname=$4; confdeclarations=$5; confblock=$6} }
   | Lconfiguration identifier Lof name configuration_declarations block_configuration Lend simple_name Lsemicolon
-      { {confname=check_identifiers $2 $8; confentityname=$4; confdeclarations=$5; confblock=$6} };
+      { {confname=check_identifiers $2 $8; confentityname=$4; confdeclarations=$5; confblock=$6} }
   | Lconfiguration identifier Lof name configuration_declarations block_configuration Lend Lconfiguration simple_name Lsemicolon
-      { {confname=check_identifiers $2 $9; confentityname=$4; confdeclarations=$5; confblock=$6} };
+      { {confname=check_identifiers $2 $9; confentityname=$4; confdeclarations=$5; confblock=$6} }
 
 configuration_declarations:
   | Lis
-      { [] };
+      { [] }
   | Lis configuration_declarative_part
-      { $2 };
+      { $2 }
 
 /*
 (* configuration_declarative_part ::=                 *)
@@ -4732,9 +4732,9 @@ configuration_declarations:
 */
 configuration_declarative_part:
   | configuration_declarative_item
-      { [$1] };
+      { [$1] }
   | configuration_declarative_part configuration_declarative_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* configuration_declarative_item ::=                 *)
@@ -4744,9 +4744,9 @@ configuration_declarative_part:
 */
 configuration_declarative_item:
   | use_clause
-      { ConfigurationUseClause $1 };
+      { ConfigurationUseClause $1 }
   | attribute_specification
-      { ConfigurationAttributeSpecification $1 };
+      { ConfigurationAttributeSpecification $1 }
 
 /*
 (* block_configuration ::=                                  *)
@@ -4758,13 +4758,13 @@ configuration_declarative_item:
 
 block_configuration:
   | Lfor block_specification Lend Lfor Lsemicolon
-      { {blockspec=$2; blockuses=[]; blockconfigurations=[]} };
+      { {blockspec=$2; blockuses=[]; blockconfigurations=[]} }
   | Lfor block_specification use_clause_list Lend Lfor Lsemicolon
-      { {blockspec=$2; blockuses=$3; blockconfigurations=[]} };
+      { {blockspec=$2; blockuses=$3; blockconfigurations=[]} }
   | Lfor block_specification configuration_item_list Lend Lfor Lsemicolon
-      { {blockspec=$2; blockuses=[]; blockconfigurations=$3} };
+      { {blockspec=$2; blockuses=[]; blockconfigurations=$3} }
   | Lfor block_specification use_clause_list configuration_item_list Lend Lfor Lsemicolon
-      { {blockspec=$2; blockuses=$3; blockconfigurations=$4} };
+      { {blockspec=$2; blockuses=$3; blockconfigurations=$4} }
 
 /*
 (* block_specification ::=                                  *)
@@ -4774,9 +4774,9 @@ block_configuration:
 */
 block_specification:
   | name
-      { BlockSpecificationName $1 };
+      { BlockSpecificationName $1 }
   | name Lleftparenthesis index_specification Lrightparenthesis
-      { BlockSpecificationNameIndex ($1, $3) };
+      { BlockSpecificationNameIndex ($1, $3) }
 
 /*
 (* index_specification ::=                                  *)
@@ -4786,9 +4786,9 @@ expression may contain attributes, discrete_range shouldn't
 */
 index_specification:
   | discrete_range_without_attribute
-      { IndexDiscreteRange $1 };
+      { IndexDiscreteRange $1 }
   | expression
-      { IndexStaticExpression $1 };
+      { IndexStaticExpression $1 }
 
 /*
 (* configuration_item ::=                                   *)
@@ -4797,15 +4797,15 @@ index_specification:
 */
 configuration_item:
   | block_configuration
-      { BlockConfiguration $1 };
+      { BlockConfiguration $1 }
   | component_configuration
-      { ComponentConfiguration $1 };
+      { ComponentConfiguration $1 }
 
 configuration_item_list:
   | configuration_item
-      { [$1] };
+      { [$1] }
   | configuration_item_list configuration_item
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* component_configuration ::=              *)
@@ -4816,22 +4816,22 @@ configuration_item_list:
 */
 component_configuration:
   | Lfor component_specification Lend Lfor Lsemicolon
-      { {componentspec=$2; componentbinding=empty_binding; componentblockconf=empty_blockconf} };
+      { {componentspec=$2; componentbinding=empty_binding; componentblockconf=empty_blockconf} }
   | Lfor component_specification block_configuration Lend Lfor Lsemicolon
-      { {componentspec=$2; componentbinding=empty_binding; componentblockconf=$3} };
+      { {componentspec=$2; componentbinding=empty_binding; componentblockconf=$3} }
   | Lfor component_specification binding_indication Lsemicolon Lend Lfor Lsemicolon
-      { {componentspec=$2; componentbinding=$3; componentblockconf=empty_blockconf} };
+      { {componentspec=$2; componentbinding=$3; componentblockconf=empty_blockconf} }
   | Lfor component_specification binding_indication Lsemicolon block_configuration Lend Lfor Lsemicolon
-      { {componentspec=$2; componentbinding=$3; componentblockconf=$5} };
+      { {componentspec=$2; componentbinding=$3; componentblockconf=$5} }
 
 /*
 (* design_file ::= design_unit { design_unit }   *)
 */
 design_file:
   | design_unit
-      { [$1] };
+      { [$1] }
   | design_file design_unit
-      { ($1 @ [$2]) };
+      { ($1 @ [$2]) }
 
 /*
 (* design_unit ::= context_clause library_unit   *)
@@ -4839,10 +4839,10 @@ design_file:
 design_unit:
   | library_unit
       { {designunitcontextclause=[];
-         designunitlibraryunit=$1} };
+         designunitlibraryunit=$1} }
   | context_clause library_unit
       { {designunitcontextclause=$1;
-         designunitlibraryunit=$2} };
+         designunitlibraryunit=$2} }
 
 /*
 (* library_unit ::=                              *)
@@ -4851,9 +4851,9 @@ design_unit:
 */
 library_unit:
   | primary_unit
-      { PrimaryUnit $1 };
+      { PrimaryUnit $1 }
   | secondary_unit
-      { SecondaryUnit $1 };
+      { SecondaryUnit $1 }
 
 /*
 (* primary_unit ::=                              *)
@@ -4866,15 +4866,15 @@ library_unit:
 */
 primary_unit:
   | entity_declaration
-      { EntityDeclaration $1 };
+      { EntityDeclaration $1 }
   | configuration_declaration
-      { ConfigurationDeclaration $1 };
+      { ConfigurationDeclaration $1 }
   | package_declaration
-      { PackageDeclaration $1 };
+      { PackageDeclaration $1 }
   | package_instantiation
-      { PackageInstantiation $1 };
+      { PackageInstantiation $1 }
   | context_declaration
-      { ContextDeclaration $1 };
+      { ContextDeclaration $1 }
 
 /*
 (* secondary_unit ::=                            *)
@@ -4883,29 +4883,29 @@ primary_unit:
 */
 secondary_unit:
   | architecture_body
-      { ArchitectureBody $1 };
+      { ArchitectureBody $1 }
   | package_body
-      { PackageBody $1 };
+      { PackageBody $1 }
 
 top_level_file:
   | Leof
-      { [] };
+      { [] }
   | Lprotected
-      { [ {designunitcontextclause = []; designunitlibraryunit = ProtectedUnit} ] };
+      { [ {designunitcontextclause = []; designunitlibraryunit = ProtectedUnit} ] }
   | design_file Leof
-      { $1 };
+      { $1 }
   | Lbomutf8 Leof
-      { [] };
+      { [] }
   | Lbomutf8 design_file Leof
-      { $2 };
+      { $2 }
   | Lbomutf7 Leof
-      { [] };
+      { [] }
   | Lbomutf7 design_file Leof
-      { $2 };
+      { $2 }
 
 top_level_expression:
   | expression Leof
-      { $1 };
+      { $1 }
 
 unused_tokens:
   |  Lassumeguarantee  { [] }

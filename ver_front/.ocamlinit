@@ -3,7 +3,7 @@ open Setup;;
 open Vparser;;
 open Semantics;;
 
-let rslt = Vparse.parse "example.v";;
+let rslt = Vparse.parse "../../picorv32/picorv32.v";;
 Semantics.endscan();;
 
 if not rslt then for i = 0 to hsiz-1 do let idx = (hsiz-i+(!histcnt))mod hsiz in

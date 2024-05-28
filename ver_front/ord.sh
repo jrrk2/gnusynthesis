@@ -17,5 +17,5 @@
 echo open String > ord.ml
 echo let getstr tok = match tok with >> ord.ml
 sed '/ENDOFFILE/,$d' vparser.mli | grep '\ [A-Z][A-Za-z_]' | grep -v exception | cut -d\( -f1 | tr '\011' ' ' |\
-sed -e 's=[|\ ]*\([A-Z][A-Za-z0-9_\ o]*\)=|\ Vparser.\1 -> lowercase(\"\1\") \;=' -e 's= of [A-Za-z0-9\ ]*= _=' -e 's= of[A-Za-z0-9\ ]*==' | cut -d\; -f1 | sort >> ord.ml
+sed -e 's=[|\ ]*\([A-Z][A-Za-z0-9_\ o]*\)=|\ Vparser.\1 -> lowercase_ascii(\"\1\") \;=' -e 's= of [A-Za-z0-9\ ]*= _=' -e 's= of[A-Za-z0-9\ ]*==' | cut -d\; -f1 | sort >> ord.ml
 echo '| _ -> "unknown?"' >>ord.ml

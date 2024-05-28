@@ -9,7 +9,7 @@
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
@@ -80,7 +80,7 @@ let create_attr out_chan syms neww =
 let enter_a_sym out_chan (symbols:shash) id attr w mode =
   (match w with
     | EMPTY -> ()
-    | RANGE(INT lft, INT rght) -> if lft < 0 or rght < 0 then
+    | RANGE(INT lft, INT rght) -> if lft < 0 || rght < 0 then
         myfailwith (Printf.sprintf "vector [%d:%d]\n" lft rght)
     | _ -> ());
   match attr with
@@ -1061,7 +1061,7 @@ let rec has_behav = function
 | DOUBLE(DEFPARAM, items) -> true
 | TRIPLE(GENVAR, arg1, TLIST arg3) -> false
 | TRIPLE(ASSIGN, dly, TLIST assignlist) ->
-  let orall = ref false in List.iter (fun itm -> orall := !orall or has_behav itm) assignlist; !orall
+  let orall = ref false in List.iter (fun itm -> orall := !orall || has_behav itm) assignlist; !orall
 | TRIPLE((XOR|PLUS|MINUS|P_ANDAND|P_OROR|P_EQUAL|BUF|NOT|AND|OR|NAND|NOR|XNOR|PULLUP|NMOS|PMOS|TRAN), _, _) -> false
 | TRIPLE(ASSIGNMENT, ID op, BINNUM "1'b1") -> false
 | TRIPLE(ASSIGNMENT, ID op, BINNUM "1'b0") -> false
@@ -1079,8 +1079,8 @@ let rec has_behav = function
 | QUADRUPLE((MODINST|PRIMINST), ID prim, params, TLIST inlist) -> false
 | QUINTUPLE(MODULE,ID arg1, arg2, TLIST arg3, THASH thash) ->
   let orall = ref false in
-  Hashtbl.iter (fun itm _ -> orall := !orall or has_behav itm) (fst thash);
-  Hashtbl.iter (fun itm _ -> orall := !orall or has_behav itm) (snd thash);
+  Hashtbl.iter (fun itm _ -> orall := !orall || has_behav itm) (fst thash);
+  Hashtbl.iter (fun itm _ -> orall := !orall || has_behav itm) (snd thash);
   !orall
 | QUINTUPLE(PRIMITIVE,ID arg1, EMPTY, TLIST primargs, TLIST arg4) -> true
 | SEPTUPLE(TASK, EMPTY, ID taskname, EMPTY, TLIST args, stmts, EMPTY) -> false
@@ -1104,8 +1104,8 @@ let rec has_seq = function
          lst)]) -> true
 | QUINTUPLE(MODULE,ID arg1, arg2, TLIST arg3, THASH thash) ->
   let orall = ref false in
-  Hashtbl.iter (fun itm _ -> orall := !orall or has_seq itm) (fst thash);
-  Hashtbl.iter (fun itm _ -> orall := !orall or has_seq itm) (snd thash);
+  Hashtbl.iter (fun itm _ -> orall := !orall || has_seq itm) (fst thash);
+  Hashtbl.iter (fun itm _ -> orall := !orall || has_seq itm) (snd thash);
   !orall
 | SEPTUPLE(TASK, EMPTY, ID taskname, EMPTY, TLIST args, stmts, EMPTY) -> false
 | oth -> false

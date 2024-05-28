@@ -244,7 +244,7 @@ let restore_itm fn descr =
   Hashtbl.iter (fun k x -> buflst := fn x @ !buflst) libhash;
   if !verbose then printf "%d %s detected\n" (List.length !buflst) descr;
   if List.length !buflst = 0 then failwith ("list of "^descr^" is empty");
-  let entry = List.hd (List.sort Pervasives.compare !buflst) in
+  let entry = List.hd (List.sort Stdlib.compare !buflst) in
   if !verbose then printf "Using library %s %s %s(.%s(out),.%s(in));\n"
     descr entry.nam.Idhash.id entry.bnam.Idhash.id (List.hd entry.opinlst).idpin.Idhash.id (List.hd entry.ipinlst).idpin.Idhash.id;
   entry

@@ -43,17 +43,17 @@ let uniq olds s = let cnt = ref 0 and u = ref s and matched = ref (Hashtbl.mem n
 
 let valid s' = let s = s'.id in
 let l = String.length s and truncate = ref false in
-let v = String.create l in for i = 0 to l-1 do match s.[i] with
-| '_' -> v.[i] <- s.[i];
-| 'A'..'Z' -> v.[i] <- s.[i];
-| 'a'..'z' -> v.[i] <- s.[i];
-| '0'..'9' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-| '$' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-| '#' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-| '\\' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-| '-' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-| ' ' -> if i == l-1 then truncate := true else v.[i] <- '_';
-| _ -> v.[i] <- '_';
+let v = Bytes.create l in for i = 0 to l-1 do match s.[i] with
+| '_' -> Bytes.set v i s.[i];
+| 'A'..'Z' -> Bytes.set v i s.[i];
+| 'a'..'z' -> Bytes.set v i s.[i];
+| '0'..'9' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+| '$' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+| '#' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+| '\\' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+| '-' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+| ' ' -> if i == l-1 then truncate := true else Bytes.set v i '_';
+| _ -> Bytes.set v i '_';
 done;
 uniq s (Bytes.to_string (if !truncate then Bytes.sub v 0 (l-1) else v))
 
@@ -427,7 +427,7 @@ let process_modinst oc kind find_dir symwidth primargs syms arg3 =
   List.iter (fun x -> (match x with
     | TRIPLE(ID idinst, SCALAR, TLIST arg4) -> 
         bprintf oc.(0) "VAR %s: %s(" (valid idinst) kind.id;
-        let argpos = Array.create (List.length primargs) ("",EMPTY,0,EMPTY)
+        let argpos = Array.make (List.length primargs) ("",EMPTY,0,EMPTY)
         and ix = ref 0 in List.iter (fun arg -> match arg with
           | ID id -> argpos.(!ix) <- (id.id,find_dir id,symwidth id,EMPTY); incr ix
           | _ -> unhandled stderr 341 arg) primargs;

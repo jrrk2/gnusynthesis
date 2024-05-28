@@ -232,7 +232,7 @@ rule lexer = parse
    (* next characters may be letters or underscore or digits: 0123456789 *)
  | ['A'-'Z' 'a'-'z' '\xC0'-'\xD6' '\xD8'-'\xF6' '\xF8'-'\xFF'] ['A'-'Z' 'a'-'z' '\xC0'-'\xD6' '\xD8'-'\xF6' '\xF8'-'\xFF' '_' '0'-'9']* as id
     { try
-        let lowerid = String.lowercase id in
+        let lowerid = String.lowercase_ascii id in
           Hashtbl.find vhdl_keywords lowerid
       with Not_found ->
         Lword (id, Lexing.lexeme_start lexbuf) }

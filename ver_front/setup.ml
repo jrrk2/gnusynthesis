@@ -50,7 +50,7 @@ let rec str_token (e:token) = match e with
 | SCALAR -> "scalar"
 | WIRE -> "wire"
 | REG -> "reg"
-| _ -> String.uppercase (Ord.getstr e)
+| _ -> String.uppercase_ascii (Ord.getstr e)
 
 type maincmd_t = (string, ((bool ref -> int -> int ref -> string array -> unit) * string * int)) Hashtbl.t
 

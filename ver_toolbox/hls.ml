@@ -605,11 +605,11 @@ let out = Minimap.netid "mul" tbl.gentab tbl.namtab in
                                               pins)])) (); (ID out,lwid)
 
 and times exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let pout = Array.create lwid (TIMES,0) in
-  let sum = Array.create lwid (TIMES,0) in
+  let pout = Array.make lwid (TIMES,0) in
+  let sum = Array.make lwid (TIMES,0) in
   let rght' = List.rev (Minimap.list_shorten lwid (Minimap.list_pad lwid (Minimap.concat_flatten' syms [lft]))) in
   list_iteri 0 (fun i select ->
-    pout.(i) <- tbl.map_hls.map_select.map_logand exp (tbl:tbl) syms (DOUBLE(CONCAT, TLIST (Array.to_list (Array.create rwid select))),rwid) (rght,rwid);
+    pout.(i) <- tbl.map_hls.map_select.map_logand exp (tbl:tbl) syms (DOUBLE(CONCAT, TLIST (Array.to_list (Array.make rwid select))),rwid) (rght,rwid);
     sum.(i) <- if i > 0 
     then
       let shft = (DOUBLE (CONCAT, TLIST [fst pout.(i); WIDTHNUM(2,i,0)]), rwid+i) in
@@ -619,7 +619,7 @@ and times exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
   sum.(lwid-1)
 
 and sleft exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let pout = Array.create rwid (P_SLEFT, 0) in
+  let pout = Array.make rwid (P_SLEFT, 0) in
   let rght' = List.rev (Minimap.list_shorten rwid (Minimap.list_pad rwid (Minimap.concat_flatten' syms [rght]))) in
   list_iteri 0 (fun i select ->
     if !verbose then printf "sleft %s %s\n" (Dump.dumpstr select) (Dump.dumpstr lft);
@@ -629,7 +629,7 @@ and sleft exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
   pout.(rwid-1)
 
 and sright exp (tbl:tbl) syms (lft,lwid) (rght,rwid) =
-  let pout = Array.create rwid (P_SRIGHT, 0) in
+  let pout = Array.make rwid (P_SRIGHT, 0) in
   let rght' = List.rev (Minimap.list_shorten rwid (Minimap.list_pad rwid (Minimap.concat_flatten' syms [rght]))) in
   list_iteri 0 (fun i select ->
     if !verbose then printf "sright %s %s\n" (Dump.dumpstr select) (Dump.dumpstr lft);
@@ -1010,7 +1010,7 @@ let map_mod_inst tbl syms kind modlst primargs find swidth modid params =
   begin
   let inst = List.map (function
     | TRIPLE(ID idinst, SCALAR, TLIST arg4) -> 
-        let argpos = Array.create (List.length primargs) (enterid "$",EMPTY,0,EMPTY)
+        let argpos = Array.make (List.length primargs) (enterid "$",EMPTY,0,EMPTY)
         and ix = ref 0 in List.iter (function
 	  | QUINTUPLE((INPUT|OUTPUT|INOUT), (EMPTY|REG), EMPTY, (EMPTY|RANGE(_,_)), DOUBLE(ID id, EMPTY))
           | ID id -> argpos.(!ix) <- (id,find id,swidth id,EMPTY); incr ix

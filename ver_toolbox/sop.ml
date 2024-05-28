@@ -290,7 +290,7 @@ let generate_sop_netlist mode k =
           if conn <> exp then (match conn with
             | ID id -> if is_used data conn then
                    begin
-                    Hashtbl.add asgnhash' id (Array.create 1 exp);
+                    Hashtbl.add asgnhash' id (Array.make 1 exp);
                     used data [conn;exp]
                   end
                 else unused := id :: !unused
@@ -298,7 +298,7 @@ let generate_sop_netlist mode k =
                   begin
                     let (hi,lo,inc) = Minimap.find_width id k.symbols in
                     if not (Hashtbl.mem asgnhash' id) then
-                      Hashtbl.add asgnhash' id (Array.create (hi+1) EMPTY);
+                      Hashtbl.add asgnhash' id (Array.make (hi+1) EMPTY);
                     (Hashtbl.find asgnhash' id).(idx) <- exp;
                     used data [conn;exp]
                   end

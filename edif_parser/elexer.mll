@@ -50,7 +50,7 @@ rule token = parse
     { hlog lexbuf ( RPAREN ) }
 | '"'[ ' ' '^' '~' '<' '=' '>' '|' '_' '-' ',' ';' ':' '!' '?' '/' '.' '`' '\'' '(' ')' '[' ']' '{' '}' '@' '$' '*' '\\' '&' '#' '%' '+' '0'-'9' 'a'-'z' 'A'-'Z' ]*'"' as ascii { hlog lexbuf (STRING ascii ) }
 | ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '_' '0'-'9' '$']* as word {
-let word2 = String.lowercase word in
+let word2 = String.lowercase_ascii word in
 if Hashtbl.mem Eord.esymbols word2 then hlog lexbuf (Hashtbl.find Eord.esymbols word2)
 else hlog lexbuf (ID word)
 }

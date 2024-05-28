@@ -147,7 +147,7 @@ let read_blif fil =
       let wir = QUADRUPLE(WIRE, EMPTY, TRIPLE (EMPTY, rng, EMPTY), TLIST [DOUBLE (ID id, EMPTY)]) in
       if not (Hashtbl.mem decl wir) then (
 	print_endline ("Input "^id.id^" is not used");
-      if (String.lowercase id.id).[0] = 'c' then (
+      if (String.lowercase_ascii id.id).[0] = 'c' then (
 	print_endline ("Assuming "^id.id^" is a clock");
 	match rng with
 	| EMPTY -> blifclk := ID id

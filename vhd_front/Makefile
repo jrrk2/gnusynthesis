@@ -21,15 +21,17 @@ export PARSER=`ocamlc -where`/../../bin/menhir --table --base VhdlParser # --tra
 export PARSERINC=`ocamlc -where`/../menhirLib
 export PARSERLIB=`ocamlc -where`/../menhirLib/menhirLib.cma
 export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmxa
+export NUMS=`ocamlc -where`/../num
+export UNIX=`ocamlc -where`/../unix
 
-INCLUDE = -I $(PARSERINC) -I ../ver_front
+INCLUDE = -I $(PARSERINC) -I ../ver_front -I $(NUMS)
 COMBINED = # combined.cmo vconvert.cmo 
 COMBINEDX = # combined.cmx vconvert.cmx
 VHDO = VhdlTypes.cmo asctoken.cmo VhdlTree.cmo vabstraction.cmo $(COMBINED) VhdlParser.cmo VhdlLexer.cmo VhdlSettings.cmo VhdlMain.cmo rewrite.cmo
 CMX = ../ver_front/ver_front.cmxa
 VHDX = VhdlTypes.cmx asctoken.cmx VhdlTree.cmx vabstraction.cmx $(COMBINEDX) VhdlParser.cmx VhdlLexer.cmx VhdlSettings.cmx VhdlMain.cmx
-CML = str.cma unix.cma nums.cma ../ver_front/ver_front.cma
-CMLX = str.cmxa unix.cmxa nums.cmxa
+CML = str.cma $(UNIX)/unix.cma $(NUMS)/nums.cma ../ver_front/ver_front.cma
+CMLX = str.cmxa unix.cmxa $(NUMS)/nums.cmxa
 MAING = v2abcgen.cmo
 
 all: vgen vhdltop vhd_front.cma vhd_front.cmxa
@@ -38,7 +40,7 @@ vgen: $(VHDO) $(MAING)
 	ocamlc.opt -g -o $@ $(PARSERLIB) $(CML) $(VHDO) $(MAING)
 
 vhdltop: $(VHDO)
-	ocamlmktop -g -o $@ `ocamlc -where`/{nums,str,unix}.cma $(PARSERLIB) ../ver_front/ver_front.cma $(VHDO)
+	ocamlmktop -I +unix -I +str -g -o $@ $(NUMS)/nums.cma str.cma unix.cma $(PARSERLIB) ../ver_front/ver_front.cma $(VHDO)
 
 vhd_front.cma: $(VHDO)
 	ocamlc.opt -g -a -o $@ $(VHDO)

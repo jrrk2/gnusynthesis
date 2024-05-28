@@ -91,7 +91,7 @@ let read_aiger_file logfile fil =
         let inputs = Array.init i (fun ix -> (0,sprintf "i%d" ix)) in
         let latches = Array.init l (fun ix -> (0,0,sprintf "l%d" ix)) in
         let outputs = Array.init o (fun ix -> (0,sprintf "o%d" ix)) in
-        let ands = Array.create a (0,0,0) in
+        let ands = Array.make a (0,0,0) in
         for k = 0 to i-1 do
 	  let arg1 = match f with
 	    | 'a' -> int_of_string (input_line inf)
@@ -293,7 +293,7 @@ let cnv_aiger logfile model nets inputs latches outputs ands =
       if not (Hashtbl.mem decl wir) then
 	begin
           let clk = ref false in
-	  if (String.lowercase id.id).[0] = 'c' then
+	  if (String.lowercase_ascii id.id).[0] = 'c' then
 	    begin
 	      let aigclk = match rng with
 		| EMPTY -> ID id

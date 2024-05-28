@@ -38,7 +38,7 @@ and width = ref 0
 and value = ref 0
 and basing = ref 0
 and converting = ref true in
-for idx = 0 to String.length(str)-1 do let ch = Char.lowercase(str.[idx]) in begin
+for idx = 0 to String.length(str)-1 do let ch = Char.lowercase_ascii(str.[idx]) in begin
 if (Globals.verbose > 2) then Printf.fprintf out_chan "%d %c %d %d %d\n" idx ch !base !value !width;
     match ch with
 | '_' -> ()

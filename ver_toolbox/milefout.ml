@@ -61,13 +61,13 @@ type milefrec = {nets:(string,string)Hashtbl.t;
 
 let milefname id =
   let i = ref 0 and len = String.length id in
-  let valid = String.create len in
+  let valid = Bytes.create len in
   while !i < len do (match id.[!i] with
-    | 'a'..'z' -> valid.[!i] <- id.[!i]
-    | 'A'..'Z' -> valid.[!i] <- id.[!i]
-    | '0'..'9' when !i > 0 -> valid.[!i] <- id.[!i]
-    | '_' when !i > 0 -> valid.[!i] <- '_'
-    | _ -> valid.[!i] <- (if !i > 0 then '.' else 'q')); incr i
+    | 'a'..'z' -> Bytes.set valid (!i) id.[!i]
+    | 'A'..'Z' -> Bytes.set valid (!i) id.[!i]
+    | '0'..'9' when !i > 0 -> Bytes.set valid (!i) id.[!i]
+    | '_' when !i > 0 -> Bytes.set valid (!i) '_'
+    | _ -> Bytes.set valid (!i) (if !i > 0 then '.' else 'q')); incr i
   done;
   Bytes.to_string valid
 

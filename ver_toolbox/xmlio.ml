@@ -1,4 +1,4 @@
-open String
+open Bytes
 open Globals
 open Vparser
 open Xmlm
@@ -73,9 +73,11 @@ let escaped s =
           end;
           incr n
         done;
-        Bytes.to_string s'
+        s'
       end
-    
+
+let escaped s = String.of_bytes (escaped (Bytes.of_string s))
+
 let xint n = Element("Int", [("_",string_of_int n)], [PCData "\n  "])
 let xid {Idhash.id} = Element("Id", [("_",id)], [PCData "\n  "])
 let rec xtok = function

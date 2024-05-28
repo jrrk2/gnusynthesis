@@ -38,7 +38,7 @@ let rec dump' buf = function
 | DECNUM c -> bprintf buf "Dec%s" c
 | FLOATNUM flt -> bprintf buf "(%f)" flt
 | HEXNUM c -> bprintf buf "Hex%s" c
-| ID str -> bprintf buf "%s" (String.uppercase str.id)
+| ID str -> bprintf buf "%s" (String.uppercase_ascii str.id)
 | ILLEGAL c -> bprintf buf "ILLEGAL%c" c
 | INTNUM c -> bprintf buf "%s" c
 | PREPROC str -> bprintf buf "PRE%s" str
@@ -46,7 +46,7 @@ let rec dump' buf = function
 | WIDTHNUM(radix,sz,num) -> bprintf buf "_%d" num
 | INT n -> bprintf buf "_%d" n
 | EMPTY -> ()
-| oth -> let tok = String.capitalize (Ord.getstr oth) in bprintf buf "%s" (String.sub tok 0 (min (String.length tok) 3))
+| oth -> let tok = String.capitalize_ascii (Ord.getstr oth) in bprintf buf "%s" (String.sub tok 0 (min (String.length tok) 3))
 
 let tokenstr tok = let buf = Buffer.create 64 in dump' buf tok; Buffer.contents buf
 

@@ -8,6 +8,7 @@ INT = $(subst .ml,.mli,$(SRC))
 CINT = $(subst .ml,.cmi,$(SRC))
 OBJ = $(subst .ml,.cmo,$(SRC))
 NAT = $(subst .ml,.cmx,$(SRC))
+NUM = -I $(BASE)/../num
 P5 = -I +camlp5 -I $(BASE)/../camlp5
 
 .PRECIOUS: $(INT) $(CINT)
@@ -18,10 +19,10 @@ dummy: $(OBJ)  theorem_proving.cma theorem_proving.cmxa
 all: target native
 
 target: $(OBJ) $(INT)
-	ocamlmktop -o $@ $(P5) camlp5o.cma nums.cma $(OBJ)
+	ocamlmktop -o $@ $(P5) $(NUM) camlp5o.cma nums.cma $(OBJ)
 
 native: $(NAT) $(INT)
-	ocamlopt.opt -o $@ $(P5) camlp5.cmxa nums.cmxa $(NAT)
+	ocamlopt.opt -o $@ $(P5) $(NUM) camlp5.cmxa nums.cmxa $(NAT)
 
 theorem_proving.cma: $(OBJ) $(INT)
 	ocamlc.opt -o $@ -a $(OBJ)
@@ -30,17 +31,17 @@ theorem_proving.cmxa: $(NAT) $(INT)
 	ocamlopt.opt -o $@ -a -I $(NAT)
 
 %.mli: %.ml
-	ocamlc -i $(P5) $< >$*.tmp
+	ocamlc -i $(P5) $(NUM) $< >$*.tmp
 	mv $*.tmp $@
 
 %.cmi: %.mli
-	ocamlc.opt -c  $<
+	ocamlc.opt -c $(NUM) $<
 
 %.cmo: %.cmi %.ml
-	ocamlc.opt -c $(P5) $*.ml
+	ocamlc.opt -c $(P5) $(NUM) $*.ml
 
 %.cmx: %.cmi %.ml
-	ocamlopt.opt -c $(P5) $*.ml
+	ocamlopt.opt -c $(P5) $(NUM) $*.ml
 
 clean:
 	rm -f $(OBJ) $(INT) $(CINT) target

@@ -46,7 +46,7 @@ let hlog lexbuf ktok:token = begin
     | PSL -> psl_nest := 0; true
     | SEMICOLON -> !psl_nest > 0
     | _ -> history.(!histcnt).psl) in
-  let ktok' = if psl or history.(!histcnt).psl then (match ktok with
+  let ktok' = if psl || history.(!histcnt).psl then (match ktok with
     | DEFAULT -> PSL_DEFAULT
     | ALWAYS -> PSL_ALWAYS
     | LCURLY -> incr psl_nest; TokenLBr
@@ -448,10 +448,10 @@ if Hashtbl.mem ksymbols word then let kw = Hashtbl.find ksymbols word in hlog le
 }
 | "$" { hlog lexbuf (DOLLAR) }
 | digit+'.'digit* as floatnum { hlog lexbuf ( FLOATNUM ( float_of_string floatnum ) ) }
-| digit*'\''['b' 'B']['0' '1' 'x' 'X' 'z' 'Z' '?' '_']+ as bnum { hlog lexbuf (BINNUM bnum ) }
-| digit*'\''['o' 'O']['0'-'7' 'x' 'X' 'z' 'Z' '?' '_']+ as onum { hlog lexbuf (OCTNUM onum ) }
-| digit*'\''['d' 'D']digit+ as dnum { hlog lexbuf (DECNUM dnum ) }
-| digit*'\''['h' 'H']['0'-'9' 'A'-'F' 'a'-'f' 'x' 'X' 'z' 'Z' '?' '_']+ as hnum { hlog lexbuf (HEXNUM hnum ) }
+| digit*'\''['b' 'B'][' ']*['0' '1' 'x' 'X' 'z' 'Z' '?' '_']+ as bnum { hlog lexbuf (BINNUM bnum ) }
+| digit*'\''['o' 'O'][' ']*['0'-'7' 'x' 'X' 'z' 'Z' '?' '_']+ as onum { hlog lexbuf (OCTNUM onum ) }
+| digit*'\''['d' 'D'][' ']*digit+ as dnum { hlog lexbuf (DECNUM dnum ) }
+| digit*'\''['h' 'H'][' ']*['0'-'9' 'A'-'F' 'a'-'f' 'x' 'X' 'z' 'Z' '?' '_']+ as hnum { hlog lexbuf (HEXNUM hnum ) }
 | digit+ as inum { hlog lexbuf (INTNUM inum ) }
 | '\"'anything_but_quote*'\"' as asciinum { hlog lexbuf (ASCNUM asciinum ) }
 | "`timescale" anything_but_newline+ as preproc { hlog lexbuf (P_TIMESCALE preproc) }

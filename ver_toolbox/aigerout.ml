@@ -409,7 +409,7 @@ let write_aiger_arch' arch nam file arg =
 	let ix = ref 0 in List.iter (function
 	  True (nam,_) | Compl (nam,_) -> fprintf oc "o%d %s\n" !ix nam; incr ix) aigerr.pos;
         fprintf oc "c\n%s\n" arg.comment;
-	let tmparr = Array.create (Hashtbl.length aigerr.nets) "" in
+	let tmparr = Array.make (Hashtbl.length aigerr.nets) "" in
         Hashtbl.iter (fun nam e -> match e with
 	  True (str,num) | Compl (str,num) -> tmparr.(num) <- nam) aigerr.nets;
         Array.iteri (fun num nam -> fprintf oc "n%d %s\n" (num*2) nam) tmparr;

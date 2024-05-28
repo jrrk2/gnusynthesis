@@ -16,7 +16,7 @@
 
 echo open String > eord.ml
 echo let esymbols = Hashtbl.create 256 >> eord.ml
-echo 'let _ = List.iter (fun (str,key) -> if str <> "" then Hashtbl.add esymbols (lowercase str) key) [' >> eord.ml
+echo 'let _ = List.iter (fun (str,key) -> if str <> "" then Hashtbl.add esymbols (lowercase_ascii str) key) [' >> eord.ml
 grep \| edif2.mli | tr '\011|' ' ' | sed -e 's=[\ ]*\([A-Z][A-Za-z0-9_]*\)=("\1", Edif2.\1=' -e 's= of (unit)= ()=' -e 's=$=);=' | grep -v ' of ' >> eord.ml
 echo '("", Edif2.EMPTY)]' >> eord.ml
 echo let getstr tok = match tok with >> eord.ml

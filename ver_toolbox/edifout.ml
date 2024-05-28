@@ -8,13 +8,13 @@ type nethash = (Vparser.token, (iopin * int * string) list * bool * Vparser.toke
 
 let edifname' id =
   let escaped = ref false and i = ref 0 and len = String.length id in
-  let valid = String.create len in
+  let valid = Bytes.create len in
   while !i < len do (match id.[!i] with
-    | 'a'..'z' -> valid.[!i] <- id.[!i]
-    | 'A'..'Z' -> valid.[!i] <- id.[!i]
-    | '0'..'9' when !i > 0 -> valid.[!i] <- id.[!i]
-    | '_' when !i > 0 -> valid.[!i] <- '_'
-    | _ -> valid.[!i] <- (if !i > 0 then '_' else 'q'); escaped := true); incr i
+    | 'a'..'z' -> Bytes.set valid (!i) id.[!i]
+    | 'A'..'Z' -> Bytes.set valid (!i) id.[!i]
+    | '0'..'9' when !i > 0 -> Bytes.set valid (!i) id.[!i]
+    | '_' when !i > 0 -> Bytes.set valid (!i) '_'
+    | _ -> Bytes.set valid (!i) (if !i > 0 then '_' else 'q'); escaped := true); incr i
   done;
   (!escaped,Bytes.to_string valid)
 
@@ -45,7 +45,7 @@ let edifout fd stats tree comment = match tree with QUINTUPLE(MODULE, ID top', E
     fprintf fd "       (view netlist (viewType NETLIST)\n";
     fprintf fd "         (interface\n";
     List.iter (function
-      | QUINTUPLE(dir, EMPTY, EMPTY, rng, TLIST idlst) -> let dirstr = String.uppercase(Ord.getstr dir) in List.iter (function
+      | QUINTUPLE(dir, EMPTY, EMPTY, rng, TLIST idlst) -> let dirstr = String.uppercase_ascii (Ord.getstr dir) in List.iter (function
           | TRIPLE (ID itm, EMPTY, EMPTY) -> (match rng with
               | RANGE(INT hi, INT lo) ->
                 for i = lo to hi do netid hash (TRIPLE (BITSEL, ID itm, INT i)) rng dir None done;
@@ -182,7 +182,7 @@ let edifout fd stats tree comment = match tree with QUINTUPLE(MODULE, ID top', E
           | QUINTUPLE(MODULE, ID top, EMPTY, TLIST iolst, THASH insts) ->
             Hashtbl.iter (fun k _ -> match k with
               | QUINTUPLE(dir, EMPTY, EMPTY, rng, TLIST idlst) ->
-                let dirstr = String.uppercase(Ord.getstr dir) in
+                let dirstr = String.uppercase_ascii (Ord.getstr dir) in
                 List.iter (function
                   | TRIPLE (ID itm, EMPTY, EMPTY) -> (match rng with
                       | RANGE(expr1, expr2) -> let (hi,lo,dir) = Const.iwidth stderr submod.symbols rng in

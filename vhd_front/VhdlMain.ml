@@ -199,7 +199,7 @@ let parse_library_package settings library package =
                with
                  | Sys_error _ -> find_file_in next_path filename;
     in find_file_in librarypath filename;
-  and filename = String.lowercase (library ^ "." ^ package ^ ".vhd");
+  and filename = String.lowercase_ascii (library ^ "." ^ package ^ ".vhd");
   in
     let dir_filename,chan =
       find_file ["."] filename;
@@ -386,10 +386,10 @@ let main psuccess args = ( if (!Globals.logfile == Setup.Closed) then
       flush stderr;
 
       (* flush result output channel *)
-      Pervasives.flush !settings.rawresultchan;
+      flush !settings.rawresultchan;
       (*close_out !settings.rawresultchan;*)
       (* flush status output channel *)
-      Pervasives.flush !settings.statuschan;
+      flush !settings.statuschan;
       (* redirect result and status output channels to stdout and stderr *)
       settings := {!settings with rawresultchan=stdout;statuschan=stderr}
 

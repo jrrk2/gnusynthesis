@@ -190,13 +190,13 @@ Hashtbl.iter (fun (c,k) pat -> abslst := (patabstract nam pat) @ !abslst) vhdlha
 
 let fd = open_out (nam^".ml") in
 Printf.fprintf fd "\nopen VhdlTree\n\nlet rec match_%s = function\n" nam;
-let last = ref "" in List.iter (fun itm -> if (itm <> !last) & (String.sub itm 0 9 <> "| str0 ->")  & (String.sub itm 0 9 <> "| lst0 ->") then (
+let last = ref "" in List.iter (fun itm -> if (itm <> !last) && (String.sub itm 0 9 <> "| str0 ->") && (String.sub itm 0 9 <> "| lst0 ->") then (
     let pc = String.index itm '%' in
     if not (Hashtbl.mem hashtab itm) then Hashtbl.replace hashtab itm (Hashtbl.length hashtab);
     let outstr = String.sub itm 0 pc^(string_of_int (Hashtbl.find hashtab itm))^String.sub itm (pc+1) ((String.length itm)-(pc+1)) in
     let tab = ref 0 in for i = 0 to (String.length outstr)-1 do 
       output_char fd outstr.[i];
-      if (outstr.[i]=',')&(i > !tab+80) then (output_string fd "\n\t"; tab := i)
+      if (outstr.[i]=',') && (i > !tab+80) then (output_string fd "\n\t"; tab := i)
       done;
       output_char fd '\n');
   last := itm) (List.sort compare !abslst);
@@ -206,7 +206,7 @@ Printf.fprintf fd "| others -> others\n";
 close_out fd;
 let max = ref 0 in Hashtbl.iter (fun str itm -> if !max < itm then max := itm) hashtab;
 let fd2 = open_out (nam^".digest.new") in
-let arr = Array.create (!max+1) "" in
+let arr = Array.make (!max+1) "" in
 Hashtbl.iter (fun str itm -> arr.(itm) <- str) hashtab;
 Array.iteri (fun ix str -> fprintf fd2 "%.3d %s \"%s\"\n" ix (Digest.to_hex (Digest.string str)) (String.escaped str)) arr;
 close_out fd2

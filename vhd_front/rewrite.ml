@@ -848,7 +848,7 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 		  Sextuple (Vhdinterface_default_declaration, Str port,
 			    mode,
 			    Quadruple (Vhdsubtype_indication, Str "", Str kind, subtype_constraint),
-			    VhdSignalKindDefault, VhdNone))) when String.uppercase(kind)="INTEGER" ->
+			    VhdSignalKindDefault, VhdNone))) when String.uppercase_ascii(kind)="INTEGER" ->
   (match mode with
     | VhdInterfaceModeIn -> Buffer.add_string args.buf "input integer"
     | VhdInterfaceModeOut -> Buffer.add_string args.buf "output integer"
@@ -860,7 +860,7 @@ List.iter (match2 args) (match lst2 with List lst -> lst | _ -> [lst2]);
 		  Sextuple (Vhdinterface_default_declaration, Str port,
 			    mode,
 			    Quadruple (Vhdsubtype_indication, Str "", Str kind, subtype_constraint),
-			    VhdSignalKindDefault, VhdNone))) when String.uppercase(kind)="STD_LOGIC" ->
+			    VhdSignalKindDefault, VhdNone))) when String.uppercase_ascii(kind)="STD_LOGIC" ->
    match2 args mode;
   Buffer.add_string args.buf ("\t\t"^port);
   args.siglst := (port,dummyrng 0 0) :: !(args.siglst);

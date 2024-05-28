@@ -59,7 +59,7 @@ let create sz =
   let sz = if sz < 7 then 7 else sz in
   let sz = if sz > Sys.max_array_length then Sys.max_array_length else sz in
   let emptybucket = Weak.create 0 in
-  { table = Array.create sz emptybucket;
+  { table = Array.make sz emptybucket;
     totsize = 0;
     limit = 3; }
 
@@ -195,7 +195,7 @@ module Bdd = struct
   type t = bdd
   let equal = (==)
   let hash b = b.tag
-  let compare b1 b2 = Pervasives.compare b1.tag b2.tag
+  let compare b1 b2 = compare b1.tag b2.tag
 end
 module H1 = Hashtbl.Make(Bdd)
 

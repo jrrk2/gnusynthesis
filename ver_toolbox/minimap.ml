@@ -681,17 +681,17 @@ let uniq namtab (olds:string) (s:string) = let cnt = ref 0 and u = ref s and mat
 
 let valid namtab s =
   let l = String.length s and truncate = ref false in
-  let v = String.create l in for i = 0 to l-1 do match s.[i] with
-    | '_' -> v.[i] <- s.[i];
-    | 'A'..'Z' -> v.[i] <- s.[i];
-    | 'a'..'z' -> v.[i] <- s.[i];
-    | '0'..'9' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-    | '$' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-    | '#' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-    | '\\' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-    | '-' -> if i > 0 then v.[i] <- s.[i] else v.[i] <- '_';
-    | ' ' -> if i == l-1 then truncate := true else v.[i] <- '_';
-    | _ -> v.[i] <- '_';
+  let v = Bytes.create l in for i = 0 to l-1 do match s.[i] with
+    | '_' -> Bytes.set v i s.[i];
+    | 'A'..'Z' -> Bytes.set v i s.[i];
+    | 'a'..'z' -> Bytes.set v i s.[i];
+    | '0'..'9' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+    | '$' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+    | '#' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+    | '\\' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+    | '-' -> if i > 0 then Bytes.set v i s.[i] else Bytes.set v i '_';
+    | ' ' -> if i == l-1 then truncate := true else Bytes.set v i '_';
+    | _ -> Bytes.set v i '_';
     done;
   uniq namtab s (Bytes.to_string (if !truncate then Bytes.sub v 0 (l-1) else v))
 

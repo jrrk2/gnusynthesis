@@ -133,6 +133,7 @@ expr: expr PLUS expr { TUPLE4(STRING("expr40"),$1,PLUS,$3) }
 	|	MINUS expr { TUPLE3(STRING("expr45"),MINUS,$2) }
 	|	PLUS expr { TUPLE3(STRING("expr46"),PLUS,$2) }
 	|	NUM { (NUM $1) }
+	|	NUM IDENT { TUPLE3 (STRING "units", NUM $1, IDENT $2) }
 	|	IDENT { (IDENT $1) }
 
 

@@ -24,13 +24,13 @@ export PARSERLIBX=`ocamlc -where`/../menhirLib/menhirLib.cmxa
 export NUMS=`ocamlc -where`/../num
 export UNIX=`ocamlc -where`/../unix
 
-INCLUDE = -I $(PARSERINC) -I ../ver_front -I $(NUMS)
+INCLUDE = -I $(PARSERINC) -I ../ver_front -I $(NUMS) -I `ocamlc -where`/../menhirLib
 COMBINED = # combined.cmo vconvert.cmo 
 COMBINEDX = # combined.cmx vconvert.cmx
 VHDO = VhdlTypes.cmo asctoken.cmo VhdlTree.cmo vabstraction.cmo $(COMBINED) VhdlParser.cmo VhdlLexer.cmo VhdlSettings.cmo VhdlMain.cmo rewrite.cmo
 CMX = ../ver_front/ver_front.cmxa
 VHDX = VhdlTypes.cmx asctoken.cmx VhdlTree.cmx vabstraction.cmx $(COMBINEDX) VhdlParser.cmx VhdlLexer.cmx VhdlSettings.cmx VhdlMain.cmx
-CML = str.cma $(UNIX)/unix.cma $(NUMS)/nums.cma ../ver_front/ver_front.cma
+CML = str.cma unix.cma $(NUMS)/nums.cma ../ver_front/ver_front.cma
 CMLX = str.cmxa unix.cmxa $(NUMS)/nums.cmxa
 MAING = v2abcgen.cmo
 

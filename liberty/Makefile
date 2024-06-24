@@ -19,12 +19,13 @@
 .PHONY: everything
 PARSER=ocamlyacc
 MENHIRFLAGS= --infer # --trace
+MENHIRFLAGSF= --infer
 PARSER=menhir $(MENHIRFLAGS)
 
 libs: File.cma File.cmxa Formula.cma Formula.cmxa
 
-demo: Formula.cma
-	ocamlmktop -o $@ $<
+demo: Formula.cma File.cma
+	ocamlmktop -o $@ Formula.cma File.cma
 
 File.cma: File.cmo File_types.cmo File_ord.ml File_lex.ml File_rewrite_types.mli File_rewrite.ml
 	ocamlc -g -a -o $@ File_types.cmo File.cmo File_ord.ml File_lex.ml File_rewrite_types.mli File_rewrite.ml
@@ -45,7 +46,7 @@ File_lex.ml: File_lex.mll
 	ocamllex $<
 
 File.ml File.mli: File.mly
-	menhir $(MENHIRFLAGS) $<
+	menhir $(MENHIRFLAGSF) $<
 
 File_ord.ml: ord_file.sh File.mli
 	sh ord_file.sh

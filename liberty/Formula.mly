@@ -80,13 +80,13 @@ ml_start: orfact EOF_TOKEN { $1 }
 
 expr:     orfact { $1 }
 
-orfact:   andfact VBAR andfact { TUPLE3($1, VBAR, $3) }
+orfact:   andfact VBAR orfact { TUPLE3($1, VBAR, $3) }
         | andfact { $1 }
 
-andfact:  caretfact AMPERSAND caretfact { TUPLE3($1, AMPERSAND, $3) }
+andfact:  caretfact AMPERSAND andfact { TUPLE3($1, AMPERSAND, $3) }
         | caretfact { $1 }
 
-caretfact: fact CARET fact { TUPLE3($1, CARET, $3) }
+caretfact: fact CARET caretfact { TUPLE3($1, CARET, $3) }
         | fact { $1 }
 
 fact:     IDENT { IDENT $1 }

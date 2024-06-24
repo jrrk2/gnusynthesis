@@ -1,9 +1,20 @@
 #directory "../ver_front";;
 
+open File
 open Formula
 open Formula_rewrite
 open Globals
 open Vparser
+open File_rewrite
 
 let form = "!(((C1 | C2) & A) & (B1 | B2))";;
-let rslt = rewrite form;;
+let rslt = Formula_rewrite.rewrite form;;
+let othf = ref ("", "");;
+
+(* https://raw.githubusercontent.com/ieee-ceda-datc/RDF-2019/master/techlibs/NCTUcell_lib/NCTU_75T.lib *)
+let rw, cellhash = File_rewrite.rewrite "NCTU_75T.lib";;
+let _ = print_endline (string_of_int (Hashtbl.length cellhash));;
+let cells = ref [];;
+Hashtbl.iter (fun k (iolst, formlst) ->
+cells := (k,(iolst,List.map (fun (y,form) -> othf := k, form; y, try Formula_rewrite.rewrite form with _ -> failwith form) formlst)) :: !cells) cellhash;;
+let cells = List.sort compare !cells;;

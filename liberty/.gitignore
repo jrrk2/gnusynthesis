@@ -5,3 +5,5 @@
 *.cmxa
 *.o
 *.a
+File.ml
+Formula.ml

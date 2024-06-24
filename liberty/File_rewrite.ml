@@ -150,6 +150,15 @@ type liberty =
 | LibFeatures of liberty list
 
 let unhand = ref None
+let lst = ref []
+
+let scaling = function
+| "pW" -> 1e-12
+| "kohm" -> 1e3
+| "mA" -> 1e-3
+| "V" -> 1.0
+| "ps" -> 1e-12
+| oth -> failwith ("Units: "^oth^" not recognised")
 
 let rec rw' = function
 | TUPLE4 (TUPLE4 (IDENT "library", LPAR, IDENT nam, RPAR), LCURLY, TLIST lst, RCURLY) -> Library (nam, List.rev_map rw' lst)
@@ -184,8 +193,11 @@ StateTable(List.rev_map rw' pinlst, s)
 | TUPLE4 (IDENT "sdf_cond", COLON, STRING s, SEMI) -> SDF_cond s
 | TUPLE4 (IDENT "function", COLON, STRING s, SEMI) -> Function s
 | TUPLE4 (IDENT "direction", COLON, IDENT s, SEMI) -> Direction s
+| TUPLE4 (IDENT ("cell_leakage_power" as p), COLON, TUPLE3 (NUM mant, PLUS, NUM expo), SEMI) -> Parameter(p, float_of_string (mant^"+"^expo))
+| TUPLE4 (IDENT ("default_wire_load_mode"|"output_voltage"|"input_voltage"|"driver_waveform_fall"|"driver_waveform_rise"|"driver_waveform_name" as p), COLON, (STRING _|IDENT _), SEMI) -> Parameter (p, 0.0)
+| TUPLE4 (IDENT ("voltage_unit"|"time_unit"|"leakage_power_unit"|"pulling_resistance_unit"|"current_unit" as p), COLON, TLIST [IDENT units; NUM num], SEMI) -> Parameter (p, float_of_string num *. scaling units)
 | TUPLE4 (IDENT ("pg_type"|"voltage_name"|"timing_type"|"clock"|"nextstate_type"|"clear_preset_var2"|"clear_preset_var1"|"dont_use"|"dont_touch"|"clock_gate_out_pin"|"clock_gate_enable_pin"|"clock_gate_clock_pin"|"internal_node"|"clock_gating_integrated_cell"|"clock_gate_test_pin"|"variable_1"|"variable_2"|"default_operating_conditions"|"tree_type"|"in_place_swap_mode"|"delay_model" as p), COLON, IDENT s, SEMI) -> Related (p, s)
-| TUPLE4 (IDENT ("drive_strength"|"area"|"cell_leakage_power"|"capacitance"|"max_capacitance"|"rise_capacitance"|"fall_capacitance"|"value"|"slope"|"resistance"|"default_max_transition"|"default_fanout_load"|"default_output_pin_cap"|"default_input_pin_cap"|"default_inout_pin_cap"|"default_cell_leakage_power"|"default_leakage_power_density"|"output_threshold_pct_rise"|"output_threshold_pct_fall"|"input_threshold_pct_rise"|"input_threshold_pct_fall"|"slew_derate_from_library"|"slew_upper_threshold_pct_rise"|"slew_upper_threshold_pct_fall"|"slew_lower_threshold_pct_rise"|"slew_lower_threshold_pct_fall"|"temperature"|"voltage"|"process"|"nom_voltage"|"nom_temperature"|"nom_process" as p), COLON, NUM s, SEMI) ->
+| TUPLE4 (IDENT ("capacitance"|"cell_leakage_power"|"default_cell_leakage_power"|"default_fanout_load"|"default_inout_pin_cap"|"default_input_pin_cap"|"default_leakage_power_density"|"default_max_fanout"|"default_output_pin_cap"|"input_threshold_pct_fall"|"input_threshold_pct_rise"|"max_capacitance"|"nom_process"|"nom_temperature"|"nom_voltage"|"output_threshold_pct_fall"|"output_threshold_pct_rise"|"process"|"slew_derate_from_library"|"slew_lower_threshold_pct_fall"|"slew_lower_threshold_pct_rise"|"slew_upper_threshold_pct_fall"|"slew_upper_threshold_pct_rise"|"temperature"|"value"|"vih"|"vil"|"vimax"|"vimin"|"voh"|"vol"|"voltage"|"vomax"|"vomin" as p), COLON, (NUM s|STRING s), SEMI) -> if not (List.mem p !lst) then lst := p :: !lst;
     Parameter (p, float_of_string s)
 | TUPLE4 (IDENT "define", LPAR, TLIST lst, RPAR) -> Define(List.rev_map (function IDENT id -> id | oth -> unhand := Some oth; failwith "define") lst)
 | STRING s -> String s
@@ -238,7 +250,7 @@ let rec strip = function
 | TUPLE8(STRING _, arg1, arg2, arg3, arg4, arg5, arg6, arg7) -> TUPLE7(strip arg1, strip arg2, strip arg3, strip arg4, strip arg5, strip arg6, strip arg7)
 | TUPLE9(STRING _, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) -> TUPLE8(strip arg1, strip arg2, strip arg3, strip arg4, strip arg5, strip arg6, strip arg7, strip arg8)
 | TUPLE10(STRING _, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) -> TUPLE9(strip arg1, strip arg2, strip arg3, strip arg4, strip arg5, strip arg6, strip arg7, strip arg8, strip arg9)
-| (COMMA|LCURLY|RCURLY|EOF_TOKEN|SEMI|COLON|LPAR|RPAR|IDENT _|STRING _|NUM _) as x -> x
+| (PLUS|COMMA|LCURLY|RCURLY|EOF_TOKEN|SEMI|COLON|LPAR|RPAR|IDENT _|STRING _|NUM _) as x -> x
 | oth -> unhand := Some oth; failwith "strip"
 
 let rewrite arg =
